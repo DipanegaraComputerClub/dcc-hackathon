@@ -9,10 +9,17 @@
 
 ---
 
-## 🧑‍💻 Profil Peserta Hackathon
+## 🧑‍💻 Profil Team Hackathon
 
-Halo! Saya adalah Team yang mengikuti Hackathon ini dengan penuh antusias.  
-README ini menjadi dokumentasi perjalanan, ide, hingga proses pembangunan project yang saya kerjakan selama kompetisi berlangsung.  
+Halo! Saya Kami adalah Team yang mengikuti Hackathon ini dengan penuh antusias.  
+README ini menjadi dokumentasi perjalanan, ide, hingga proses pembangunan project yang Kami kerjakan selama kompetisi berlangsung.  
+
+Member :
+- Muhammad Amin Hidayat (https://github.com/dayattt111)
+- Muhammad Khoilullah (https://github.com/kholilullahhhh)
+- Aan (github.com/)
+- Muhammad Raihan (github.com/)
+- Rahmatia Ramadhani (github.com/)
 
 Hackathon bagi saya bukan hanya event, tapi ajang untuk:
 - Belajar cepat,
@@ -54,3 +61,4 @@ Project ini dibuat sebagai solusi dari problem statement yang diberikan, dengan 
 
 ## 📂 Struktur Proyek
 
+**Bentar masih diskusi dulu bang.**
