@@ -1,9 +1,10 @@
 import { Hono } from 'hono'
 
-const app = new Hono()
+const server = Bun.serve({
+  port: 3001, // Ganti dengan nomor port yang Anda inginkan
+  fetch(req) {
+    return new Response("Halo dari Bun!");
+  },
+});
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
-
-export default app
+console.log(`Mendengarkan di http://localhost:${server.port}`);
