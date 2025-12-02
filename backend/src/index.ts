@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 const server = Bun.serve({
   port: 3001, // Ganti dengan nomor port yang Anda inginkan
   fetch(req) {
-    return new Response("Halo dari Bun!");
+    return new Response("Halo dari Bunnn!");
   },
 });
 
