@@ -28,7 +28,7 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Password tidak cocok!");
+      alert("Password tidak cocok, mi!");
       return;
     }
 
@@ -42,33 +42,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+      <div className="w-full max-w-md animate-fadeIn">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 p-3 shadow-lg shadow-blue-500/30">
+          <div className="inline-flex items-center gap-2 mb-2 justify-center">
+            <div className="rounded-full bg-gradient-to-br from-yellow-500 to-red-500 p-5 shadow-lg shadow-yellow-400/30 animate-pulse">
               <LayoutDashboard className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-            AdminHub
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-red-500 bg-clip-text text-transparent">
+            TABE AI
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Buat akun baru Anda
+          <p className="text-gray-700 dark:text-gray-300 mt-1">
+            Buat akun baru dan mulai tingkatkan UMKM-mu, mi!
           </p>
         </div>
 
         {/* Register Card */}
-        <Card>
+        <Card className="shadow-lg border border-yellow-200">
           <CardHeader>
             <CardTitle>Register</CardTitle>
             <CardDescription>
-              Isi form di bawah untuk membuat akun baru
+              Isi form di bawah untuk membuat akun baru, ji
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Nama */}
               <div>
                 <label className="text-sm font-medium">Nama Lengkap</label>
                 <div className="relative mt-1">
@@ -86,6 +87,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Email */}
               <div>
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative mt-1">
@@ -103,6 +105,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Password */}
               <div>
                 <label className="text-sm font-medium">Password</label>
                 <div className="relative mt-1">
@@ -120,6 +123,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Konfirmasi Password */}
               <div>
                 <label className="text-sm font-medium">
                   Konfirmasi Password
@@ -142,44 +146,51 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Checkbox */}
               <div className="flex items-start gap-2">
                 <input
                   type="checkbox"
-                  className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="mt-1 rounded border-yellow-400 text-yellow-500 focus:ring-yellow-400"
                   required
                 />
-                <label className="text-sm text-gray-600 dark:text-gray-400">
+                <label className="text-sm text-gray-700 dark:text-gray-300">
                   Saya setuju dengan{" "}
                   <Link
                     href="#"
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-red-500 hover:underline dark:text-red-400"
                   >
                     Syarat & Ketentuan
                   </Link>{" "}
                   dan{" "}
                   <Link
                     href="#"
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-red-500 hover:underline dark:text-red-400"
                   >
                     Kebijakan Privasi
                   </Link>
                 </label>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Loading..." : "Daftar"}
+              {/* Submit */}
+              <Button
+                type="submit"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg shadow-md"
+                disabled={isLoading}
+              >
+                {isLoading ? "Memproses..." : "Daftar, mi!"}
               </Button>
             </form>
 
+            {/* Login Link */}
             <div className="mt-6 text-center text-sm">
-              <span className="text-gray-500 dark:text-gray-400">
+              <span className="text-gray-700 dark:text-gray-300">
                 Sudah punya akun?{" "}
               </span>
               <Link
                 href="/login"
-                className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                className="font-medium text-red-500 hover:underline dark:text-red-400"
               >
-                Login di sini
+                Login di sini, ji
               </Link>
             </div>
           </CardContent>
