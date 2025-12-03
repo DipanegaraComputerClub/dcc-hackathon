@@ -4,42 +4,66 @@ import { supabase } from './supabase'
 const app = new Hono()
 
 // Root
-app.get('/', (c) => c.text('Hono + Bun + Supabase Connected'))
+app.get('/', (c) => c.text('Hono + Bun + Supabase Connected 🚀'))
 
-// ========== GET: Ambil semua notes ==========
-app.get('/notes', async (c) => {
-  const { data, error } = await supabase.from('profiles').select('*')
+// ================================
+// GET ALL MENUS
+// ================================
+app.get('/menus', async (c) => {
+  const { data, error } = await supabase.from('menus').select('*')
 
   if (error) return c.json({ error }, 500)
   return c.json({ data })
 })
 
-// ========== POST: Tambah note ==========
-app.post('/notes', async (c) => {
-  const body = await c.req.json()
-
-  const { title } = body
-  if (!title) return c.json({ error: 'title wajib diisi' }, 400)
+// ================================
+// GET MENU BY ID
+// ================================
+app.get('/menus/:id', async (c) => {
+  const id = c.req.param('id')
 
   const { data, error } = await supabase
-    .from('notes')
-    .insert([{ title }])
+    .from('menus')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) return c.json({ error }, 404)
+  return c.json({ data })
+})
+
+// ================================
+// CREATE MENU
+// ================================
+app.post('/menus', async (c) => {
+  const body = await c.req.json()
+  const { name, price, description } = body
+
+  if (!name || !price) {
+    return c.json({ error: 'name dan price wajib diisi' }, 400)
+  }
+
+  const { data, error } = await supabase
+    .from('menus')
+    .insert([{ name, price, description }])
     .select()
 
   if (error) return c.json({ error }, 500)
   return c.json({ data })
 })
 
-// ========== PUT: Update note ==========
-app.put('/notes/:id', async (c) => {
+// ================================
+// UPDATE MENU
+// ================================
+app.put('/menus/:id', async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
 
-  const { title } = body
+  const { name, price, description } = body
 
   const { data, error } = await supabase
-    .from('notes')
-    .update({ title })
+    .from('menus')
+    .update({ name, price, description })
     .eq('id', id)
     .select()
 
@@ -47,12 +71,14 @@ app.put('/notes/:id', async (c) => {
   return c.json({ data })
 })
 
-// ========== DELETE: Hapus note ==========
-app.delete('/notes/:id', async (c) => {
+// ================================
+// DELETE MENU
+// ================================
+app.delete('/menus/:id', async (c) => {
   const id = c.req.param('id')
 
   const { data, error } = await supabase
-    .from('notes')
+    .from('menus')
     .delete()
     .eq('id', id)
     .select()
