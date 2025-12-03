@@ -29,7 +29,7 @@ export default function LoginPage() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      router.push("/");
+      router.push("/dasboard");
     }, 1000);
   };
 
