@@ -1,119 +1,155 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-/* @import "../Style/style.css"; */
+@import "tailwindcss";
 
-html {
-  scroll-behavior: smooth;
-  @apply overflow-x-hidden;
+/* CSS Variables */
+:root {
+  --background: 249 250 251;
+  --foreground: 17 24 39;
+  --card: 255 255 255;
+  --card-foreground: 17 24 39;
+  --primary: 59 130 246;
+  --primary-foreground: 255 255 255;
+  --secondary: 243 244 246;
+  --secondary-foreground: 17 24 39;
+  --muted: 243 244 246;
+  --muted-foreground: 107 114 128;
+  --accent: 243 244 246;
+  --accent-foreground: 17 24 39;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 229 231 235;
+  --input: 229 231 235;
+  --ring: 59 130 246;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 3 7 18;
+  --foreground: 249 250 251;
+  --card: 17 24 39;
+  --card-foreground: 249 250 251;
+  --primary: 59 130 246;
+  --primary-foreground: 255 255 255;
+  --secondary: 31 41 55;
+  --secondary-foreground: 249 250 251;
+  --muted: 31 41 55;
+  --muted-foreground: 156 163 175;
+  --accent: 31 41 55;
+  --accent-foreground: 249 250 251;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 31 41 55;
+  --input: 31 41 55;
+  --ring: 59 130 246;
 }
 
 body {
-  @apply overflow-x-hidden dark:bg-darkmode;
+  background-color: rgb(249 250 251);
+  color: rgb(17 24 39);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+.dark body {
+  background-color: rgb(3 7 18);
+  color: rgb(249 250 251);
 }
 
-@layer components {
-  section {
-    @apply md:py-20 py-10;
-  }
-  input::placeholder,
-  textarea::placeholder {
-    @apply text-SlateBlueText text-17 font-normal;
-  }
-  h1 {
-    @apply md:text-53 text-40 font-bold text-MidnightNavyText dark:text-white;
-  }
-  h2 {
-    @apply md:text-40 text-28 font-bold text-MidnightNavyText dark:text-white;
-  }
-  .btn_primary {
-    @apply bg-primary text-white py-3 px-8 rounded-lg cursor-pointer transition-all duration-0.4s inline-block;
-  }
-  .container {
-    @apply w-full block max-w-1200 m-auto py-0 px-7;
-  }
-  select {
-    @apply appearance-none bg-[url('/images/contact-page/dropdown.svg')] bg-no-repeat bg-[90%_50%];
-  }
-  /* Primary Button Hover */
-  .btn {
-    @apply relative inline-block bg-transparent border-none cursor-pointer before:absolute before:content-[''] after:absolute after:content-[''];
-  }
-  .btn span {
-    @apply relative inline-block text-17 font-medium top-0 left-0 w-full py-4 px-7 transition-all duration-0.4s;
-  }
-  .btn-1::before {
-    @apply bg-primary transition-all duration-0.4s;
-  }
-  .btn-1 span {
-    @apply text-white border border-solid border-primary rounded-lg transition-all duration-0.4s;
-  }
-  .btn-1 span:hover {
-    @apply text-primary transition-all duration-0.4s;
-  }
-  .btn.hover-filled-slide-down::before {
-    @apply bottom-0 left-0 right-0 h-full w-full;
-  }
-  .btn.hover-filled-slide-down:hover::before {
-    @apply h-0;
-  }
-  /* Button Hover End */
-
-  /* Outline Primary Button Hover */
-  .btn_outline {
-    @apply relative inline-block bg-transparent border-none cursor-pointer before:absolute before:content-[''] after:absolute after:content-[''];
-  }
-  .btn_outline span {
-    @apply relative inline-block text-17 font-medium top-0 left-0 w-full py-4 px-7 transition-all duration-0.4s;
-  }
-  .btn-2::before {
-    @apply bg-primary transition-all duration-0.4s rounded-lg;
-  }
-  .btn-2 span {
-    @apply text-primary border border-solid border-primary rounded-lg transition-all duration-0.4s;
-  }
-  .btn-2 span:hover {
-    @apply text-white transition-all duration-0.4s;
-  }
-  .btn_outline.hover-outline-slide-down::before {
-    @apply top-0 left-0 right-0 h-0 w-full;
-  }
-  .btn_outline.hover-outline-slide-down:hover::before {
-    @apply h-full;
-  }
-  /* Outline Primary Button Hover End */
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.blog-details p,
-.blog-details hr {
-  @apply mb-8 text-SlateBlueText;
+::-webkit-scrollbar-track {
+  background-color: rgb(243 244 246);
 }
 
-.blog-details hr {
-  @apply dark:border-dark_border;
+.dark ::-webkit-scrollbar-track {
+  background-color: rgb(17 24 39);
 }
 
-.blog-details strong {
-  @apply font-bold dark:text-white;
+::-webkit-scrollbar-thumb {
+  background-color: rgb(209 213 219);
+  border-radius: 9999px;
 }
-.blog-details ul {
-  @apply mb-8 list-inside list-disc space-y-3 text-SlateBlueText;
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgb(55 65 81);
 }
-.blog-details ol {
-  @apply mb-8 list-inside list-decimal space-y-3;
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(156 163 175);
 }
-.blog-details h1 {
-  @apply mb-8 text-3xl font-bold text-secondary dark:text-white sm:text-4xl md:text-40;
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(75 85 99);
 }
-.blog-details h2 {
-  @apply mb-8 text-2xl font-bold text-secondary dark:text-white sm:text-3xl md:text-36;
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
-.blog-details h3 {
-  @apply mb-6 text-2xl font-bold dark:text-white sm:text-28;
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-in-from-right {
+  animation: slideIn 0.3s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.glass {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+}
+
+.dark .glass {
+  background-color: rgba(17, 24, 39, 0.8);
+}
+
+.gradient-primary {
+  background-image: linear-gradient(to right, rgb(37 99 235), rgb(29 78 216));
+}
+
+.gradient-secondary {
+  background-image: linear-gradient(to right, rgb(147 51 234), rgb(219 39 119));
 }
