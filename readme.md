@@ -19,7 +19,7 @@ Member :
 - Muhammad Khoilullah (https://github.com/kholilullahhhh)
 - Aan (github.com/)
 - Muhammad Raihan (github.com/)
-- Rahmatia Ramadhani (github.com/)
+- Rahmathia Ramadhani (github.com/)
 
 Hackathon bagi saya bukan hanya event, tapi ajang untuk:
 - Belajar cepat,
