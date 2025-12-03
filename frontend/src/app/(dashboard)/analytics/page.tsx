@@ -4,7 +4,7 @@ import {
   UsersChart,
   CategoryChart,
   SalesChart,
-} from "@/features/dashboard/components/dashboard/charts";
+} from "@/components/dashboard/charts";
 import { chartData } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
