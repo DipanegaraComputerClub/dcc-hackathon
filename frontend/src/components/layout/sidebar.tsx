@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Users, label: "Users", href: "/users" },
   {
     icon: ShoppingCart,
