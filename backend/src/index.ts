@@ -8,7 +8,7 @@ app.get('/', (c) => c.text('Hono + Bun + Supabase Connected'))
 
 // ========== GET: Ambil semua notes ==========
 app.get('/notes', async (c) => {
-  const { data, error } = await supabase.from('notes').select('*')
+  const { data, error } = await supabase.from('profiles').select('*')
 
   if (error) return c.json({ error }, 500)
   return c.json({ data })
