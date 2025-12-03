@@ -11,6 +11,7 @@ import {
   BarChart3,
   Menu,
   X,
+  SquarePen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: FileText, label: "Forms", href: "/forms" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
   { icon: Settings, label: "Settings", href: "/settings" },
+  { icon: SquarePen, label: "Copywriting", href: "/copywriting" },
 ];
 
 export function Sidebar() {
