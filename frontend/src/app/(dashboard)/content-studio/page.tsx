@@ -11,18 +11,63 @@ import {
   Type, Megaphone, Tags, PenLine, MessageSquareReply, MessageCircleQuestion, ChevronDown, 
   Palette, CalendarDays
 } from "lucide-react";
+import { API_URL } from "@/config/api";
 
 export default function ContentStudioPage() {
   const [selectedTool, setSelectedTool] = useState("caption"); // Default awal Caption
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState("");
+  const [error, setError] = useState("");
+
+  // State untuk semua form inputs
+  const [formData, setFormData] = useState({
+    // Caption Generator
+    captionTopic: "",
+    captionTone: "casual",
+    captionHashtags: "yes",
+    captionPlatform: "instagram",
+    
+    // Promo Generator
+    promoProduct: "",
+    promoDiscount: "",
+    promoTarget: "umum",
+    
+    // Branding
+    brandingSlogan: "",
+    brandingPersona: "",
+    brandingTone: "makassar_friendly",
+    
+    // Content Planner
+    plannerTheme: "",
+    plannerDuration: "7",
+    
+    // Copywriting
+    copywritingProduct: "",
+    copywritingType: "caption",
+    copywritingPurpose: "selling",
+    copywritingStyle: "makassar_halus",
+    
+    // Pricing
+    pricingProduct: "",
+    pricingCost: "",
+    pricingTargetProfit: "",
+    pricingCompetitor: "",
+    
+    // Auto Reply
+    replyMessage: "",
+    replyTone: "ramah",
+    
+    // Comment Analyzer
+    commentText: ""
+  });
   
   // Ref untuk Auto-Scroll ke hasil di HP
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setLoading(true);
     setResult(""); 
+    setError("");
     
     // Auto Scroll di HP
     if (window.innerWidth < 1024) {
@@ -31,60 +76,103 @@ export default function ContentStudioPage() {
       }, 100);
     }
     
-    setTimeout(() => {
-      setLoading(false);
-      
-      // LOGIKA OUTPUT (SESUAI PERMINTAAN & FLOWCHART)
-      let output = "";
+    try {
+      // Build request body berdasarkan kategori
+      let requestBody: any = {
+        type: selectedTool,
+        metadata: {}
+      };
+
       switch (selectedTool) {
-        
-        // 1. AI CAPTION GENERATOR
         case "caption":
-            output = "🔥 CAPTION INSTAGRAM SIAP PAKAI 🔥\n\nJudul: Makanan Enak di Makassar!\n\nHalo Daeng! 👋 Sudah coba menu baru kami? Rasanya bikin nagih! 🤤\nCocok banget buat makan siang bareng teman kantor.\n\n📍 Lokasi: Jl. Pettarani No. 10\n🛵 Tersedia di GrabFood & GoFood\n\nYuk buruan mampir sebelum kehabisan! \n\n#KulinerMakassar #MakassarDagang #Ewako #CotoMakassar #JajananMakassar";
-            break;
+          requestBody.input_text = formData.captionTopic;
+          requestBody.metadata = {
+            tone: formData.captionTone,
+            includeHashtags: formData.captionHashtags === "yes",
+            platform: formData.captionPlatform
+          };
+          break;
 
-        // 2. AI PROMO GENERATOR
         case "promo":
-            output = "📢 KONSEP PROMO SIAP POST!\n\n🔥 Judul Promo: GAJIAN TIBA? WAKTUNYA MAKAN ENAK TANPA PUSING!\n\n📝 Teks Caption:\nHabis gajian jangan langsung habis cika'! 😂\nMending ke sini, makan kenyang hati senang.\n\nKhusus buat Pegawai Kantor & Mahasiswa, tunjukkan ID Card kalian dan dapatkan DISKON 20% untuk semua menu Paket!\n\nBuruan nah, cuma berlaku 3 hari! 🏃💨\n\n⏰ Waktu Terbaik Publish: Pukul 11:30 WITA";
-            break;
+          requestBody.input_text = formData.promoProduct;
+          requestBody.metadata = {
+            discount: formData.promoDiscount,
+            targetAudience: formData.promoTarget
+          };
+          break;
 
-        // 3. AI BRANDING (Sesuai PDF)
         case "branding":
-            output = "🎨 HASIL ANALISA BRANDING:\n\n✨ Slogan Unik:\n'Rasa Sultan, Harga Teman - Ewako!'\n\n🎨 Rekomendasi Warna:\n- Merah Marun (#800000) -> Berani & Nafsu Makan\n- Kuning Emas (#FFD700) -> Mewah & Ceria\n- Hitam (#000000) -> Elegan\n\n📖 Storytelling Brand:\n'Berawal dari resep rahasia Nenek di lorong sempit Makassar, kami membawa cita rasa otentik yang tidak pernah berubah sejak 1990.'\n\n👤 Persona Karakter:\n'Si Daeng yang Ramah, Humoris, tapi Sangat Menghargai Tradisi.'";
-            break;
+          requestBody.input_text = formData.brandingSlogan || "Generate brand voice";
+          requestBody.metadata = {
+            currentSlogan: formData.brandingSlogan,
+            brandPersona: formData.brandingPersona,
+            toneOfVoice: formData.brandingTone
+          };
+          break;
 
-        // 4. CONTENT PLANNER (Sesuai PDF)
         case "planner":
-            output = "📅 JADWAL KONTEN (7 HARI)\nTema: Kuliner Makassar\n\n✅ Hari 1 (Video): 'Behind The Scene' proses pembuatan bumbu rahasia.\n✅ Hari 2 (Foto): Repost testimoni pelanggan yang paling lucu.\n✅ Hari 3 (Engagement): Tebak-tebakan bahasa Makassar berhadiah voucher.\n✅ Hari 4 (Soft Selling): Foto produk close-up yang bikin ngiler.\n✅ Hari 5 (Hard Selling): Promo 'Jumat Berkah' diskon khusus.\n✅ Hari 6 (Edukasi): Tips makan Coto biar makin enak ala Daeng.\n✅ Hari 7 (Inspirasi): Quote motivasi usaha anak muda Makassar.";
-            break;
+          requestBody.input_text = formData.plannerTheme;
+          requestBody.metadata = {
+            duration: parseInt(formData.plannerDuration)
+          };
+          break;
 
-        // 5. COPYWRITING (Sesuai Input)
         case "copywriting":
-            output = "📝 COPYWRITING (Tujuan: Jualan/Engagement)\n\nPOV: Kamu nemu produk lokal yang kualitasnya impor! 😱✨\n\nSumpah ini barang mantap sekali cika'. [Nama Produk] ini solusinya buat kamu yang mau tampil beda.\n\nKeunggulannya:\n✅ Kualitas Premium\n✅ Harga Terjangkau\n✅ Asli Anak Makassar\n\nOrder sekarang sebelum kehabisan stok! Klik link di bio nah. 👇";
-            break;
+          requestBody.input_text = formData.copywritingProduct;
+          requestBody.metadata = {
+            contentType: formData.copywritingType,
+            purpose: formData.copywritingPurpose,
+            languageStyle: formData.copywritingStyle
+          };
+          break;
 
-        // 6. PRICING ANALYSIS
         case "pricing":
-            output = "📊 ANALISIS HARGA:\n\n💰 Modal (HPP): Rp 15.000\n📈 Rekomendasi Harga Jual: Rp 25.000 - Rp 28.000\n✅ Margin Keuntungan: 40% - 46%\n\n💡 Tips Strategi:\nHarga ini masih kompetitif dibandingkan pesaing (Rp 30.000). Anda bisa menaikkan sedikit jika menambahkan value unik (misal: packaging premium).";
-            break;
+          requestBody.input_text = formData.pricingProduct;
+          requestBody.metadata = {
+            cost: parseFloat(formData.pricingCost),
+            targetProfit: parseFloat(formData.pricingTargetProfit),
+            competitorPrice: formData.pricingCompetitor ? parseFloat(formData.pricingCompetitor) : undefined
+          };
+          break;
 
-        // 7. AUTO REPLY
         case "reply":
-            output = "💬 REKOMENDASI BALASAN:\n\n'Halo Kak, terima kasih sudah menghubungi kami! 🙏\n\nMohon maaf atas ketidaknyamanannya. Boleh kami tahu detail masalahnya atau nomor pesanan Kakak supaya kami bantu cek statusnya segera? Terima kasih atas kesabarannya. 😊'";
-            break;
+          requestBody.input_text = formData.replyMessage;
+          requestBody.metadata = {
+            tone: formData.replyTone
+          };
+          break;
 
-        // 8. COMMENT ANALYZER (Sesuai PDF)
         case "comment":
-            output = "🔍 ANALISA KOMENTAR:\n\n📊 Sentimen: NEGATIF 🔴\n\n⚠️ Masalah Utama: \nPelayanan (Respon lambat & pesanan salah)\n\n💡 Rekomendasi Tindakan:\nSegera minta maaf secara personal dan tawarkan kompensasi (voucher/diskon) agar pelanggan tidak lari.\n\n💬 Auto-Reply:\n'Tabe' Kak, mohon maaf sekali atas ketidaknyamanannya. 🙏 Ini bukan standar pelayanan kami. Boleh kami DM untuk ganti rugi? Terima kasih masukannya.'";
-            break;
-
-        default:
-            output = "Silakan pilih alat yang tersedia.";
+          requestBody.input_text = formData.commentText;
+          requestBody.metadata = {};
+          break;
       }
-      
-      setResult(output);
 
-    }, 2000); 
+      // Call Backend API
+      const response = await fetch(`${API_URL}/api/ai-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Gagal generate konten');
+      }
+
+      // Display result
+      setResult(data.output_text);
+
+    } catch (err: any) {
+      console.error('Error generating content:', err);
+      setError(err.message || 'Terjadi kesalahan saat generate konten');
+      setResult('');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- STYLE ---
@@ -102,25 +190,38 @@ export default function ContentStudioPage() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Topik Konten</label>
-              <Input className={inputClass} placeholder="Misal: Foto Makanan Coto Makassar..." />
+              <Input 
+                className={inputClass} 
+                placeholder="Misal: Foto Makanan Coto Makassar..."
+                value={formData.captionTopic}
+                onChange={(e) => setFormData({...formData, captionTopic: e.target.value})}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
                <div>
                   <label className={labelClass}>Platform</label>
-                  <select className={inputClass}>
-                    <option className={optionClass}>Instagram</option>
-                    <option className={optionClass}>TikTok</option>
-                    <option className={optionClass}>Facebook</option>
-                    <option className={optionClass}>WhatsApp Status</option>
+                  <select 
+                    className={inputClass}
+                    value={formData.captionPlatform}
+                    onChange={(e) => setFormData({...formData, captionPlatform: e.target.value})}
+                  >
+                    <option className={optionClass} value="instagram">Instagram</option>
+                    <option className={optionClass} value="tiktok">TikTok</option>
+                    <option className={optionClass} value="facebook">Facebook</option>
+                    <option className={optionClass} value="whatsapp">WhatsApp Status</option>
                   </select>
                </div>
                <div>
                   <label className={labelClass}>Gaya Bahasa</label>
-                  <select className={inputClass}>
-                    <option className={optionClass}>Daeng Friendly (Akrab)</option>
-                    <option className={optionClass}>Makassar Halus</option>
-                    <option className={optionClass}>Formal / Profesional</option>
-                    <option className={optionClass}>Gen Z / Gaul</option>
+                  <select 
+                    className={inputClass}
+                    value={formData.captionTone}
+                    onChange={(e) => setFormData({...formData, captionTone: e.target.value})}
+                  >
+                    <option className={optionClass} value="casual">Daeng Friendly (Akrab)</option>
+                    <option className={optionClass} value="formal">Makassar Halus</option>
+                    <option className={optionClass} value="professional">Formal / Profesional</option>
+                    <option className={optionClass} value="genz">Gen Z / Gaul</option>
                   </select>
                </div>
             </div>
@@ -133,19 +234,33 @@ export default function ContentStudioPage() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Nama Produk</label>
-              <Input className={inputClass} placeholder="Contoh: Paket Ayam Geprek" />
+              <Input 
+                className={inputClass} 
+                placeholder="Contoh: Paket Ayam Geprek"
+                value={formData.promoProduct}
+                onChange={(e) => setFormData({...formData, promoProduct: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Diskon/Penawaran</label>
+              <Input 
+                className={inputClass} 
+                placeholder="Contoh: Diskon 20%, Buy 1 Get 1"
+                value={formData.promoDiscount}
+                onChange={(e) => setFormData({...formData, promoDiscount: e.target.value})}
+              />
             </div>
             <div>
               <label className={labelClass}>Target Audiens</label>
-              <Input className={inputClass} placeholder="Contoh: Mahasiswa, Karyawan Kantor" />
-            </div>
-            <div>
-              <label className={labelClass}>Goals Promo (Tujuan)</label>
-              <select className={inputClass}>
-                    <option className={optionClass}>Habiskan Stok (Cuci Gudang)</option>
-                    <option className={optionClass}>Meningkatkan Penjualan (Sales)</option>
-                    <option className={optionClass}>Mengenalkan Produk Baru</option>
-                    <option className={optionClass}>Engagement (Rame-rame)</option>
+              <select 
+                className={inputClass}
+                value={formData.promoTarget}
+                onChange={(e) => setFormData({...formData, promoTarget: e.target.value})}
+              >
+                    <option className={optionClass} value="umum">Umum</option>
+                    <option className={optionClass} value="mahasiswa">Mahasiswa</option>
+                    <option className={optionClass} value="karyawan">Karyawan Kantor</option>
+                    <option className={optionClass} value="keluarga">Keluarga</option>
                 </select>
             </div>
           </div>
@@ -157,19 +272,33 @@ export default function ContentStudioPage() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Slogan Saat Ini (Opsional)</label>
-              <Input className={inputClass} placeholder="Contoh: Rasa Enak Harga Kaki Lima" />
+              <Input 
+                className={inputClass} 
+                placeholder="Contoh: Rasa Enak Harga Kaki Lima"
+                value={formData.brandingSlogan}
+                onChange={(e) => setFormData({...formData, brandingSlogan: e.target.value})}
+              />
             </div>
             <div>
               <label className={labelClass}>Brand Persona (Karakter)</label>
-              <Input className={inputClass} placeholder="Contoh: Sahabat yang asik, atau Orang tua bijak" />
+              <Input 
+                className={inputClass} 
+                placeholder="Contoh: Sahabat yang asik, atau Orang tua bijak"
+                value={formData.brandingPersona}
+                onChange={(e) => setFormData({...formData, brandingPersona: e.target.value})}
+              />
             </div>
             <div>
                 <label className={labelClass}>Tone of Voice (Gaya Bicara)</label>
-                <select className={inputClass}>
-                    <option className={optionClass}>Makassar Friendly (Akrab/Lokal)</option>
-                    <option className={optionClass}>Profesional & Elegan</option>
-                    <option className={optionClass}>Lucu & Humoris</option>
-                    <option className={optionClass}>Semangat / Enerjik</option>
+                <select 
+                  className={inputClass}
+                  value={formData.brandingTone}
+                  onChange={(e) => setFormData({...formData, brandingTone: e.target.value})}
+                >
+                    <option className={optionClass} value="makassar_friendly">Makassar Friendly (Akrab/Lokal)</option>
+                    <option className={optionClass} value="professional">Profesional & Elegan</option>
+                    <option className={optionClass} value="humorous">Lucu & Humoris</option>
+                    <option className={optionClass} value="energetic">Semangat / Enerjik</option>
                 </select>
             </div>
           </div>
@@ -181,14 +310,23 @@ export default function ContentStudioPage() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Tema Mingguan</label>
-              <Input className={inputClass} placeholder="Contoh: Kuliner Makassar, Tips Bisnis, dll" />
+              <Input 
+                className={inputClass} 
+                placeholder="Contoh: Kuliner Makassar, Tips Bisnis, dll"
+                value={formData.plannerTheme}
+                onChange={(e) => setFormData({...formData, plannerTheme: e.target.value})}
+              />
             </div>
             <div>
                 <label className={labelClass}>Durasi Rencana</label>
-                <select className={inputClass}>
-                    <option className={optionClass}>7 Hari (Seminggu)</option>
-                    <option className={optionClass}>14 Hari (2 Minggu)</option>
-                    <option className={optionClass}>30 Hari (Sebulan)</option>
+                <select 
+                  className={inputClass}
+                  value={formData.plannerDuration}
+                  onChange={(e) => setFormData({...formData, plannerDuration: e.target.value})}
+                >
+                    <option className={optionClass} value="7">7 Hari (Seminggu)</option>
+                    <option className={optionClass} value="14">14 Hari (2 Minggu)</option>
+                    <option className={optionClass} value="30">30 Hari (Sebulan)</option>
                 </select>
             </div>
           </div>
@@ -201,34 +339,51 @@ export default function ContentStudioPage() {
             <div className="grid grid-cols-2 gap-4">
                <div>
                   <label className={labelClass}>Jenis Konten</label>
-                  <select className={inputClass}>
-                    <option className={optionClass}>Caption</option>
-                    <option className={optionClass}>Story</option>
-                    <option className={optionClass}>Post</option>
-                    <option className={optionClass}>Tweet</option>
+                  <select 
+                    className={inputClass}
+                    value={formData.copywritingType}
+                    onChange={(e) => setFormData({...formData, copywritingType: e.target.value})}
+                  >
+                    <option className={optionClass} value="caption">Caption</option>
+                    <option className={optionClass} value="story">Story</option>
+                    <option className={optionClass} value="post">Post</option>
+                    <option className={optionClass} value="tweet">Tweet</option>
                   </select>
                </div>
                <div>
                   <label className={labelClass}>Tujuan Konten</label>
-                  <select className={inputClass}>
-                    <option className={optionClass}>Jualan (Selling)</option>
-                    <option className={optionClass}>Brand Awareness</option>
-                    <option className={optionClass}>Engagement</option>
-                    <option className={optionClass}>Edukasi</option>
+                  <select 
+                    className={inputClass}
+                    value={formData.copywritingPurpose}
+                    onChange={(e) => setFormData({...formData, copywritingPurpose: e.target.value})}
+                  >
+                    <option className={optionClass} value="selling">Jualan (Selling)</option>
+                    <option className={optionClass} value="awareness">Brand Awareness</option>
+                    <option className={optionClass} value="engagement">Engagement</option>
+                    <option className={optionClass} value="education">Edukasi</option>
                   </select>
                </div>
             </div>
             <div>
               <label className={labelClass}>Nama Produk</label>
-              <Input className={inputClass} placeholder="Nama produk ta'..." />
+              <Input 
+                className={inputClass} 
+                placeholder="Nama produk ta'..."
+                value={formData.copywritingProduct}
+                onChange={(e) => setFormData({...formData, copywritingProduct: e.target.value})}
+              />
             </div>
             <div>
                   <label className={labelClass}>Gaya Bahasa</label>
-                  <select className={inputClass}>
-                    <option className={optionClass}>Makassar Halus</option>
-                    <option className={optionClass}>Daeng Friendly</option>
-                    <option className={optionClass}>Formal</option>
-                    <option className={optionClass}>Gen Z TikTok</option>
+                  <select 
+                    className={inputClass}
+                    value={formData.copywritingStyle}
+                    onChange={(e) => setFormData({...formData, copywritingStyle: e.target.value})}
+                  >
+                    <option className={optionClass} value="makassar_halus">Makassar Halus</option>
+                    <option className={optionClass} value="daeng_friendly">Daeng Friendly</option>
+                    <option className={optionClass} value="formal">Formal</option>
+                    <option className={optionClass} value="genz">Gen Z TikTok</option>
                   </select>
                </div>
           </div>
@@ -240,21 +395,44 @@ export default function ContentStudioPage() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Nama Produk</label>
-              <Input className={inputClass} placeholder="Misal: Es Kopi Susu..." />
+              <Input 
+                className={inputClass} 
+                placeholder="Misal: Es Kopi Susu..."
+                value={formData.pricingProduct}
+                onChange={(e) => setFormData({...formData, pricingProduct: e.target.value})}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
                <div>
                   <label className={labelClass}>Modal (HPP)</label>
-                  <Input type="number" className={inputClass} placeholder="Rp..." />
+                  <Input 
+                    type="number" 
+                    className={inputClass} 
+                    placeholder="Rp..."
+                    value={formData.pricingCost}
+                    onChange={(e) => setFormData({...formData, pricingCost: e.target.value})}
+                  />
                </div>
                <div>
                   <label className={labelClass}>Target Untung (%)</label>
-                  <Input type="number" className={inputClass} placeholder="Misal: 30" />
+                  <Input 
+                    type="number" 
+                    className={inputClass} 
+                    placeholder="Misal: 30"
+                    value={formData.pricingTargetProfit}
+                    onChange={(e) => setFormData({...formData, pricingTargetProfit: e.target.value})}
+                  />
                </div>
             </div>
             <div>
                <label className={labelClass}>Harga Kompetitor (Opsional)</label>
-               <Input type="number" className={inputClass} placeholder="Rp..." />
+               <Input 
+                 type="number" 
+                 className={inputClass} 
+                 placeholder="Rp..."
+                 value={formData.pricingCompetitor}
+                 onChange={(e) => setFormData({...formData, pricingCompetitor: e.target.value})}
+               />
             </div>
           </div>
         );
@@ -265,15 +443,24 @@ export default function ContentStudioPage() {
            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Pesan Pelanggan</label>
-              <Textarea placeholder="Tempel chat pelanggan di sini..." className={`${inputClass} min-h-[100px]`} />
+              <Textarea 
+                placeholder="Tempel chat pelanggan di sini..." 
+                className={`${inputClass} min-h-[100px]`}
+                value={formData.replyMessage}
+                onChange={(e) => setFormData({...formData, replyMessage: e.target.value})}
+              />
             </div>
             <div>
                   <label className={labelClass}>Nada Balasan</label>
-                  <select className={inputClass}>
-                    <option className={optionClass}>Ramah & Membantu</option>
-                    <option className={optionClass}>Tegas (untuk Komplain)</option>
-                    <option className={optionClass}>Lucu / Santai</option>
-                    <option className={optionClass}>Formal</option>
+                  <select 
+                    className={inputClass}
+                    value={formData.replyTone}
+                    onChange={(e) => setFormData({...formData, replyTone: e.target.value})}
+                  >
+                    <option className={optionClass} value="ramah">Ramah & Membantu</option>
+                    <option className={optionClass} value="tegas">Tegas (untuk Komplain)</option>
+                    <option className={optionClass} value="santai">Lucu / Santai</option>
+                    <option className={optionClass} value="formal">Formal</option>
                   </select>
                </div>
           </div>
@@ -285,7 +472,12 @@ export default function ContentStudioPage() {
            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
               <label className={labelClass}>Paste Komentar Pelanggan</label>
-              <Textarea placeholder="Tempel komentar dari IG/TikTok/WA di sini..." className={`${inputClass} min-h-[120px]`} />
+              <Textarea 
+                placeholder="Tempel komentar dari IG/TikTok/WA di sini..." 
+                className={`${inputClass} min-h-[120px]`}
+                value={formData.commentText}
+                onChange={(e) => setFormData({...formData, commentText: e.target.value})}
+              />
             </div>
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900">
                 AI akan mendeteksi sentimen (Marah/Senang), masalah utama, dan membuatkan balasan otomatis.
@@ -362,6 +554,11 @@ export default function ContentStudioPage() {
 
             {/* Footer Button */}
             <div className="p-4 lg:p-5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+               {error && (
+                 <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-lg">
+                   <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                 </div>
+               )}
                <Button 
                 onClick={handleGenerate}
                 disabled={loading}
