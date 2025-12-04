@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Mail, Lock, User } from "lucide-react";
+import { LayoutDashboard, Mail, Lock, User, Store, ArrowRight, CheckCircle2, Eye, EyeOff, Sparkles } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -23,178 +23,206 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  
+  // State untuk intip password
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Password tidak cocok, mi!");
+      alert("Password tidak cocok, Daeng! Cek lagi nah.");
       return;
+    }
+
+    if (!isChecked) {
+        alert("Centang dulu syarat & ketentuannya, Daeng.");
+        return;
     }
 
     setIsLoading(true);
 
-    // Simulate API call
+    // Simulasi Register
     setTimeout(() => {
       setIsLoading(false);
       router.push("/login");
-    }, 1000);
+    }, 1500);
   };
 
+  // --- STYLE KONSISTEN (ANTI TABRAKAN) ---
+  // pl-12: Jarak kiri lega untuk ikon
+  // pr-12: Jarak kanan lega untuk tombol mata
+  const inputStyle = "w-full h-12 rounded-xl border border-gray-200 bg-white/50 dark:bg-gray-900/50 pl-12 pr-12 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10 dark:border-gray-800 dark:text-white dark:focus:bg-[#020617] dark:focus:border-red-500";
+  
+  const iconLeftStyle = "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none";
+  const iconRightStyle = "absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer transition-colors";
+  const labelStyle = "text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider ml-1";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
-      <div className="w-full max-w-md animate-fadeIn">
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 mb-2 justify-center">
-            <div className="rounded-full bg-gradient-to-br from-yellow-500 to-red-500 p-5 shadow-lg shadow-yellow-400/30 animate-pulse">
-              <LayoutDashboard className="h-8 w-8 text-white" />
-            </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#020617] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      
+      {/* Background Decoration */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+         <div className="absolute inset-0 opacity-[0.03]" 
+              style={{ backgroundImage: 'radial-gradient(#6b7280 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+         </div>
+         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-red-600/10 dark:bg-red-900/20 rounded-full blur-[80px] opacity-70 -translate-x-1/2 -translate-y-1/2"></div>
+         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-orange-500/10 dark:bg-orange-900/20 rounded-full blur-[80px] opacity-70 translate-x-1/3 translate-y-1/3"></div>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        
+        {/* LOGO */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl shadow-xl shadow-red-600/20 mb-4 transform hover:scale-105 transition-transform duration-300">
+            <Store className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-red-500 bg-clip-text text-transparent">
-            TABE AI
-          </h1>
-          <p className="text-gray-700 dark:text-gray-300 mt-1">
-            Buat akun baru dan mulai tingkatkan UMKM-mu, mi!
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            Gabung TABE AI
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Mulai langkah digitalisasi UMKM ta' 🚀
           </p>
         </div>
 
-        {/* Register Card */}
-        <Card className="shadow-lg border border-yellow-200">
-          <CardHeader>
-            <CardTitle>Register</CardTitle>
-            <CardDescription>
-              Isi form di bawah untuk membuat akun baru, ji
-            </CardDescription>
+        {/* CARD REGISTER */}
+        <Card className="border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
+          <CardHeader className="space-y-1 pb-2 text-center border-b border-gray-100 dark:border-gray-800/50 bg-white/50 dark:bg-gray-900/50">
+            <CardTitle className="text-xl font-bold">Buat Akun Baru</CardTitle>
+            <CardDescription>Gratis ji pendaftarannya, Daeng!</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Nama */}
-              <div>
-                <label className="text-sm font-medium">Nama Lengkap</label>
-                <div className="relative mt-1">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+
+          <CardContent className="p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              
+              {/* NAMA LENGKAP */}
+              <div className="space-y-1.5">
+                <label className={labelStyle}>Nama Lengkap</label>
+                <div className="relative group">
+                  <User className={iconLeftStyle} />
                   <Input
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Contoh: Daeng Kuliner"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="pl-10"
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={inputStyle}
                     required
                   />
                 </div>
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <div className="relative mt-1">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              {/* EMAIL */}
+              <div className="space-y-1.5">
+                <label className={labelStyle}>Email</label>
+                <div className="relative group">
+                  <Mail className={iconLeftStyle} />
                   <Input
                     type="email"
-                    placeholder="nama@example.com"
+                    placeholder="nama@email.com"
                     value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="pl-10"
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className={inputStyle}
                     required
                   />
                 </div>
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="text-sm font-medium">Password</label>
-                <div className="relative mt-1">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              {/* PASSWORD */}
+              <div className="space-y-1.5">
+                <label className={labelStyle}>Password</label>
+                <div className="relative group">
+                  <Lock className={iconLeftStyle} />
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="pl-10"
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className={inputStyle}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={iconRightStyle}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
-              {/* Konfirmasi Password */}
-              <div>
-                <label className="text-sm font-medium">
-                  Konfirmasi Password
-                </label>
-                <div className="relative mt-1">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              {/* KONFIRMASI PASSWORD */}
+              <div className="space-y-1.5">
+                <label className={labelStyle}>Ulangi Password</label>
+                <div className="relative group">
+                  <CheckCircle2 className={iconLeftStyle} />
                   <Input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.confirmPassword}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    className="pl-10"
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className={inputStyle}
                     required
                   />
+                   <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className={iconRightStyle}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
-              {/* Checkbox */}
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  className="mt-1 rounded border-yellow-400 text-yellow-500 focus:ring-yellow-400"
-                  required
-                />
-                <label className="text-sm text-gray-700 dark:text-gray-300">
-                  Saya setuju dengan{" "}
-                  <Link
-                    href="#"
-                    className="text-red-500 hover:underline dark:text-red-400"
-                  >
-                    Syarat & Ketentuan
-                  </Link>{" "}
-                  dan{" "}
-                  <Link
-                    href="#"
-                    className="text-red-500 hover:underline dark:text-red-400"
-                  >
-                    Kebijakan Privasi
-                  </Link>
+              {/* CHECKBOX */}
+              <div className="flex items-start gap-3 pt-2">
+                <div className="flex items-center h-5">
+                    <input
+                    id="terms"
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => setIsChecked(e.target.checked)}
+                    className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-red-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-red-600 dark:ring-offset-gray-800"
+                    />
+                </div>
+                <label htmlFor="terms" className="text-xs text-gray-600 dark:text-gray-400 leading-tight cursor-pointer">
+                  Saya setuju dengan <Link href="#" className="text-red-600 hover:underline font-bold">Syarat & Ketentuan</Link> serta <Link href="#" className="text-red-600 hover:underline font-bold">Kebijakan Privasi</Link>.
                 </label>
               </div>
 
-              {/* Submit */}
+              {/* TOMBOL DAFTAR */}
               <Button
                 type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg shadow-md"
+                className="w-full h-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl shadow-lg shadow-red-600/20 font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2 group mt-4"
                 disabled={isLoading}
               >
-                {isLoading ? "Memproses..." : "Daftar, mi!"}
+                {isLoading ? "Lagi Mendaftar..." : (
+                    <>
+                        Daftar Sekarang <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                )}
               </Button>
             </form>
 
-            {/* Login Link */}
-            <div className="mt-6 text-center text-sm">
-              <span className="text-gray-700 dark:text-gray-300">
-                Sudah punya akun?{" "}
+            {/* LINK LOGIN */}
+            <div className="mt-6 text-center text-sm border-t border-gray-100 dark:border-gray-800 pt-6">
+              <span className="text-gray-500 dark:text-gray-400">
+                Sudah punya akun ki'?{" "}
               </span>
               <Link
                 href="/login"
-                className="font-medium text-red-500 hover:underline dark:text-red-400"
+                className="font-bold text-red-600 hover:text-red-700 hover:underline dark:text-red-400 transition-colors"
               >
-                Login di sini, ji
+                Masuk di sini
               </Link>
             </div>
           </CardContent>
         </Card>
+        
+        <p className="text-center text-xs text-gray-400 mt-8 mb-4">
+            &copy; 2025 TABE AI - Karya Anak Makassar
+        </p>
       </div>
     </div>
   );
