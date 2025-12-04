@@ -6,7 +6,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
     "axios": "^1.13.2",
-    "hono": "^4.10.7"
+    "hono": "^4.10.7",
+    "openai": "^6.9.1"
   },
   "devDependencies": {
     "@types/bun": "latest"
