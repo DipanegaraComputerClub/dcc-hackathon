@@ -85,7 +85,7 @@ export default function ContentStudioPage() {
 
       switch (selectedTool) {
         case "caption":
-          requestBody.input_text = formData.captionTopic;
+          requestBody.inputText = formData.captionTopic;
           requestBody.metadata = {
             tone: formData.captionTone,
             includeHashtags: formData.captionHashtags === "yes",
@@ -94,7 +94,7 @@ export default function ContentStudioPage() {
           break;
 
         case "promo":
-          requestBody.input_text = formData.promoProduct;
+          requestBody.inputText = formData.promoProduct;
           requestBody.metadata = {
             discount: formData.promoDiscount,
             targetAudience: formData.promoTarget
@@ -102,7 +102,7 @@ export default function ContentStudioPage() {
           break;
 
         case "branding":
-          requestBody.input_text = formData.brandingSlogan || "Generate brand voice";
+          requestBody.inputText = formData.brandingSlogan || "Generate brand voice";
           requestBody.metadata = {
             currentSlogan: formData.brandingSlogan,
             brandPersona: formData.brandingPersona,
@@ -111,14 +111,14 @@ export default function ContentStudioPage() {
           break;
 
         case "planner":
-          requestBody.input_text = formData.plannerTheme;
+          requestBody.inputText = formData.plannerTheme;
           requestBody.metadata = {
             duration: parseInt(formData.plannerDuration)
           };
           break;
 
         case "copywriting":
-          requestBody.input_text = formData.copywritingProduct;
+          requestBody.inputText = formData.copywritingProduct;
           requestBody.metadata = {
             contentType: formData.copywritingType,
             purpose: formData.copywritingPurpose,
@@ -127,7 +127,7 @@ export default function ContentStudioPage() {
           break;
 
         case "pricing":
-          requestBody.input_text = formData.pricingProduct;
+          requestBody.inputText = formData.pricingProduct;
           requestBody.metadata = {
             cost: parseFloat(formData.pricingCost),
             targetProfit: parseFloat(formData.pricingTargetProfit),
@@ -136,17 +136,24 @@ export default function ContentStudioPage() {
           break;
 
         case "reply":
-          requestBody.input_text = formData.replyMessage;
+          requestBody.inputText = formData.replyMessage;
           requestBody.metadata = {
             tone: formData.replyTone
           };
           break;
 
         case "comment":
-          requestBody.input_text = formData.commentText;
+          requestBody.inputText = formData.commentText;
           requestBody.metadata = {};
           break;
       }
+
+      // Validasi inputText tidak kosong
+      if (!requestBody.inputText || requestBody.inputText.trim() === '') {
+        throw new Error('Mohon isi input text terlebih dahulu');
+      }
+
+      console.log('Sending request to backend:', requestBody);
 
       // Call Backend API
       const response = await fetch(`${API_URL}/api/ai-content`, {
@@ -158,13 +165,14 @@ export default function ContentStudioPage() {
       });
 
       const data = await response.json();
+      console.log('Backend response:', data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Gagal generate konten');
+        throw new Error(data.message || data.error || 'Gagal generate konten');
       }
 
       // Display result
-      setResult(data.output_text);
+      setResult(data.data.outputText || data.outputText || 'Tidak ada hasil');
 
     } catch (err: any) {
       console.error('Error generating content:', err);
