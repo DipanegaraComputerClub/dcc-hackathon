@@ -145,9 +145,15 @@ function getMockTemplates(gayaBahasa: string, jenisKonten: string) {
           `Selamat pagi Saudaraku! 🌅\n\nSudah coba belum {produk} istimewa kami? Bumbu meresap sempurna, tekstur mantap, bikin kenyang dan puas!\n\nBuruan sebelum kehabisan ya! 🏃‍♂️\n\n#{produk}Makassar #Recommend`,
         ],
         alternatives: [
-          `Hai Saudaraku! 👋\n\n{produk} kita luar biasa. Setiap gigitan penuh kelezatan!\n\nDicoba mi, tidak mengecewakan! ⭐\n\n#{produk} #Yummy`,
-          `Bismillah! 🕌\n\n{produk} kami dibuat dengan penuh cinta. Higienis, halal, dan enak parah!\n\nTunggu kedatangan mu ya! 🤗\n\n#{produk}Halal`,
-          `Kabar gembira! 🎊\n\n{produk} terlaris kami masih tersedia! Rasa original khas Makassar. Ga pake MSG!\n\nPesan sekarang ji! 📱\n\n#{produk}Asli`,
+          `Hai Saudaraku! 👋\n\n{produk} kita luar biasa. Setiap gigitan penuh kelezatan, setiap suapan bikin bahagia!\n\nDicoba mi, tidak mengecewakan! ⭐⭐⭐⭐⭐\n\n#{produk} #Yummy #Makassar`,
+          
+          `Bismillah! 🕌\n\n{produk} kami dibuat dengan penuh cinta dan kehati-hatian. Higienis, halal, dan tentunya enak parah!\n\nTunggu kedatangan mu ya Saudaraku! 🤗\n\n#{produk}Halal #BersihSehat`,
+          
+          `Kabar gembira Saudaraku! 🎊\n\n{produk} terlaris kami hari ini masih tersedia! Rasa original khas Makassar yang autentik. Ga pake MSG, semua natural!\n\nPesan sekarang ji sebelum kehabisan! 📱\n\n#{produk}Asli #Natural`,
+          
+          `Siang-siang begini cocok sekali mi makan {produk}! 🍲\n\nHangat, gurih, bikin kenyang. Sempurna untuk makan siang bersama keluarga!\n\nYuk mampir, tempat nya nyaman kok! 🏠\n\n#{produk}LunchTime #KeluargaBahagia`,
+          
+          `Mau berbagi cerita nih Saudaraku! 💬\n\n{produk} kami sudah dipercaya pelanggan selama bertahun-tahun. Resep rahasia yang tak pernah berubah!\n\nSilakan dicoba, pasti jatuh cinta! 😍\n\n#{produk}Legendary #RahasisKeluarga`,
         ]
       }
     } else if (type === 'story') {
@@ -173,8 +179,15 @@ function getMockTemplates(gayaBahasa: string, jenisKonten: string) {
           `Daengg, udah cobain belum {produk} terbaru ta? 🆕\n\nRasanya juara, harganya bersahabat sama kantong Daeng! 💸\n\nLangsung meluncur aja Daeng! 🪑\n\n#{produk}Mantap`,
         ],
         alternatives: [
-          `Good morning Daeng! ☀️\n\n{produk} pagi-pagi hangat nih! Cocok ditemani kopi Daeng! ☕\n\nAyo Daeng! 😁\n\n#{produk}Pagi`,
-          `Daeng kesayangan 💖\n\n{produk} nya masih anget-anget nih!\n\nDitunggu ya! 🤗\n\n#{produk}LunchTime`,
+          `Good morning Daeng! ☀️\n\n{produk} pagi-pagi hangat nih! Cocok banget ditemani kopi atau teh favoritDaeng! ☕\n\nAyo Daeng, jangan malas-malas! Sudah buka dari jam 7 pagi loh! 😁\n\n#{produk}Pagi #SarapanDaeng`,
+          
+          `Daeng kesayangan 💖\n\n{produk} nya masih anget-anget nih! Baru keluar dari oven! 🔥\n\nDitunggu kedatangannya ya Daeng! Ada promo spesial hari ini! 🎉\n\n#{produk}LunchTime #PromoSpesial`,
+          
+          `Psssttt Daeng... 🤫\n\nMau tahu rahasia {produk} kita yang enak banget? Rahasianya adalah CINTA dan KESABARAN dalam setiap proses!\n\nDM aja ya Daeng kalau mau order! 📱\n\n#{produk}Rahasia #MadeWithLove`,
+          
+          `Breaking news Daeng! 📢\n\n{produk} lagi promo buy 2 get 1 hari ini aja! Limited time offer Daeng!\n\nBuruan sebelum nyesel! Tag teman Daeng sekarang! 👥\n\n#{produk}Promo #BOGOF`,
+          
+          `Daengg, sudah makan siang belum? 🤔\n\nKalau belum, yuk ke tempat kita! {produk} nya lezat banget, porsinya juga banyak loh!\n\nAda tempat duduk nyaman, WiFi gratis pula! 🪑📶\n\n#{produk}NyamanBanget #DaengFriendly`,
         ]
       }
     }
@@ -187,10 +200,15 @@ function getMockTemplates(gayaBahasa: string, jenisKonten: string) {
         main: [
           `POV: Kamu lagi scrolling sambil laper parah 🥺😭\n\n{produk} HITS BANGET SIH!! Ini tuh BUSSIN fr fr! 🔥✨\n\nHarga? AFFORDABLE banget! No debat! 💅\n\nYg belum nyobain, are we even friends? 🤨\n\nTag temen! 👇\n#{produk} #FYP #ViralTikTok`,
           `⚠️ WARNING: Jangan scroll kalau lagi diet! ⚠️\n\n{produk} = COMFORT FOOD tingkat DEWA! 🤩🙏\n\nYang belum cobain, kalian ketinggalan ZAMAN! 😤\n\nDouble tap! ❤️\n#{produk} #Viral`,
+          `Tell me you're from Makassar without telling me you're from Makassar 🗺️😎\n\nMe: *shows {produk}* 🤤✨\n\nThis is THE moment! Share ke story kamu! 📱\n\n#{produk} #MakassarVibes #Foodies`,
+          `No cuz why is {produk} so GOOD?! 😩💯\n\nLiterally the best thing I've ever tasted! NO CAP! 🧢🙅‍♂️\n\nGo viral bestie! 🚀\n\n#{produk}Obsessed #MakassarFood #Foodgasm`,
         ],
         alternatives: [
           `Alexa, cariin {produk} terdekat! 🤖💚\n\nBro sis, ini LEGEND! Ga nyobain? RUGI SEUMUR HIDUP! 😭\n\n#{produk}Legend`,
           `Not me eating {produk} at 3AM 🕐🙃\n\nIt's giving main character vibes ✨💅\n\nComment "NEED"! 📝\n\n#{produk}Mood`,
+          `Understanding the assignment ✅\n\n{produk}? CHECKED! SLAYED! DEVOURED! 👑🔥\n\nSave this post NOW! 🔖\n\n#{produk}Goals #Slay`,
+          `The way I GASPED when I tried {produk}! 😲🤯\n\nIt's giving everything! Everything! 💅✨\n\nWho's with me?? 🙋‍♀️🙋‍♂️\n\n#{produk}Moment #Stunner`,
+          `This is your sign to try {produk} 🪧⭐\n\nSeriously, I'm obsessed! It's chef's kiss 👨‍🍳💋\n\nTag someone who needs this! 💬👇\n\n#{produk}Divine #FoodieLife #MustTry`,
         ]
       }
     }
@@ -199,12 +217,24 @@ function getMockTemplates(gayaBahasa: string, jenisKonten: string) {
   // FORMAL (DEFAULT)
   return {
     main: [
-      `{produk} - Cita Rasa Autentik\n\nKami mempersembahkan {produk} berkualitas premium dengan resep tradisional. Bahan pilihan terbaik dan standar kebersihan ketat.\n\nReservasi: 0821-xxxx-xxxx\n\n#{produk} #KulinerIndonesia`,
-      `Selamat datang di {produk}\n\nKeaslian cita rasa dengan sentuhan modern. Pelayanan profesional.\n\nKunjungi kami atau pesan delivery.\n\n#{produk} #Kualitas`,
+      `{produk} - Cita Rasa Autentik untuk Anda\n\nKami dengan bangga mempersembahkan {produk} berkualitas premium yang diolah dengan resep tradisional turun-temurun. Setiap sajian menggunakan bahan pilihan terbaik dan melalui standar kebersihan yang ketat.\n\nNikmati pengalaman kuliner yang memorable bersama keluarga dan rekan bisnis Anda.\n\nReservasi: 0821-xxxx-xxxx\nAlamat: Makassar, Sulawesi Selatan\n\n#{produk} #KulinerIndonesia #HalalFood`,
+      
+      `Selamat Datang di {produk}\n\nMenghadirkan keaslian cita rasa kuliner Nusantara dengan sentuhan modern. Kami berkomitmen untuk menyajikan hidangan berkualitas tinggi dengan pelayanan yang profesional dan ramah.\n\nKunjungi outlet kami atau pesan melalui layanan delivery yang tersedia.\n\nFollow Instagram: @{produk}official\nTelepon: 0821-xxxx-xxxx\n\n#{produk} #KualitasTerjamin #PelayananProfesional`,
+      
+      `{produk} - Warisan Kuliner yang Terpercaya\n\nTelah melayani ribuan pelanggan dengan tingkat kepuasan maksimal. Setiap hidangan dibuat fresh daily dengan standar food safety internasional.\n\nTersedia paket untuk berbagai kebutuhan acara Anda.\n\nOperasional: 08.00 - 21.00 WITA\nHubungi: 0821-xxxx-xxxx\n\n#{produk}Makassar #Terpercaya #SejaktahunLalu`,
+      
+      `Nikmati Kelezatan {produk} Premium\n\nDiproduksi dengan teknologi modern namun tetap mempertahankan cita rasa tradisional yang autentik. Bahan baku dipilih langsung dari supplier terpercaya.\n\nDapatkan diskon 10% untuk pemesanan pertama!\n\nInfo & Pemesanan:\nWhatsApp: 0821-xxxx-xxxx\nDelivery Area: Seluruh Makassar\n\n#{produk}Premium #Diskon #DeliveryAvailable`,
     ],
     alternatives: [
-      `{produk} - Pilihan Tepat\n\nMenu variatif, harga kompetitif.\n\nFasilitas:\n✓ AC ✓ WiFi ✓ Parkir\n\nWA 0821-xxxx-xxxx\n\n#{produk}`,
-      `Promo {produk}\n\nPaket hemat tersedia. Harga terjangkau tanpa mengurangi kualitas.\n\nPesan: 0821-xxxx-xxxx\n\n#{produk}Promo`,
+      `{produk} - Pilihan Tepat untuk Setiap Momen\n\nMenu variatif dengan cita rasa yang konsisten. Harga kompetitif tanpa mengurangi kualitas.\n\nFasilitas:\n✓ Ruang ber-AC\n✓ WiFi gratis\n✓ Parkir luas\n✓ Musholla\n\nInformasi lengkap: WA 0821-xxxx-xxxx\n\n#{produk}Recommended #FasilitasLengkap`,
+      
+      `Promo Special {produk}\n\nDapatkan paket hemat untuk keluarga dengan harga yang sangat terjangkau. Kualitas tetap terjaga, rasa tetap istimewa!\n\nPaket tersedia:\n• Paket Keluarga (4-6 orang)\n• Paket Meeting (10 orang)\n• Paket Acara (custom)\n\nPesan sekarang: 0821-xxxx-xxxx\n\n#{produk}Promo #PaketHemat`,
+      
+      `{produk} Terpercaya Sejak 1990\n\nPengalaman lebih dari 30 tahun melayani masyarakat Makassar. Kualitas konsisten, pelayanan memuaskan.\n\nTestimoni pelanggan:\n"Rasa yang tak pernah berubah!" ⭐⭐⭐⭐⭐\n"Tempat favorit keluarga" ⭐⭐⭐⭐⭐\n\nKontak: 0821-xxxx-xxxx\n\n#{produk}LegendaryTaste #PelangganSetia`,
+      
+      `Mencari Tempat Makan Berkualitas?\n\n{produk} adalah solusi tepat untuk Anda. Kami menyediakan berbagai pilihan menu dengan standar hygiene tinggi.\n\nLayanan:\n✓ Dine-in\n✓ Take away\n✓ Delivery\n✓ Catering untuk acara\n\nReservasi & Info: 0821-xxxx-xxxx\n\n#{produk}Service #MultiLayanan`,
+      
+      `{produk} - Experience the Difference\n\nPerpaduan sempurna antara tradisi dan inovasi. Setiap hidangan diciptakan untuk memberikan pengalaman kuliner yang tak terlupakan.\n\nBuka setiap hari pukul 08.00 - 22.00 WITA\n\nKunjungi kami di:\nJl. [Alamat], Makassar\nTelp: 0821-xxxx-xxxx\n\n#{produk}Experience #Innovation`,
     ]
   }
 }
