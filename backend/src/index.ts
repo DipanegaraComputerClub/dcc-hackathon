@@ -231,7 +231,7 @@ app.post('/api/ai-content', async (c) => {
     }
 
     // Validasi type
-    const validTypes: ContentType[] = ['caption', 'promo', 'brand_voice', 'comment_analysis', 'auto_reply', 'pricing']
+    const validTypes: ContentType[] = ['caption', 'promo', 'branding', 'planner', 'copywriting', 'pricing', 'reply', 'comment']
     if (!validTypes.includes(type)) {
       return c.json({ 
         error: 'Invalid type', 
@@ -426,10 +426,12 @@ app.get('/api/ai-content/stats', async (c) => {
       byType: {
         caption: 0,
         promo: 0,
-        brand_voice: 0,
-        comment_analysis: 0,
-        auto_reply: 0,
+        branding: 0,
+        planner: 0,
+        copywriting: 0,
         pricing: 0,
+        reply: 0,
+        comment: 0,
       },
       recentActivity: data?.slice(0, 10) || []
     }

@@ -19,10 +19,12 @@ console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 export type ContentType = 
   | 'caption' 
   | 'promo' 
-  | 'brand_voice' 
-  | 'comment_analysis' 
-  | 'auto_reply' 
+  | 'branding' 
+  | 'planner'
+  | 'copywriting'
   | 'pricing'
+  | 'reply' 
+  | 'comment'
 
 export interface AIContentRequest {
   type: ContentType
@@ -90,15 +92,19 @@ function getSystemPrompt(type: ContentType): string {
   const prompts: Record<ContentType, string> = {
     caption: 'Kamu adalah AI copywriter ahli untuk social media. Spesialisasi membuat caption Instagram, Facebook, dan TikTok yang menarik, engaging, dan viral. Kamu memahami tren social media dan bisa menulis dalam bahasa Indonesia casual maupun formal.',
     
-    promo: 'Kamu adalah AI marketing specialist yang ahli membuat promo announcement yang persuasif dan menarik. Kamu bisa membuat promo text yang FOMO-inducing dan action-driven untuk UMKM kuliner.',
+    promo: 'Kamu adalah AI marketing specialist yang ahli membuat promo announcement yang persuasif dan menarik. Kamu bisa membuat konsep promo yang FOMO-inducing dan action-driven untuk UMKM kuliner di Makassar.',
     
-    brand_voice: 'Kamu adalah AI brand strategist yang membantu UMKM kuliner mengembangkan dan konsisten dengan brand voice mereka. Kamu bisa menganalisis dan memberikan guideline brand communication.',
+    branding: 'Kamu adalah AI branding consultant yang membantu UMKM membangun identitas brand yang kuat dan memorable. Kamu ahli dalam slogan, color psychology, brand storytelling, dan brand persona development.',
     
-    comment_analysis: 'Kamu adalah AI sentiment analyzer yang ahli menganalisis komentar customer di social media. Kamu bisa mengidentifikasi sentimen (positif/negatif/netral), pain points, dan memberikan insights actionable.',
+    planner: 'Kamu adalah AI content strategist yang membuat jadwal konten terstruktur dengan tujuan jelas untuk meningkatkan engagement. Kamu memahami best practice posting time, content mix, dan platform algorithms.',
     
-    auto_reply: 'Kamu adalah AI customer service assistant yang ramah dan profesional. Kamu bisa membuat balasan otomatis yang personal, helpful, dan sesuai dengan konteks pertanyaan customer tentang produk kuliner.',
+    copywriting: 'Kamu adalah AI copywriter ahli yang membantu UMKM kuliner di Makassar membuat konten marketing yang menarik. Kamu bisa menulis dalam berbagai gaya bahasa termasuk bahasa Makassar.',
     
     pricing: 'Kamu adalah AI pricing strategist untuk UMKM kuliner. Kamu bisa menganalisis harga kompetitor, cost structure, dan memberikan rekomendasi pricing yang optimal dengan mempertimbangkan value proposition dan target market.',
+    
+    reply: 'Kamu adalah AI customer service expert yang membuat balasan profesional, empati, dan solutif untuk berbagai tipe pesan pelanggan. Kamu bisa menyesuaikan tone dari ramah hingga tegas sesuai konteks.',
+    
+    comment: 'Kamu adalah AI sentiment analyzer yang menganalisis komentar pelanggan, mendeteksi sentimen (positif/negatif/netral), masalah utama, dan memberikan rekomendasi tindakan serta balasan yang tepat.',
   }
   
   return prompts[type]
@@ -115,147 +121,272 @@ function buildPromptByType(request: AIContentRequest): string {
       return buildCaptionPrompt(inputText, metadata)
     case 'promo':
       return buildPromoPrompt(inputText, metadata)
-    case 'brand_voice':
-      return buildBrandVoicePrompt(inputText, metadata)
-    case 'comment_analysis':
-      return buildCommentAnalysisPrompt(inputText, metadata)
-    case 'auto_reply':
-      return buildAutoReplyPrompt(inputText, metadata)
+    case 'branding':
+      return buildBrandingPrompt(inputText, metadata)
+    case 'planner':
+      return buildPlannerPrompt(inputText, metadata)
+    case 'copywriting':
+      return buildCopywritingPrompt(inputText, metadata)
     case 'pricing':
       return buildPricingPrompt(inputText, metadata)
+    case 'reply':
+      return buildReplyPrompt(inputText, metadata)
+    case 'comment':
+      return buildCommentPrompt(inputText, metadata)
     default:
       return inputText
   }
 }
 
 function buildCaptionPrompt(inputText: string, metadata?: Record<string, any>): string {
+  const topik = metadata?.topik || inputText
+  const tone = metadata?.tone || 'Santai'
   const platform = metadata?.platform || 'Instagram'
-  const tone = metadata?.tone || 'friendly'
-  const maxLength = metadata?.maxLength || 'medium (100-150 kata)'
+  const includeHashtags = metadata?.includeHashtags !== false
   
-  return `Buatkan caption untuk ${platform} dengan karakteristik:
-- Topik/Produk: ${inputText}
-- Tone: ${tone}
-- Panjang: ${maxLength}
-- Sertakan emoji yang relevan
-- Tambahkan 3-5 hashtag yang sesuai
-- Buat engaging dan action-driven (ajak like, comment, share, atau visit)
+  return `Buatkan caption untuk ${platform} dengan detail:
+
+Topik: ${topik}
+Tone: ${tone}
+Platform: ${platform}
+
+Buatkan caption yang:
+- Menarik perhatian di 3 detik pertama
+- Sesuai dengan tone ${tone}
+- Optimal untuk algoritma ${platform}
+${includeHashtags ? '- Dilengkapi dengan 5-10 hashtag relevan yang bisa viral' : ''}
+- Mengajak engagement (like, comment, share)
+- Gunakan emoji yang sesuai
 
 Format output:
-[Caption text dengan emoji]
+🔥 CAPTION ${platform.toUpperCase()} SIAP PAKAI 🔥
 
-#hashtag1 #hashtag2 #hashtag3`
+[Caption lengkap siap post dengan emoji]
+
+${includeHashtags ? '#hashtag1 #hashtag2 #hashtag3 ...' : ''}`
 }
 
 function buildPromoPrompt(inputText: string, metadata?: Record<string, any>): string {
-  const duration = metadata?.duration || '1 minggu'
-  const discount = metadata?.discount || 'belum ditentukan'
-  const urgency = metadata?.urgency || 'medium'
+  const namaProduk = metadata?.namaProduk || inputText
+  const jenisPromo = metadata?.jenisPromo || 'Diskon'
+  const targetAudience = metadata?.targetAudience || 'Umum'
+  const durasiPromo = metadata?.durasiPromo || '3 hari'
   
-  return `Buatkan announcement promo untuk UMKM kuliner:
-- Produk/Promo: ${inputText}
-- Durasi: ${duration}
-- Diskon/Benefit: ${discount}
-- Urgency level: ${urgency}
+  return `Buatkan konsep promo marketing untuk:
 
-Buat promo text yang:
-- Menarik perhatian dengan opening yang strong
-- Jelas menyebutkan benefit customer
-- Menciptakan sense of urgency (FOMO)
-- Sertakan call-to-action yang jelas
-- Tambahkan emoji untuk visual appeal
-- Maksimal 150 kata`
+Produk: ${namaProduk}
+Jenis Promo: ${jenisPromo}
+Target Audience: ${targetAudience}
+Durasi: ${durasiPromo}
+
+Buatkan konsep promo yang:
+- Menarik perhatian target audience
+- Menciptakan sense of urgency
+- Mudah dipahami dan actionable
+- Cocok untuk UMKM di Makassar
+
+Format output:
+📢 KONSEP PROMO SIAP POST!
+
+🔥 JUDUL PROMO: [Judul yang eye-catching]
+
+📝 CAPTION:
+[Teks promo siap post dengan emoji dan CTA kuat]
+
+⏰ WAKTU TERBAIK POST: [Jam dan hari optimal]
+
+💡 TIPS TAMBAHAN: [Strategi maksimalkan promo]`
 }
 
-function buildBrandVoicePrompt(inputText: string, metadata?: Record<string, any>): string {
-  const businessType = metadata?.businessType || 'kuliner'
-  const targetAudience = metadata?.targetAudience || 'umum'
+function buildBrandingPrompt(inputText: string, metadata?: Record<string, any>): string {
+  const sloganSekarang = metadata?.sloganSekarang || ''
+  const brandPersona = metadata?.brandPersona || inputText
+  const toneOfVoice = metadata?.toneOfVoice || 'Makassar Friendly'
   
-  return `Analisis dan berikan guideline brand voice untuk bisnis ${businessType}:
+  return `Bantu analisis dan kembangkan branding untuk UMKM dengan detail:
 
-Deskripsi bisnis: ${inputText}
-Target audience: ${targetAudience}
+${sloganSekarang ? `Slogan Sekarang: ${sloganSekarang}` : 'Belum punya slogan'}
+Brand Persona: ${brandPersona}
+Tone of Voice: ${toneOfVoice}
 
-Berikan guideline lengkap meliputi:
-1. Brand personality (3-5 trait utama)
-2. Tone of voice (formal/casual/friendly, dll)
-3. Bahasa yang digunakan (Indonesia formal/casual, bahasa daerah, slang, dll)
-4. Do's and Don'ts dalam komunikasi
-5. Contoh kalimat yang sesuai vs tidak sesuai
-6. Emoji usage guideline
+Buatkan rekomendasi branding yang meliputi:
 
-Format dalam bentuk guideline yang clear dan actionable.`
+Format output:
+🎨 HASIL ANALISA BRANDING:
+
+✨ SLOGAN UNIK:
+[3 pilihan slogan yang memorable dan sesuai persona]
+
+🎨 REKOMENDASI WARNA:
+[3 warna dengan kode hex dan psikologi warnanya]
+
+📖 STORYTELLING BRAND:
+[Cerita brand yang emotional dan relatable untuk Makassar]
+
+👤 KARAKTER BRAND PERSONA:
+[Deskripsi karakter brand yang konsisten]`
 }
 
-function buildCommentAnalysisPrompt(inputText: string, metadata?: Record<string, any>): string {
-  const commentsCount = metadata?.commentsCount || 'beberapa'
+function buildPlannerPrompt(inputText: string, metadata?: Record<string, any>): string {
+  const temaMingguan = metadata?.temaMingguan || inputText
+  const durasi = metadata?.durasi || '7'
   
-  return `Analisis komentar customer berikut dan berikan insights:
+  return `Buatkan content planner untuk social media dengan:
 
-Komentar:
-${inputText}
+Tema: ${temaMingguan}
+Durasi: ${durasi} hari
 
-Berikan analisis lengkap meliputi:
-1. **Sentiment Overview**: Hitung persentase positif/negatif/netral
-2. **Key Themes**: Topik utama yang paling banyak dibahas
-3. **Pain Points**: Masalah atau keluhan yang perlu diperhatikan
-4. **Positive Highlights**: Apa yang customer suka
-5. **Actionable Recommendations**: Saran konkret untuk improve berdasarkan feedback
-6. **Priority Issues**: Isu yang harus segera ditangani (jika ada)
+Buatkan jadwal konten yang:
+- Seimbang antara konten edukasi, hiburan, dan promosi (80:20 ratio)
+- Berdasarkan best practice posting time untuk audience Makassar
+- Mencakup berbagai format (foto, video, story, carousel, reels)
+- Mengikuti prinsip content marketing yang efektif
 
-Format dalam bentuk bullet points yang jelas dan mudah dipahami.`
+Format output:
+📅 JADWAL KONTEN (${durasi} HARI)
+Tema: ${temaMingguan}
+
+[Untuk setiap hari, tulis:]
+✅ Hari [X] ([Format Konten]): [Judul/Ide konten singkat]
+   ⏰ Waktu posting terbaik: [Jam WITA]
+   🎯 Tujuan: [Engagement/Edukasi/Selling]
+
+💡 TIPS EKSEKUSI:
+[Strategi tambahan untuk memaksimalkan engagement]`
 }
 
-function buildAutoReplyPrompt(inputText: string, metadata?: Record<string, any>): string {
-  const businessName = metadata?.businessName || 'kami'
-  const replyTone = metadata?.replyTone || 'friendly dan helpful'
+function buildCopywritingPrompt(inputText: string, metadata?: Record<string, any>): string {
+  const namaProduk = metadata?.namaProduk || inputText
+  const jenisKonten = metadata?.jenisKonten || 'Caption'
+  const tujuanKonten = metadata?.tujuanKonten || 'Jualan'
+  const gayaBahasa = metadata?.gayaBahasa || 'Makassar Halus'
   
-  return `Buatkan balasan otomatis untuk pertanyaan/komentar customer berikut:
+  let styleInstruction = ''
+  switch (gayaBahasa.toLowerCase()) {
+    case 'makassar halus':
+      styleInstruction = 'Gunakan bahasa Makassar yang halus dan sopan dengan campuran Indonesia. Contoh: "Enak sekali mi", "Jangan lupa mampir ki ya".'
+      break
+    case 'daeng friendly':
+      styleInstruction = 'Gunakan gaya ramah khas Makassar dengan panggilan "Daeng". Hangat dan akrab. Contoh: "Halo Daeng! Cobai mi menu baru ta".'
+      break
+    case 'formal':
+      styleInstruction = 'Gunakan bahasa Indonesia formal yang profesional dan sopan.'
+      break
+    case 'gen z tiktok':
+      styleInstruction = 'Gunakan bahasa Gen Z yang catchy dengan emoji dan istilah viral TikTok. Contoh: "Ga nyobain? Rugi banget sih 😭✨".'
+      break
+    default:
+      styleInstruction = `Gunakan gaya bahasa ${gayaBahasa}.`
+  }
 
-Pertanyaan/Komentar Customer:
-"${inputText}"
+  return `Buatkan ${jenisKonten} untuk produk "${namaProduk}":
 
-Context:
-- Nama bisnis: ${businessName}
-- Tone yang diinginkan: ${replyTone}
+Gaya: ${styleInstruction}
+Tujuan: ${tujuanKonten}
 
-Buat balasan yang:
-- Personal dan tidak terkesan robot
-- Menjawab pertanyaan dengan jelas
-- Helpful dan informative
-- Ramah dengan emoji yang sesuai (1-2 emoji cukup)
-- Jika perlu, ajak customer untuk action (order, DM, kunjungi, dll)
-- Maksimal 100 kata
-- Dalam bahasa Indonesia yang natural
+Buatkan copywriting yang:
+- Menarik dan sesuai gaya
+- Cocok untuk ${jenisKonten}
+- Singkat, padat, dan mengajak action
+- Sesuai dengan tujuan ${tujuanKonten}
 
-Langsung tulis balasan tanpa embel-embel lain.`
+Format output:
+📝 COPYWRITING (Tujuan: ${tujuanKonten})
+
+[Copywriting lengkap siap pakai dengan emoji yang sesuai]
+
+✨ ALTERNATIF:
+[Berikan 2 variasi berbeda dengan gaya yang sama]`
 }
 
 function buildPricingPrompt(inputText: string, metadata?: Record<string, any>): string {
-  const currentPrice = metadata?.currentPrice || 'belum ditentukan'
-  const costPrice = metadata?.costPrice || 'unknown'
-  const competitorPrices = metadata?.competitorPrices || 'unknown'
+  const namaProduk = metadata?.namaProduk || inputText
+  const modalHPP = metadata?.modalHPP || 0
+  const targetUntung = metadata?.targetUntung || 30
+  const hargaKompetitor = metadata?.hargaKompetitor || 0
   
-  return `Berikan analisis dan rekomendasi pricing untuk produk kuliner:
+  const kompetitorInfo = hargaKompetitor > 0
+    ? `Harga Kompetitor: Rp ${hargaKompetitor.toLocaleString('id-ID')}`
+    : 'Tidak ada data kompetitor'
 
-Produk: ${inputText}
-Harga saat ini: ${currentPrice}
-Harga pokok (COGS): ${costPrice}
-Harga kompetitor: ${competitorPrices}
+  return `Analisis pricing untuk produk UMKM:
 
-Berikan analisis lengkap:
-1. **Current Pricing Assessment**: Evaluasi harga saat ini
-2. **Cost Analysis**: Margin analysis jika data tersedia
-3. **Competitive Positioning**: Posisi vs kompetitor
-4. **Pricing Recommendation**: Rekomendasi harga optimal dengan reasoning
-5. **Pricing Strategy Options**: 
-   - Premium pricing (jika kualitas superior)
-   - Competitive pricing (match/beat kompetitor)
-   - Value pricing (best value for money)
-   - Penetration pricing (untuk market entry)
-6. **Implementation Tips**: Cara implement pricing baru tanpa lose customer
+Produk: ${namaProduk}
+Modal (HPP): Rp ${modalHPP.toLocaleString('id-ID')}
+Target Keuntungan: ${targetUntung}%
+${kompetitorInfo}
 
-Berikan angka konkret dan actionable recommendations.`
+Berikan analisis pricing yang mencakup:
+
+Format output:
+📊 ANALISIS HARGA:
+
+💰 Modal (HPP): Rp ${modalHPP.toLocaleString('id-ID')}
+📈 Rekomendasi Harga Jual: [Range harga min-max]
+✅ Margin Keuntungan: [Persentase aktual]
+
+${hargaKompetitor > 0 ? '🔍 PERBANDINGAN KOMPETITOR:\n[Analisis posisi harga vs kompetitor]\n' : ''}
+💡 STRATEGI PRICING:
+[Tips dan rekomendasi strategi harga untuk maksimalkan profit]
+
+⚠️ CATATAN:
+[Hal yang perlu diperhatikan dalam penentuan harga]`
+}
+
+function buildReplyPrompt(inputText: string, metadata?: Record<string, any>): string {
+  const pesanPelanggan = metadata?.pesanPelanggan || inputText
+  const nadaBalasan = metadata?.nadaBalasan || 'Ramah & Membantu'
+  
+  return `Buatkan balasan customer service untuk pesan pelanggan berikut:
+
+PESAN PELANGGAN:
+"${pesanPelanggan}"
+
+NADA BALASAN: ${nadaBalasan}
+
+Buatkan balasan yang:
+- Sesuai dengan nada "${nadaBalasan}"
+- Empati dan solutif
+- Profesional namun tetap friendly
+- Mengandung action/solusi konkret
+- Mempertahankan customer relationship
+
+Format output:
+💬 REKOMENDASI BALASAN:
+
+[Balasan lengkap siap kirim dengan emoji yang sesuai]
+
+💡 ANALISIS SITUASI:
+[Penjelasan singkat situasi dan mengapa balasan ini efektif]`
+}
+
+function buildCommentPrompt(inputText: string, metadata?: Record<string, any>): string {
+  const komentarPelanggan = metadata?.komentarPelanggan || inputText
+  
+  return `Analisis komentar pelanggan berikut:
+
+KOMENTAR:
+"${komentarPelanggan}"
+
+Lakukan analisis menyeluruh:
+
+Format output:
+🔍 ANALISA KOMENTAR:
+
+📊 SENTIMEN: [POSITIF 🟢 / NETRAL 🟡 / NEGATIF 🔴]
+
+${komentarPelanggan.length > 50 ? '📝 RINGKASAN:\n[Ringkasan singkat isi komentar]\n' : ''}
+⚠️ MASALAH UTAMA:
+[Identifikasi masalah/concern utama jika ada, atau tulis "Tidak ada masalah" jika positif]
+
+😊 POIN POSITIF:
+[Hal baik yang disebutkan jika ada, atau tulis "-" jika tidak ada]
+
+💡 REKOMENDASI TINDAKAN:
+[Action konkret yang perlu dilakukan]
+
+💬 AUTO-REPLY SUGGESTION:
+[Balasan yang tepat untuk komentar ini dengan tone yang sesuai]`
 }
 
 // ================================
@@ -263,12 +394,14 @@ Berikan angka konkret dan actionable recommendations.`
 // ================================
 function getTemperatureByType(type: ContentType): number {
   const temperatures: Record<ContentType, number> = {
-    caption: 0.8,           // Creative
-    promo: 0.7,             // Creative tapi tetap clear
-    brand_voice: 0.6,       // Balanced, not too wild
-    comment_analysis: 0.3,  // Factual dan consistent
-    auto_reply: 0.5,        // Helpful tapi personal
-    pricing: 0.4,           // Data-driven, analytical
+    caption: 0.8,       // Creative & engaging
+    promo: 0.7,         // Creative tapi tetap clear
+    branding: 0.6,      // Balanced, strategic
+    planner: 0.5,       // Structured but creative
+    copywriting: 0.8,   // Creative dengan gaya bahasa
+    pricing: 0.4,       // Data-driven, analytical
+    reply: 0.5,         // Helpful dan empati
+    comment: 0.3,       // Factual dan consistent
   }
   
   return temperatures[type]
@@ -281,151 +414,191 @@ function generateMockContent(request: AIContentRequest): AIContentResponse {
   const { type, inputText, metadata } = request
   
   const mockOutputs: Record<ContentType, string> = {
-    caption: `🔥 ${inputText} HITS BANGET!
+    caption: `🔥 CAPTION INSTAGRAM SIAP PAKAI 🔥
 
-Pernah cobain yang seenak ini? Ini dia rahasia kenyang + happy dalam satu gigitan! 😍✨
+Halo Daeng! 👋 Sudah coba menu baru kami? Rasanya bikin nagih! 🤤
+Cocok banget buat makan siang bareng teman kantor.
 
-Yuk mampir ke tempat kita, dijamin ga nyesel! Tag temen yang perlu dicoba in! 👇
+📍 Lokasi: Jl. Pettarani No. 10
+🛵 Tersedia di GrabFood & GoFood
 
-#${inputText.replace(/\s+/g, '')} #KulinerMakassar #Foodie #Enak #Viral`,
+Yuk buruan mampir sebelum kehabisan! 
 
-    promo: `🎉 PROMO SPESIAL ALERT! 🎉
+#KulinerMakassar #MakassarDagang #Ewako #CotoMakassar #JajananMakassar`,
 
-${inputText} sekarang lagi DISKON 25%! 🤯
+    promo: `📢 KONSEP PROMO SIAP POST!
 
-Cuma sampai akhir minggu ini aja loh! Siapa cepat dia dapat! 🏃‍♀️💨
+🔥 JUDUL PROMO: GAJIAN TIBA? WAKTUNYA MAKAN ENAK TANPA PUSING!
 
-Buruan order sebelum kehabisan:
-📱 DM atau WA kami sekarang!
-📍 Lokasi di bio
+📝 CAPTION:
+Habis gajian jangan langsung habis cika'! 😂
+Mending ke sini, makan kenyang hati senang.
 
-Jangan sampai nyesel ya! 😎
+Khusus buat Pegawai Kantor & Mahasiswa, tunjukkan ID Card kalian dan dapatkan DISKON 20% untuk semua menu Paket!
 
-#PromoSpesial #DiskonMakanan #LimitedOffer`,
+Buruan nah, cuma berlaku 3 hari! 🏃💨
 
-    brand_voice: `**Brand Voice Guideline untuk "${inputText}"**
+⏰ WAKTU TERBAIK POST: Pukul 11:30 WITA (sebelum jam makan siang)
 
-1. **Brand Personality:**
-   - Ramah & Approachable
-   - Autentik & Jujur
-   - Energetik & Passionate
-   - Down-to-earth
+💡 TIPS TAMBAHAN: 
+- Posting di story IG jam 8 pagi untuk reminder
+- Share di grup WA kantor/kampus
+- Buat countdown timer untuk urgency`,
 
-2. **Tone of Voice:**
-   - Casual tapi sopan
-   - Hangat & welcoming
-   - Conversational
-   - Enthusiastic tanpa berlebihan
+    branding: `🎨 HASIL ANALISA BRANDING:
 
-3. **Bahasa:**
-   - Bahasa Indonesia casual dengan sentuhan lokal Makassar
-   - Emoji usage: 2-3 per post
-   - Slang: Moderate (disesuaikan dengan audience)
+✨ SLOGAN UNIK:
+1. "Rasa Sultan, Harga Teman - Ewako!"
+2. "Dari Hati Makassar, Untuk Perut Indonesia"
+3. "Authentik. Enak. Terjangkau."
 
-4. **Do's:**
-   ✅ Sapa customer dengan ramah
-   ✅ Gunakan "kita" dan "kami" untuk personal touch
-   ✅ Share behind-the-scenes
-   ✅ Respond cepat dan helpful
+🎨 REKOMENDASI WARNA:
+- Merah Marun (#800000) → Berani, nafsu makan, tradisional
+- Kuning Emas (#FFD700) → Mewah tapi ceria, optimis
+- Hitam (#000000) → Elegan, premium, modern
 
-5. **Don'ts:**
-   ❌ Terlalu formal atau kaku
-   ❌ Overclaim (jangan lebay)
-   ❌ Ignore negative comments
-   ❌ Copy paste reply
+📖 STORYTELLING BRAND:
+"Berawal dari resep rahasia Nenek di lorong sempit Makassar tahun 1990, kami membawa cita rasa otentik yang tidak pernah berubah. Setiap suapan adalah perjalanan ke masa lalu, ke kehangatan keluarga Makassar."
 
-6. **Contoh:**
-   ✅ "Halo! Ada yang bisa kami bantu? 😊"
-   ❌ "Dengan hormat, kami siap melayani Anda."`,
+👤 KARAKTER BRAND PERSONA:
+"Si Daeng yang Ramah, Humoris, tapi Sangat Menghargai Tradisi. Bicara santai tapi tahu sopan santun. Seperti tetangga yang selalu siap berbagi cerita sambil makan bersama."`,
 
-    comment_analysis: `**Analisis Komentar Customer**
+    planner: `📅 JADWAL KONTEN (7 HARI)
+Tema: Kuliner Makassar
 
-Input yang dianalisis: "${inputText}"
+✅ Hari 1 (Video Reel): 'Behind The Scene' proses pembuatan bumbu rahasia
+   ⏰ Waktu posting: 18:00 WITA
+   🎯 Tujuan: Edukasi & Trust Building
 
-1. **Sentiment Overview:**
-   - Positif: 65%
-   - Netral: 25%
-   - Negatif: 10%
+✅ Hari 2 (Carousel): Repost testimoni pelanggan yang paling lucu
+   ⏰ Waktu posting: 12:00 WITA
+   🎯 Tujuan: Social Proof
 
-2. **Key Themes:**
-   - Kualitas rasa (40%)
-   - Harga (30%)
-   - Pelayanan (20%)
-   - Lokasi/delivery (10%)
+✅ Hari 3 (Story + Post): Tebak-tebakan bahasa Makassar berhadiah voucher
+   ⏰ Waktu posting: 15:00 WITA
+   🎯 Tujuan: Engagement
 
-3. **Pain Points:**
-   - Waktu tunggu agak lama saat jam ramai
-   - Porsi dianggap kurang besar untuk harga premium
-   - Parkir terbatas
+✅ Hari 4 (Foto HD): Produk close-up yang bikin ngiler
+   ⏰ Waktu posting: 11:00 WITA
+   🎯 Tujuan: Soft Selling
 
-4. **Positive Highlights:**
-   ✨ Rasa enak dan authentic
-   ✨ Tempat bersih dan nyaman
-   ✨ Staff ramah
-   ✨ Packaging bagus
+✅ Hari 5 (Story + Post): Promo 'Jumat Berkah' diskon khusus
+   ⏰ Waktu posting: 08:00 WITA
+   🎯 Tujuan: Hard Selling
 
-5. **Actionable Recommendations:**
-   🎯 Tambah staff di jam peak hours
-   🎯 Consider paket "porsi besar" atau "jumbo"
-   🎯 Kerjasama dengan tempat parkir terdekat
-   🎯 Maintain kualitas rasa dan service yang sudah bagus
+✅ Hari 6 (Carousel Edukasi): Tips makan Coto biar makin enak ala Daeng
+   ⏰ Waktu posting: 16:00 WITA
+   🎯 Tujuan: Value Content
 
-6. **Priority Issues:**
-   ⚠️ Atasi waktu tunggu dengan sistem antrian digital atau pre-order`,
+✅ Hari 7 (Quote Card): Motivasi usaha anak muda Makassar
+   ⏰ Waktu posting: 09:00 WITA
+   🎯 Tujuan: Inspirasi & Community
 
-    auto_reply: `Halo! Terima kasih sudah tertarik dengan ${inputText} 😊
+💡 TIPS EKSEKUSI:
+- Gunakan Reels untuk konten edukatif (algoritma prioritas)
+- Selalu reply komentar dalam 1 jam pertama
+- Cross-posting ke TikTok & Facebook untuk jangkauan lebih luas`,
 
-Untuk pertanyaan "${inputText}", saya dengan senang hati membantu!
+    copywriting: `📝 COPYWRITING (Tujuan: Jualan)
 
-[Jawaban detail disesuaikan dengan pertanyaan]
+POV: Kamu nemu produk lokal yang kualitasnya impor! 😱✨
 
-Kalau ada yang ingin ditanyakan lagi, jangan ragu DM kita ya! Atau bisa langsung order via WhatsApp di nomor bio 📱
+Sumpah ini barang mantap sekali cika'. ${metadata?.namaProduk || inputText} ini solusinya buat kamu yang mau tampil beda.
 
-Ditunggu orderannya! 🙏✨`,
+Keunggulannya:
+✅ Kualitas Premium
+✅ Harga Terjangkau
+✅ Asli Anak Makassar
 
-    pricing: `**Analisis & Rekomendasi Pricing untuk "${inputText}"**
+Order sekarang sebelum kehabisan stok! Klik link di bio nah. 👇
 
-1. **Current Pricing Assessment:**
-   Harga saat ini cukup kompetitif di market segment ini.
+✨ ALTERNATIF:
 
-2. **Cost Analysis:**
-   Estimasi margin: 60-65% (healthy untuk F&B)
+VARIASI 1:
+Eh Daeng! Tau nda' kalo ${metadata?.namaProduk || inputText} kita ini sudah jadi favorit pelanggan setia? 🔥
 
-3. **Competitive Positioning:**
-   Positioning di mid-range market, sesuai dengan quality yang ditawarkan.
+Rahasianya? Simple ji:
+- Bahan berkualitas
+- Harga bersahabat
+- Pelayanan cepat
 
-4. **Pricing Recommendation:**
-   💰 **Rekomendasi: Rp 25,000 - Rp 30,000**
-   
-   Reasoning:
-   - Sesuai dengan cost structure
-   - Kompetitif dengan kompetitor
-   - Margin sehat untuk sustainability
-   - Masih affordable untuk target market
+Yuk cobai sebelum terlambat! DM aja langsung 📱
 
-5. **Pricing Strategy Options:**
-   
-   **Option A: Value Pricing (Recommended)**
-   - Harga: Rp 27,500
-   - Position: Best value for money
-   - Bundle promo untuk volume
-   
-   **Option B: Premium Pricing**
-   - Harga: Rp 32,000
-   - Jika quality/experience superior
-   - Highlight USP yang membedakan
-   
-   **Option C: Penetration Pricing**
-   - Harga: Rp 23,000 (temporary)
-   - Untuk grab market share
-   - Naikkan bertahap setelah brand established
+VARIASI 2:
+Breaking News! 📢
 
-6. **Implementation Tips:**
-   ✅ Test pricing dengan A/B testing
-   ✅ Komunikasikan value, bukan cuma harga
-   ✅ Offer bundle deals untuk increase AOV
-   ✅ Monitor competitor pricing monthly
-   ✅ Gradual price increase (max 10% per year)`,
+${metadata?.namaProduk || inputText} yang viral di TikTok sekarang bisa dibeli di Makassar! 
+
+Limited stock, siapa cepat dia dapat!
+Grab yours NOW! 🏃‍♂️💨
+
+#MakassarLokalPride`,
+
+    pricing: `📊 ANALISIS HARGA:
+
+💰 Modal (HPP): Rp ${metadata?.modalHPP?.toLocaleString('id-ID') || '15.000'}
+📈 Rekomendasi Harga Jual: Rp 25.000 - Rp 28.000
+✅ Margin Keuntungan: 40% - 46%
+
+💡 STRATEGI PRICING:
+1. **Harga Psikologis**: Gunakan Rp 24.999 atau Rp 27.999 (terlihat lebih murah)
+2. **Tier Pricing**: 
+   - Regular: Rp 25.000
+   - Jumbo: Rp 35.000 (margin lebih besar)
+3. **Bundle Deal**: Beli 3 hanya Rp 70.000 (dari Rp 75.000)
+
+⚠️ CATATAN:
+- Harga ini sudah kompetitif untuk market Makassar
+- Pastikan packaging mendukung perceived value
+- Monitor biaya operasional (listrik, gas, gaji) setiap bulan
+- Evaluasi harga setiap 3 bulan mengikuti inflasi bahan baku`,
+
+    reply: `💬 REKOMENDASI BALASAN:
+
+"Halo Kak, terima kasih sudah menghubungi kami! 🙏
+
+Mohon maaf atas ketidaknyamanannya. Boleh kami tahu detail masalahnya atau nomor pesanan Kakak supaya kami bantu cek statusnya segera? 
+
+Kami pastikan masalah ini akan ditangani dengan cepat. Terima kasih atas kesabarannya ya Kak 😊
+
+Salam hangat,
+Tim [Nama Bisnis]"
+
+💡 ANALISIS SITUASI:
+Pesan ini efektif karena:
+- Menunjukkan empati langsung
+- Menawarkan solusi konkret (cek nomor pesanan)
+- Menggunakan bahasa yang ramah namun profesional
+- Menutup dengan harapan positif
+- Mencantumkan signature untuk personal touch`,
+
+    comment: `🔍 ANALISA KOMENTAR:
+
+📊 SENTIMEN: NEGATIF 🔴
+
+⚠️ MASALAH UTAMA: 
+- Pelayanan lambat (respon customer service)
+- Pesanan salah/tidak sesuai ekspektasi
+- Kemungkinan kecewa dengan kualitas vs harga
+
+💡 REKOMENDASI TINDAKAN:
+1. **SEGERA** reply komentar secara personal (jangan generic)
+2. **Minta maaf** dengan tulus dan akui kesalahan
+3. **Tawarkan kompensasi** (voucher/diskon/refund)
+4. **Follow up via DM** untuk privasi
+5. **Internal review** proses yang bermasalah
+
+💬 AUTO-REPLY SUGGESTION:
+"Tabe' Kak, mohon maaf sekali atas ketidaknyamanannya 🙏 
+
+Ini bukan standar pelayanan kami dan kami sangat menyesal. Boleh kami DM untuk ganti rugi dan pastikan hal ini tidak terulang lagi? 
+
+Terima kasih masukannya, ini sangat membantu kami berkembang.
+
+Hormat kami,
+[Nama Bisnis]"
+
+⚡ URGENCY LEVEL: TINGGI - Handle dalam 1 jam!`,
   }
   
   return {
