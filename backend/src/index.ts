@@ -7,7 +7,7 @@ const app = new Hono()
 
 // Enable CORS untuk frontend
 app.use('/*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'], // Sesuaikan dengan port frontend
+  origin: ['http://localhost:3000', 'http://localhost:1997'], // Sesuaikan dengan port frontend
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))

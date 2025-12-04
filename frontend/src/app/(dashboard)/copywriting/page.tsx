@@ -41,33 +41,66 @@ export default function FormsPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+const [loading, setLoading] = useState(false);
+const [result, setResult] = useState<{
+  mainText: string;
+  alternatives: string[];
+} | null>(null);
 
-    if (validateForm()) {
-      // Simulate API call
-      setTimeout(() => {
-        addToast({
-          title: "Form Submitted!",
-          description: "Data berhasil dikirim",
-          variant: "success",
-        });
-        setFormData({
-          namaProduk: "",
-          jenisKonten: "",
-          gayaBahasa: "",
-          tujuanKonten: "",
-        });
-        setErrors({});
-      }, 500);
-    } else {
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    addToast({
+      title: "Validation Error",
+      description: "Mohon periksa kembali form Anda",
+      variant: "error",
+    });
+    return;
+  }
+
+  setLoading(true);
+  
+  try {
+    // Call backend API
+    const response = await fetch('http://localhost:3000/api/copywriting', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        namaProduk: formData.namaProduk,
+        jenisKonten: formData.jenisKonten,
+        gayaBahasa: formData.gayaBahasa,
+        tujuanKonten: formData.tujuanKonten,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate copywriting');
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      setResult(data.data);
       addToast({
-        title: "Validation Error",
-        description: "Mohon periksa kembali form Anda",
-        variant: "error",
+        title: "Success!",
+        description: "Copywriting berhasil di-generate",
+        variant: "success",
       });
     }
-  };
+  } catch (error) {
+    console.error('Error:', error);
+    addToast({
+      title: "Error",
+      description: "Gagal generate copywriting. Coba lagi.",
+      variant: "error",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -94,8 +127,8 @@ export default function FormsPage() {
   dolor? Atque dolores at amet sapiente debitis minus totam
   quia, tempora dicta, hic veniam voluptate?`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(textToCopy);
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
     addToast({
       title: "Text Copied!",
       description: "Text berhasil disalin ke clipboard",
@@ -210,27 +243,66 @@ export default function FormsPage() {
           </Card>
 
           {/* Form Preview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 relative">
-                <button
-                  onClick={handleCopy}
-                  className="absolute top-0 right-0 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
-                >
-                  <Copy className="w-4 h-4 text-gray-500 hover:text-gray-700 dark:text-gray-400" />
-                </button>
+<Card>
+  <CardHeader>
+    <CardTitle>Hasil Copywriting</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-4">
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Generating copywriting...</p>
+        </div>
+      ) : result ? (
+        <>
+          {/* Main Text */}
+          <div className="relative">
+            <button
+              onClick={() => handleCopy(result.mainText)}
+              className="absolute top-0 right-0 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+            >
+              <Copy className="w-4 h-4 text-gray-500 hover:text-gray-700 dark:text-gray-400" />
+            </button>
+            <div className="pr-10">
+              <h3 className="text-sm font-semibold mb-2">Text Utama:</h3>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                {result.mainText}
+              </p>
+            </div>
+          </div>
 
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mr-5">
-                    {textToCopy}
-                  </p>
-                </div>
+          {/* Alternatives */}
+          {result.alternatives && result.alternatives.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold mb-3">Alternatif Lainnya:</h3>
+              <div className="space-y-3">
+                {result.alternatives.map((alt, index) => (
+                  <div key={index} className="relative bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                    <button
+                      onClick={() => handleCopy(alt)}
+                      className="absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-gray-500" />
+                    </button>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 pr-8">
+                      {alt}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Hasil copywriting akan muncul di sini setelah Anda klik "Kirim"
+          </p>
+        </div>
+      )}
+    </div>
+  </CardContent>
+</Card>
         </div>
       </div>
     </DashboardLayout>
