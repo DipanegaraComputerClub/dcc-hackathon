@@ -13,7 +13,7 @@ if (!KOLOSAL_API_KEY || KOLOSAL_API_KEY === 'your_kolosal_api_key_here') {
 }
 
 console.log('🔧 Kolosal AI Config:')
-console.log('   Model: Claude Sonnet 4.5')
+console.log('   Model: Llama 4 Maverick')
 console.log('   API Key:', KOLOSAL_API_KEY ? '✅ Set' : '❌ Not set')
 console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 
@@ -39,10 +39,10 @@ export async function generateCopywriting(
 
   try {
     const prompt = buildPrompt(request)
-    console.log('🤖 Generating with Claude Sonnet 4.5...')
+    console.log('🤖 Generating with Llama 4 Maverick...')
     
     const completion = await client.chat.completions.create({
-      model: 'Claude Sonnet 4.5',
+      model: 'Llama 4 Maverick',
       messages: [
         {
           role: 'system',
@@ -102,7 +102,7 @@ async function generateAlternatives(request: CopywritingRequest, count: number =
     const prompt = buildPrompt(request) + `\n\nBerikan ${count} variasi berbeda. Pisahkan dengan "---".`
     
     const completion = await client.chat.completions.create({
-      model: 'Claude Sonnet 4.5',
+      model: 'Llama 4 Maverick',
       messages: [
         { role: 'system', content: 'Kamu AI copywriter Makassar. Berikan variasi berbeda.' },
         { role: 'user', content: prompt },
