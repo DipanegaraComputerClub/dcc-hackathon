@@ -1,7 +1,20 @@
 import axios from 'axios'
 
 const KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY!
-const KOLOSAL_API_URL = 'https://api.kolosal.ai/v1/chat/completions'
+// Try different endpoint - Kolosal might use different path
+const KOLOSAL_API_URL = process.env.KOLOSAL_API_URL || 'https://api.kolosal.ai/v1/chat/completions'
+const USE_MOCK = process.env.USE_MOCK_AI === 'true' // For testing without API
+
+// Validate API key on startup
+if (!KOLOSAL_API_KEY || KOLOSAL_API_KEY === 'your_kolosal_api_key_here') {
+  console.error('⚠️  KOLOSAL_API_KEY tidak diset atau masih placeholder!')
+  console.error('⚠️  Silakan isi KOLOSAL_API_KEY di file .env')
+}
+
+console.log('🔧 Kolosal AI Config:')
+console.log('   API URL:', KOLOSAL_API_URL)
+console.log('   API Key:', KOLOSAL_API_KEY ? '✅ Set (length: ' + KOLOSAL_API_KEY.length + ')' : '❌ Not set')
+console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 
 export interface CopywritingRequest {
   namaProduk: string
@@ -21,11 +34,20 @@ export interface CopywritingResponse {
 export async function generateCopywriting(
   request: CopywritingRequest
 ): Promise<CopywritingResponse> {
+  // Mock mode untuk testing tanpa API
+  if (USE_MOCK) {
+    console.log('🧪 Using MOCK mode - generating dummy copywriting...')
+    return generateMockCopywriting(request)
+  }
+
   try {
     // Build prompt yang detail untuk AI
     const prompt = buildPrompt(request)
 
     // Request ke Kolosal AI API
+    console.log('🤖 Generating copywriting with AI...')
+    console.log('📝 Prompt preview:', prompt.substring(0, 100) + '...')
+    
     const response = await axios.post(
       KOLOSAL_API_URL,
       {
@@ -49,8 +71,11 @@ export async function generateCopywriting(
           'Content-Type': 'application/json',
           Authorization: `Bearer ${KOLOSAL_API_KEY}`,
         },
+        timeout: 30000, // 30 seconds timeout
       }
     )
+    
+    console.log('✅ AI response received')
 
     const mainText = response.data.choices[0].message.content.trim()
 
@@ -62,8 +87,27 @@ export async function generateCopywriting(
       alternatives,
     }
   } catch (error: any) {
-    console.error('Error calling Kolosal AI:', error.response?.data || error.message)
-    throw new Error('Gagal generate copywriting: ' + (error.response?.data?.error?.message || error.message))
+    console.error('❌ Error calling Kolosal AI:')
+    console.error('Status:', error.response?.status)
+    console.error('Data:', JSON.stringify(error.response?.data, null, 2))
+    console.error('Message:', error.message)
+    
+    // Better error message
+    let errorMessage = 'Gagal generate copywriting'
+    
+    if (error.response?.status === 401) {
+      errorMessage = 'API Key tidak valid. Silakan cek KOLOSAL_API_KEY di .env'
+    } else if (error.response?.status === 429) {
+      errorMessage = 'Rate limit exceeded. Tunggu beberapa saat dan coba lagi'
+    } else if (error.response?.status === 403) {
+      errorMessage = 'Forbidden. Cek permission API key Anda'
+    } else if (error.code === 'ECONNABORTED') {
+      errorMessage = 'Request timeout. API terlalu lama merespons'
+    } else if (error.response?.data?.error?.message) {
+      errorMessage = error.response.data.error.message
+    }
+    
+    throw new Error(errorMessage)
   }
 }
 
@@ -210,5 +254,54 @@ async function generateSingleAlternative(request: CopywritingRequest): Promise<s
     return response.data.choices[0].message.content.trim()
   } catch (error) {
     return 'Gagal generate alternatif'
+  }
+}
+
+/**
+ * Generate mock copywriting untuk testing
+ */
+function generateMockCopywriting(request: CopywritingRequest): CopywritingResponse {
+  const { namaProduk, jenisKonten, gayaBahasa } = request
+  
+  let mainText = ''
+  let alternatives: string[] = []
+  
+  // Generate based on style
+  if (gayaBahasa.toLowerCase().includes('makassar')) {
+    mainText = `Enak sekali mi ${namaProduk}! 😋 Kuahnya gurih, rasanya mantap ji! Jangan lupa mampir ki ya, Saudaraku! 🙏✨ #${namaProduk.replace(/\s/g, '')} #KulinerMakassar`
+    alternatives = [
+      `Assalamualaikum! 🙏 ${namaProduk} kami sudah buka mi! Rasa nya istimewa, harga terjangkau. Mari singgah ki! ☕`,
+      `Siang-siang begini, cocok mi makan ${namaProduk}! 🍲 Hangat, enak, bikin kenyang. Buruan sebelum kehabisan! 😊`,
+      `Hai Saudaraku! ${namaProduk} di tempat kami paling enak ji. Bumbu nya pas, porsi nya banyak. Dicoba mi! 🌟`
+    ]
+  } else if (gayaBahasa.toLowerCase().includes('daeng')) {
+    mainText = `Halo Daeng-daeng! 👋 Cobai mi ${namaProduk} ta yang baru! Enak parah, nagih ji! 🤤 Yuk mampir, ada promo hari ini loh! 🎉 #${namaProduk.replace(/\s/g, '')} #DaengKu`
+    alternatives = [
+      `Daeng, sudah cobai ${namaProduk} belum? Mantap ji rasanya, ga nyesel deh! 😍 Tunggu di tempat biasa ya Daeng!`,
+      `Psssttt Daeng... ${namaProduk} kita lagi promo nih! Beli 2 lebih murah! Buruan sebelum habis! 🏃‍♂️💨`,
+      `Hei Daeng kesayangan! ${namaProduk} fresh hari ini loh! Langsung datang ji, jangan sampai kehabisan! 🔥`
+    ]
+  } else if (gayaBahasa.toLowerCase().includes('gen z') || gayaBahasa.toLowerCase().includes('tiktok')) {
+    mainText = `POV: Kamu lagi craving ${namaProduk} 🤤\n\nGAKAN NYESEL SIH! Rasanya BUSSIN fr fr 🔥✨\n\nHarga? AFFORDABLE banget! No debat! 💅\n\nTag bestie mu! 👇\n#${namaProduk.replace(/\s/g, '')} #FYP #ViralTikTok #MustTry`
+    alternatives = [
+      `Alexa, cariin ${namaProduk} terdekat! 🤖💚\n\nBro sis, ini LEGEND banget! Manis, seger, nagih parah! 😍\n\nGa nyobain? RUGI BANGET! 😤 #FoodReview #Viral`,
+      `⚠️ WARNING: Jangan nonton kalo lagi diet! ⚠️\n\n${namaProduk} = COMFORT FOOD tingkat dewa! 🤩\n\nYg belum cobain, kalian ketinggalan zaman! #TimelessFood`,
+      `Tell me you're a foodie without telling me you're a foodie 🗿\n\nMe: *eating ${namaProduk}* 🤤💅\n\nDouble tap kalo setuju! ❤️ #Foodie #LocalFood`
+    ]
+  } else {
+    // Formal
+    mainText = `${namaProduk} - Cita Rasa Autentik untuk Anda\n\nKami dengan bangga mempersembahkan ${namaProduk} berkualitas premium, diolah dengan resep tradisional. Nikmati pengalaman kuliner yang memorable.\n\nReservasi: 0821-xxxx-xxxx\n#${namaProduk.replace(/\s/g, '')} #KulinerIndonesia`
+    alternatives = [
+      `Mencari tempat makan berkualitas? ${namaProduk} kami adalah pilihan tepat. Pelayanan profesional, rasa istimewa. Hubungi kami untuk reservasi.`,
+      `${namaProduk} dengan standar kualitas tinggi. Bahan pilihan, proses higienis, harga kompetitif. Kunjungi kami atau pesan via delivery.`,
+      `Selamat datang di ${namaProduk}! Kami berkomitmen menyajikan hidangan autentik dengan standar modern. Follow Instagram kami untuk update promo.`
+    ]
+  }
+  
+  console.log('✅ Mock copywriting generated')
+  
+  return {
+    mainText,
+    alternatives
   }
 }
