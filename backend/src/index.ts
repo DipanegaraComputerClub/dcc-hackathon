@@ -9,7 +9,8 @@ import {
   generateSchedulePlanner,
   type ImageAnalysisRequest,
   type TemplateGenerationRequest,
-  type SchedulePlannerRequest
+  type SchedulePlannerRequest,
+  type UMKMBrandingRequest
 } from './visual-studio'
 
 const app = new Hono()
@@ -462,7 +463,94 @@ app.get('/api/ai-content/stats', async (c) => {
 })
 
 // ================================
-// VISUAL STUDIO - Image Analysis
+// 🎯 VISUAL STUDIO - MAIN ENDPOINT: UMKM BRANDING (ALL-IN-ONE)
+// ================================
+app.post('/api/visual-studio/generate-umkm-branding', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { 
+      productImage,
+      productName,
+      businessType,
+      theme,
+      brandColor,
+      targetMarket,
+      format,
+      additionalInfo,
+      userId 
+    } = body
+
+    // Validasi input
+    if (!productName || !businessType || !theme || !brandColor || !targetMarket || !format) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'productName, businessType, theme, brandColor, targetMarket, dan format wajib diisi' 
+      }, 400)
+    }
+
+    const request: UMKMBrandingRequest = {
+      productImage,
+      productName,
+      businessType,
+      theme,
+      brandColor,
+      targetMarket,
+      format,
+      additionalInfo
+    }
+
+    console.log('🎨 Processing UMKM Branding request:', {
+      productName,
+      businessType,
+      theme,
+      format,
+      hasImage: !!productImage
+    })
+
+    const { generateUMKMBranding } = await import('./visual-studio')
+    const result = await generateUMKMBranding(request)
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'umkm_branding',
+        input_data: { 
+          productName, 
+          businessType, 
+          theme, 
+          format,
+          hasProductImage: !!productImage
+        },
+        output_data: {
+          success: result.success,
+          imageAnalysis: result.imageAnalysis,
+          processingTime: result.metadata.processingTime
+        },
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/generate-umkm-branding:', error)
+    return c.json({ 
+      error: 'Gagal generate branding UMKM', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Image Analysis (OLD - Keep for backward compatibility)
 // ================================
 app.post('/api/visual-studio/analyze-image', async (c) => {
   try {
@@ -666,7 +754,7 @@ app.post('/api/visual-studio/generate-design', async (c) => {
         user_id: userId || null,
         activity_type: 'design_generation',
         input_data: { prompt, style },
-        output_data: { imageUrl: result.imageUrl },
+        output_data: result,
         created_at: new Date().toISOString()
       }])
 
@@ -676,10 +764,7 @@ app.post('/api/visual-studio/generate-design', async (c) => {
 
     return c.json({
       success: true,
-      data: {
-        imageUrl: result.imageUrl,
-        predictionId: result.predictionId
-      }
+      data: result
     })
 
   } catch (error: any) {

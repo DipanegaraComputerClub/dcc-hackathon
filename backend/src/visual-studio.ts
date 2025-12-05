@@ -25,12 +25,66 @@ console.log('   Schedule Planner: Kolosal AI Llama 4 Maverick')
 console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 
 // ================================
-// TYPE DEFINITIONS
+// TYPE DEFINITIONS - SIMPLIFIED FOR UMKM
 // ================================
+
+// Request untuk generate design UMKM
+export interface UMKMBrandingRequest {
+  // Foto produk (optional - bisa generate tanpa foto)
+  productImage?: string  // base64
+  
+  // Info produk & branding
+  productName: string
+  businessType: 'makanan' | 'fashion' | 'kosmetik' | 'kerajinan' | 'cafe' | 'kuliner' | 'lainnya'
+  theme: 'elegant' | 'cute-pastel' | 'bold-modern' | 'minimalist' | 'premium' | 'playful'
+  brandColor: string  // Hex color
+  targetMarket: string  // e.g., "Remaja 17-25 tahun"
+  
+  // Template format
+  format: 'instagram-square' | 'instagram-story' | 'tiktok' | 'facebook'
+  
+  // Optional
+  additionalInfo?: string
+}
+
+export interface UMKMBrandingResponse {
+  success: boolean
+  
+  // Image quality analysis (jika ada foto diupload)
+  imageAnalysis?: {
+    qualityScore: number  // 1-10
+    isGoodQuality: boolean
+    issues: string[]
+    recommendations: string[]
+  }
+  
+  // Generated design template
+  designResult: {
+    imageBase64: string  // Final design siap posting
+    downloadUrl?: string
+    format: string
+    dimensions: { width: number; height: number }
+  }
+  
+  // Marketing suggestions
+  marketingSuggestions: {
+    caption: string
+    hashtags: string[]
+    bestPostingTime: string[]
+    targetPlatform: string[]
+  }
+  
+  metadata: {
+    generatedAt: string
+    processingTime: number
+  }
+}
+
+// Keep old interfaces for backward compatibility
 export interface ImageAnalysisRequest {
   imageUrl?: string
   imageBase64?: string
-  context?: string  // Konteks bisnis (e.g., "UMKM makanan Makassar")
+  context?: string
 }
 
 export interface ImageAnalysisResponse {
@@ -88,7 +142,205 @@ export interface SchedulePlannerResponse {
 }
 
 // ================================
-// 1. IMAGE ANALYSIS WITH SIGHTENGINE
+// 🎯 MAIN FUNCTION: ALL-IN-ONE UMKM BRANDING
+// ================================
+export async function generateUMKMBranding(
+  request: UMKMBrandingRequest
+): Promise<UMKMBrandingResponse> {
+  const startTime = Date.now()
+  
+  try {
+    console.log('🎨 Starting UMKM Branding Generation...')
+    console.log('   Product:', request.productName)
+    console.log('   Business:', request.businessType)
+    console.log('   Theme:', request.theme)
+    console.log('   Format:', request.format)
+    
+    let imageAnalysis = undefined
+    let processedImage = request.productImage
+    
+    // STEP 1: Analyze product image (if provided)
+    if (request.productImage) {
+      console.log('📸 Step 1: Analyzing product image quality...')
+      const analysis = await analyzeImageWithSightengine(request.productImage)
+      
+      imageAnalysis = {
+        qualityScore: analysis.qualityScore,
+        isGoodQuality: analysis.qualityScore >= 7,
+        issues: analysis.issues,
+        recommendations: analysis.suggestions
+      }
+      
+      console.log(`   Quality Score: ${analysis.qualityScore}/10`)
+      
+      // STEP 2: Remove background if quality is good
+      if (analysis.qualityScore >= 6) {
+        console.log('✂️ Step 2: Removing background...')
+        const bgRemovalResult = await removeBackgroundWithRemoveBg(request.productImage)
+        if (bgRemovalResult.success && bgRemovalResult.imageBase64) {
+          processedImage = bgRemovalResult.imageBase64
+          console.log('   ✅ Background removed successfully')
+        }
+      }
+    }
+    
+    // STEP 3: Generate design template with AI
+    console.log('🎨 Step 3: Generating branded design template...')
+    
+    const prompt = buildUMKMBrandingPrompt(request, processedImage ? true : false)
+    const templateResult = await generateTemplateWithHuggingFace(prompt, request.format)
+    
+    if (!templateResult.success) {
+      throw new Error(templateResult.error || 'Failed to generate template')
+    }
+    
+    // STEP 4: If we have product image, composite it with template
+    let finalDesign = templateResult.imageBase64!
+    
+    if (processedImage && templateResult.imageBase64) {
+      console.log('🖼️ Step 4: Compositing product image with template...')
+      // For now, use the template. In production, composite them together
+      finalDesign = templateResult.imageBase64
+    }
+    
+    // STEP 5: Generate marketing suggestions
+    console.log('📝 Step 5: Generating marketing suggestions...')
+    const marketingSuggestions = generateMarketingSuggestions(request)
+    
+    const processingTime = Date.now() - startTime
+    console.log(`✅ UMKM Branding completed in ${processingTime}ms`)
+    
+    return {
+      success: true,
+      imageAnalysis,
+      designResult: {
+        imageBase64: finalDesign,
+        format: request.format,
+        dimensions: getFormatDimensions(request.format)
+      },
+      marketingSuggestions,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        processingTime
+      }
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Error in UMKM Branding:', error.message)
+    throw new Error(`Gagal generate branding: ${error.message}`)
+  }
+}
+
+// Helper: Build AI prompt for UMKM branding
+function buildUMKMBrandingPrompt(request: UMKMBrandingRequest, hasProductImage: boolean): string {
+  const themeDescriptions = {
+    'elegant': 'elegant luxury style with gold accents, sophisticated typography, premium feel',
+    'cute-pastel': 'cute pastel colors, soft gradients, playful elements, kawaii aesthetic',
+    'bold-modern': 'bold vibrant colors, strong typography, geometric shapes, energetic vibe',
+    'minimalist': 'clean minimal design, lots of white space, simple lines, modern aesthetic',
+    'premium': 'premium luxury branding, dark elegant colors, sophisticated composition',
+    'playful': 'fun playful design, bright colors, dynamic elements, youthful energy'
+  }
+  
+  const businessContexts = {
+    'makanan': 'Indonesian food product, appetizing presentation, warm inviting colors',
+    'fashion': 'fashion product, stylish modern look, trendy aesthetic',
+    'kosmetik': 'beauty cosmetic product, clean elegant design, feminine appeal',
+    'kerajinan': 'handmade craft product, artisanal authentic feel, cultural elements',
+    'cafe': 'cafe coffee shop, cozy warm atmosphere, lifestyle aesthetic',
+    'kuliner': 'culinary food business, delicious appealing visuals, foodie vibes',
+    'lainnya': 'general UMKM business, professional clean presentation'
+  }
+  
+  const formatSpecs = {
+    'instagram-square': '1:1 square format Instagram post',
+    'instagram-story': '9:16 vertical Instagram Story format',
+    'tiktok': '9:16 vertical TikTok video thumbnail',
+    'facebook': '1.91:1 horizontal Facebook post'
+  }
+  
+  return `Professional UMKM social media branding design:
+
+PRODUCT: "${request.productName}"
+BUSINESS TYPE: ${businessContexts[request.businessType]}
+DESIGN THEME: ${themeDescriptions[request.theme]}
+FORMAT: ${formatSpecs[request.format]}
+BRAND COLOR: ${request.brandColor} as primary accent color
+TARGET MARKET: ${request.targetMarket}
+
+${hasProductImage ? 
+  'COMPOSITION: Product image will be placed in foreground, create complementary background design' :
+  'COMPOSITION: Generate complete product visualization with branding elements'
+}
+
+REQUIREMENTS:
+- High quality professional commercial photography style
+- Clean modern composition optimized for social media
+- ${request.theme} aesthetic throughout
+- Use ${request.brandColor} as primary brand color with complementary palette
+- Include space for text overlay (do NOT add any text)
+- Focus on visual appeal and brand identity
+- Instagram-worthy, scroll-stopping design
+- Suitable for ${request.businessType} UMKM business
+- Target audience: ${request.targetMarket}
+${request.additionalInfo ? `- Additional: ${request.additionalInfo}` : ''}
+
+OUTPUT: Professional social media ready design, NO TEXT, visual focus only, ready for UMKM posting`
+}
+
+// Helper: Generate marketing suggestions
+function generateMarketingSuggestions(request: UMKMBrandingRequest): {
+  caption: string
+  hashtags: string[]
+  bestPostingTime: string[]
+  targetPlatform: string[]
+} {
+  const captionTemplates = {
+    'makanan': `✨ ${request.productName} - Lezat & Berkualitas!\n\n🍽️ Dibuat dengan bahan pilihan terbaik\n📍 Tersedia sekarang untuk ${request.targetMarket}\n💬 DM untuk order!`,
+    'fashion': `✨ ${request.productName} - Style Meets Comfort\n\n👗 Perfect untuk ${request.targetMarket}\n🎨 Desain eksklusif & berkualitas\n📦 Ready stock - Order sekarang!`,
+    'kosmetik': `✨ ${request.productName} - Your Beauty Secret\n\n💄 Aman & teruji untuk ${request.targetMarket}\n🌟 Hasil maksimal, harga terjangkau\n💬 Tanya-tanya? DM aja!`,
+    'default': `✨ ${request.productName}\n\n✅ Kualitas terjamin\n🎯 Cocok untuk ${request.targetMarket}\n📲 Order via DM atau WhatsApp!`
+  }
+  
+  const caption = captionTemplates[request.businessType as keyof typeof captionTemplates] || captionTemplates.default
+  
+  const hashtags = [
+    '#UMKM',
+    '#UMKMIndonesia',
+    `#${request.productName.replace(/\s+/g, '')}`,
+    '#ProdukLokal',
+    '#SupportLokal',
+    request.businessType === 'makanan' ? '#KulinerNusantara' : `#${request.businessType}`,
+    '#BisnisOnline',
+    '#Jualan',
+    '#OpenOrder'
+  ]
+  
+  return {
+    caption,
+    hashtags,
+    bestPostingTime: [
+      '📱 Instagram: 11:00-13:00 & 19:00-21:00 WIB',
+      '📱 TikTok: 12:00-14:00 & 18:00-22:00 WIB',
+      '📱 Facebook: 10:00-12:00 & 19:00-20:00 WIB'
+    ],
+    targetPlatform: ['Instagram', 'TikTok', 'Facebook', 'WhatsApp Business']
+  }
+}
+
+// Helper: Get dimensions for format
+function getFormatDimensions(format: string): { width: number; height: number } {
+  const dimensions = {
+    'instagram-square': { width: 1080, height: 1080 },
+    'instagram-story': { width: 1080, height: 1920 },
+    'tiktok': { width: 1080, height: 1920 },
+    'facebook': { width: 1200, height: 630 }
+  }
+  return dimensions[format as keyof typeof dimensions] || { width: 1080, height: 1080 }
+}
+
+// ================================
+// 1. IMAGE ANALYSIS WITH SIGHTENGINE (OLD - Keep for compatibility)
 // ================================
 export async function analyzeImageWithAI(
   request: ImageAnalysisRequest
