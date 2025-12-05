@@ -1,9 +1,16 @@
 import OpenAI from 'openai'
-import * as sharp from 'sharp'
+import sharp from 'sharp'
+import { 
+  analyzeImageWithSightengine, 
+  removeBackgroundWithPixian, 
+  generateTemplateWithFlux,
+  type SightengineAnalysisResult,
+  type BackgroundRemovalResult,
+  type TemplateGenerationResult
+} from './external-apis'
 
 const KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY!
 const USE_MOCK = process.env.USE_MOCK_AI === 'true'
-const USE_REAL_IMAGE_ANALYSIS = true // Always analyze image properties
 
 const client = new OpenAI({
   apiKey: KOLOSAL_API_KEY,
@@ -11,9 +18,10 @@ const client = new OpenAI({
 })
 
 console.log('🎨 Visual Studio Config:')
-console.log('   Model: Llama 4 Maverick (Text-only, Vision NOT supported)')
-console.log('   Image Analysis: Real-time with Sharp.js')
-console.log('   API Key:', KOLOSAL_API_KEY ? '✅ Set' : '❌ Not set')
+console.log('   Image Analysis: Sightengine AI + Sharp.js')
+console.log('   Background Removal: Pixian.ai')
+console.log('   Template Generation: Flux (Replicate)')
+console.log('   Schedule Planner: Kolosal AI Llama 4 Maverick')
 console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 
 // ================================
@@ -80,152 +88,62 @@ export interface SchedulePlannerResponse {
 }
 
 // ================================
-// 1. IMAGE ANALYSIS WITH AI VISION
+// 1. IMAGE ANALYSIS WITH SIGHTENGINE
 // ================================
 export async function analyzeImageWithAI(
   request: ImageAnalysisRequest
 ): Promise<ImageAnalysisResponse> {
-  if (USE_MOCK) {
-    console.log('🧪 MOCK: Analyzing image with real image processing...')
-    return await generateMockImageAnalysis(request)
-  }
-
   try {
-    console.log('🤖 Analyzing image with Llama 4 Maverick Vision...')
+    console.log('🔍 Analyzing image with Sightengine AI...')
     
-    // Build prompt for image analysis
-    const prompt = `Analisa gambar ini sebagai STRICT photography & marketing expert untuk UMKM kuliner Makassar. PENTING: Berikan penilaian yang JUJUR dan OBJEKTIF, jangan terlalu murah hati dengan score!
-
-TUGAS ANALISA (BE STRICT & HONEST):
-
-1. **VISUAL QUALITY ASSESSMENT** (Score 1-10, BE CRITICAL)
-   Berikan score yang REALISTIS berdasarkan kriteria berikut:
-   
-   A. COMPOSITION & FRAMING (Score /10)
-      - Apakah mengikuti rule of thirds?
-      - Apakah subjek terlalu centered atau off-balance?
-      - Apakah ada negative space yang baik?
-      - Apakah framing tight atau terlalu longgar?
-      ⚠️ Score <6 jika komposisi berantakan, 6-7 jika decent, 8+ jika excellent
-   
-   B. LIGHTING & EXPOSURE (Score /10)
-      - Apakah pencahayaan cukup atau terlalu gelap/terang?
-      - Apakah ada harsh shadows atau burnt highlights?
-      - Apakah natural light atau artificial? Quality?
-      - Apakah exposure merata atau ada area gelap/terang ekstrem?
-      ⚠️ Score <6 jika lighting buruk, 6-7 jika acceptable, 8+ jika perfect
-   
-   C. COLOR BALANCE & VIBRANCY (Score /10)
-      - Apakah white balance correct atau ada color cast?
-      - Apakah warna vibrant atau kusam/pudar?
-      - Apakah color grading professional atau flat?
-      - Apakah appetizing untuk food photo?
-      ⚠️ Score <6 jika warna kusam/off, 6-7 jika decent, 8+ jika vibrant
-   
-   D. FOCUS & SHARPNESS (Score /10) - CRITICAL!
-      - Apakah gambar SHARP atau BLUR?
-      - Apakah ada motion blur atau camera shake?
-      - Apakah depth of field sesuai atau terlalu shallow/deep?
-      - Apakah detail jelas atau soft/kabur?
-      ⚠️ Score <5 jika BLUR PARAH (motion blur, out of focus)
-      ⚠️ Score 5-6 jika soft/kurang tajam
-      ⚠️ Score 7-8 jika sharp acceptable
-      ⚠️ Score 9-10 jika crystal clear & tack sharp
-
-   E. OVERALL APPEAL (/10)
-      - First impression: wow atau biasa saja?
-      - Professional quality atau amateur?
-      - Instagram-worthy atau perlu work?
-
-   📊 CALCULATE AVERAGE SCORE dari 5 komponen di atas
-   ⚠️ Jika ada 1 komponen score <6, overall TIDAK boleh >7!
-
-2. **CONTENT IDENTIFICATION & ANALYSIS**
-   - Describe objek secara detail (makanan apa, presentation, styling)
-   - Food photography standards: apakah memenuhi?
-   - Presentation quality: attractive atau kurang menarik?
-   - Background: clean atau cluttered? Distracting atau supporting?
-   - Props: ada atau tidak? Menambah value atau mengurangi?
-   - Mood: warm/cold? Inviting atau flat?
-
-3. **TECHNICAL ISSUES DETECTION**
-   ⚠️ CRITICAL - Detect masalah berikut:
-   - Motion blur atau camera shake? (MAJOR RED FLAG)
-   - Out of focus atau bokeh error? (MAJOR RED FLAG)
-   - Overexposed (blown highlights) atau underexposed?
-   - Noise/grain berlebihan?
-   - Distortion atau perspective error?
-   - Color banding atau artifacts?
-   
-   Jika ada 2+ technical issues, foto NEEDS RETAKE!
-
-4. **MARKETING POTENTIAL & VIRAL SCORE**
-   - Platform optimal: IG/TikTok/FB? Why?
-   - Target audience analysis
-   - Emotional impact: strong/medium/weak?
-   - Viral potential (1-10) - BE REALISTIC
-   - CTA potential
-
-5. **IMPROVEMENT RECOMMENDATIONS**
-   IF score <7:
-   - List SPECIFIC technical fixes needed
-   - Suggest RETAKE dengan detailed instructions
-   - Prioritize improvements (most critical first)
-   
-   IF score ≥7:
-   - Minor enhancements suggestions
-   - Editing tips
-   - Design overlay ideas
-
-6. **CONTENT STRATEGY** (only if photo is usable)
-   - Best posting time
-   - Caption themes
-   - Hashtag strategy
-   - Color palette (hex codes)
-
-${request.context ? `\nBUSINESS CONTEXT: ${request.context}` : ''}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-IMPORTANT SCORING RULES:
-- Score 1-4: Unusable, serious technical flaws
-- Score 5-6: Poor quality, needs significant improvement
-- Score 7-8: Good quality, usable with minor edits
-- Score 9-10: Excellent quality, professional standard
-
-BE STRICT! Jangan terlalu murah hati dengan score. Better honest feedback than false hope!
-━━━━━━━━━━━━━━━━━━━━━━━
-
-Output dalam format yang CLEAR dengan breakdown score per komponen!`
-
-    const completion = await client.chat.completions.create({
-      model: 'Llama 4 Maverick',
-      messages: [
-        {
-          role: 'system',
-          content: 'Kamu adalah STRICT photography critic & visual marketing expert dengan 10+ years experience. Your role: memberikan penilaian yang JUJUR dan OBJEKTIF pada kualitas foto - JANGAN terlalu murah hati dengan score! You specialize in food photography standards, technical photography assessment (exposure, focus, composition), dan social media marketing untuk UMKM. Be honest about technical flaws like blur, poor lighting, bad composition. Your feedback harus membantu clients improve quality, not give false confidence.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 1800,
+    if (!request.imageBase64) {
+      throw new Error('Image base64 required for analysis')
+    }
+    
+    // Use Sightengine for real image quality analysis
+    const sightengineResult: SightengineAnalysisResult = await analyzeImageWithSightengine(request.imageBase64)
+    
+    console.log('✅ Image analysis complete:', {
+      qualityScore: sightengineResult.qualityScore,
+      viralScore: sightengineResult.viralScore,
+      needsRetake: sightengineResult.needsRetake
     })
     
-    const analysisText = completion.choices[0].message.content?.trim() || ''
-    
-    // Parse output (simplified - in production, use structured output)
+    // Return formatted response
     return {
-      analysis: analysisText,
-      suggestions: extractSuggestions(analysisText),
-      marketingTips: extractMarketingTips(analysisText),
-      bestTimeToPost: extractBestTime(analysisText),
-      hashtags: extractHashtags(analysisText),
-      colorPalette: extractColors(analysisText),
+      analysis: sightengineResult.analysis,
+      suggestions: sightengineResult.suggestions,
+      marketingTips: [
+        'Post di jam makan (11-13 & 18-20 WIB) untuk maximize engagement',
+        'Tag lokasi Makassar untuk local discovery',
+        'Gunakan Story polls & questions untuk boost interaction',
+        'Collaborate dengan food blogger lokal'
+      ],
+      bestTimeToPost: [
+        'Senin-Jumat: 11:00-13:00 WIB (Lunch peak)',
+        'Sabtu-Minggu: 18:00-20:00 WIB (Dinner time)',
+        'Story: 07:00-09:00 WIB (Morning commute)'
+      ],
+      hashtags: [
+        '#KulinerMakassar',
+        '#MakananMakassar',
+        '#FoodGram',
+        '#UMKMMakassar',
+        '#InstaFoodMakassar',
+        '#MakassarFoodies',
+        '#Enak',
+        '#FoodPhotography',
+        '#SulawesiSelatan',
+        '#ExploreIndonesia'
+      ],
+      colorPalette: ['#FF6B4A', '#FFB84D', '#FFF5E1', '#8B4513', '#CD853F'],
       metadata: {
         analyzedAt: new Date().toISOString(),
-        model: 'Llama 4 Maverick',
+        engine: 'Sightengine AI + Sharp.js',
+        qualityScore: sightengineResult.qualityScore,
+        viralScore: sightengineResult.viralScore,
+        needsRetake: sightengineResult.needsRetake,
+        detailedScores: sightengineResult.detailedScores
       }
     }
   } catch (error: any) {

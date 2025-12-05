@@ -579,6 +579,119 @@ app.post('/api/visual-studio/generate-template', async (c) => {
 })
 
 // ================================
+// VISUAL STUDIO - Background Removal (Pixian.ai)
+// ================================
+app.post('/api/visual-studio/remove-background', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { imageBase64, userId } = body
+
+    if (!imageBase64) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'imageBase64 wajib diisi' 
+      }, 400)
+    }
+
+    const { removeBackgroundWithPixian } = await import('./external-apis')
+    const result = await removeBackgroundWithPixian(imageBase64)
+
+    if (!result.success) {
+      return c.json({ 
+        error: 'Background removal failed', 
+        message: result.error 
+      }, 500)
+    }
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'background_removal',
+        input_data: { action: 'remove_background' },
+        output_data: { success: true },
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        imageBase64: result.imageBase64
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/remove-background:', error)
+    return c.json({ 
+      error: 'Gagal menghapus background', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Generate Template Design (Flux)
+// ================================
+app.post('/api/visual-studio/generate-design', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { prompt, style, userId } = body
+
+    if (!prompt) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'prompt wajib diisi' 
+      }, 400)
+    }
+
+    const { generateTemplateWithFlux } = await import('./external-apis')
+    const result = await generateTemplateWithFlux(prompt, style || 'instagram-feed')
+
+    if (!result.success) {
+      return c.json({ 
+        error: 'Design generation failed', 
+        message: result.error 
+      }, 500)
+    }
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'design_generation',
+        input_data: { prompt, style },
+        output_data: { imageUrl: result.imageUrl },
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        imageUrl: result.imageUrl,
+        predictionId: result.predictionId
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/generate-design:', error)
+    return c.json({ 
+      error: 'Gagal generate design', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
 // VISUAL STUDIO - Schedule Planner
 // ================================
 app.post('/api/visual-studio/schedule-planner', async (c) => {

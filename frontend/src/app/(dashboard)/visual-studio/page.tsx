@@ -119,16 +119,41 @@ export default function VisualStudioPage() {
   };
   
   // REMOVE BACKGROUND (Simulated)
-  const handleRemoveBackground = () => {
+  const handleRemoveBackground = async () => {
+    if (!designImage) {
+      setError("Tidak ada gambar untuk diproses");
+      return;
+    }
+
     setIsLoading(true);
-    // Simulate API call to remove.bg or similar service
-    setTimeout(() => {
-      setIsLoading(false);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/visual-studio/remove-background`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: designImage,
+          userId: "demo-user"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Gagal menghapus background");
+      }
+
+      setDesignImage(data.data.imageBase64);
       setBackgroundRemoved(true);
-      // In production, this would be the actual no-bg image URL
-      setDesignImage(uploadedImage); // For now, use same image
-      alert("Background removal simulation complete! (Dalam production akan menggunakan remove.bg API)");
-    }, 2000);
+      alert("✅ Background berhasil dihapus dengan Pixian.ai!");
+
+    } catch (err: any) {
+      console.error("Error removing background:", err);
+      setError(err.message || "Gagal menghapus background. API mungkin belum dikonfigurasi.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 2. GENERATE TEMPLATE DESIGN
