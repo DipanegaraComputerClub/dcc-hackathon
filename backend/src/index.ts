@@ -3,6 +3,14 @@ import { cors } from 'hono/cors'
 import { supabase } from './supabase'
 import { generateCopywriting, type CopywritingRequest } from './kolosalai'
 import { generateAIContent, type AIContentRequest, type ContentType } from './ai-content-studio'
+import { 
+  analyzeImageWithAI, 
+  generateTemplateDesign, 
+  generateSchedulePlanner,
+  type ImageAnalysisRequest,
+  type TemplateGenerationRequest,
+  type SchedulePlannerRequest
+} from './visual-studio'
 
 const app = new Hono()
 
@@ -448,6 +456,224 @@ app.get('/api/ai-content/stats', async (c) => {
     console.error('Error in /api/ai-content/stats:', error)
     return c.json({ 
       error: 'Gagal mengambil statistik', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Image Analysis
+// ================================
+app.post('/api/visual-studio/analyze-image', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { imageUrl, imageBase64, context, userId } = body
+
+    // Validasi input
+    if (!imageUrl && !imageBase64) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'imageUrl atau imageBase64 wajib diisi' 
+      }, 400)
+    }
+
+    const request: ImageAnalysisRequest = {
+      imageUrl,
+      imageBase64,
+      context: context || 'UMKM kuliner Makassar'
+    }
+
+    const result = await analyzeImageWithAI(request)
+
+    // Simpan ke database (optional - untuk history)
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'image_analysis',
+        input_data: { imageUrl, context },
+        output_data: result,
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/analyze-image:', error)
+    return c.json({ 
+      error: 'Gagal menganalisa gambar', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Template Generation
+// ================================
+app.post('/api/visual-studio/generate-template', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { imageUrl, imageBase64, templateType, theme, brandColor, targetAudience, userId } = body
+
+    // Validasi input
+    if (!templateType || !theme || !targetAudience) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'templateType, theme, dan targetAudience wajib diisi' 
+      }, 400)
+    }
+
+    const validTypes = ['promo', 'story', 'feed', 'reels', 'carousel']
+    if (!validTypes.includes(templateType)) {
+      return c.json({ 
+        error: 'Invalid templateType', 
+        message: `templateType harus salah satu dari: ${validTypes.join(', ')}` 
+      }, 400)
+    }
+
+    const request: TemplateGenerationRequest = {
+      imageUrl,
+      imageBase64,
+      templateType,
+      theme,
+      brandColor,
+      targetAudience
+    }
+
+    const result = await generateTemplateDesign(request)
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'template_generation',
+        input_data: { templateType, theme, targetAudience },
+        output_data: result,
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/generate-template:', error)
+    return c.json({ 
+      error: 'Gagal generate template', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Schedule Planner
+// ================================
+app.post('/api/visual-studio/schedule-planner', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { imageUrl, contentType, targetAudience, businessGoal, duration, userId } = body
+
+    // Validasi input
+    if (!contentType || !targetAudience || !businessGoal || !duration) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'contentType, targetAudience, businessGoal, dan duration wajib diisi' 
+      }, 400)
+    }
+
+    const validGoals = ['awareness', 'engagement', 'sales', 'traffic']
+    if (!validGoals.includes(businessGoal)) {
+      return c.json({ 
+        error: 'Invalid businessGoal', 
+        message: `businessGoal harus salah satu dari: ${validGoals.join(', ')}` 
+      }, 400)
+    }
+
+    const request: SchedulePlannerRequest = {
+      imageUrl,
+      contentType,
+      targetAudience,
+      businessGoal,
+      duration: parseInt(duration)
+    }
+
+    const result = await generateSchedulePlanner(request)
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'schedule_planner',
+        input_data: { contentType, targetAudience, businessGoal, duration },
+        output_data: result,
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/schedule-planner:', error)
+    return c.json({ 
+      error: 'Gagal generate schedule', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Get History
+// ================================
+app.get('/api/visual-studio/history', async (c) => {
+  try {
+    const userId = c.req.query('userId')
+    const activityType = c.req.query('type') // image_analysis, template_generation, schedule_planner
+
+    let query = supabase
+      .from('visual_studio_activity')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    if (activityType) {
+      query = query.eq('activity_type', activityType)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw error
+    }
+
+    return c.json({ success: true, data })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/history:', error)
+    return c.json({ 
+      error: 'Gagal mengambil history', 
       message: error.message 
     }, 500)
   }
