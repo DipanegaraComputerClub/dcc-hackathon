@@ -17,9 +17,9 @@ README ini menjadi dokumentasi perjalanan, ide, hingga proses pembangunan projec
 Member :
 - Muhammad Amin Hidayat (https://github.com/dayattt111)
 - Muhammad Khoilullah (https://github.com/kholilullahhhh)
-- Aan (github.com/)
-- Muhammad Raihan (github.com/)
-- Rahmathia Ramadhani (github.com/)
+- Aan (github.com/aanblk242021)
+- Muhammad Raihan (https://github.com/reyyyg91)
+- Rahmathia Ramadhani (github.com/tyaaw2)
 
 Hackathon bagi saya bukan hanya event, tapi ajang untuk:
 - Belajar cepat,
