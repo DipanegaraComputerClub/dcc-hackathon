@@ -142,6 +142,50 @@ export interface SchedulePlannerResponse {
 }
 
 // ================================
+// HELPER: Composite product image with template
+// ================================
+async function compositeProductWithTemplate(
+  productImage: string,
+  templateImage: string,
+  format: string
+): Promise<string> {
+  try {
+    // Get dimensions based on format
+    const dims = getFormatDimensions(format)
+    
+    // Load both images
+    const productBuffer = Buffer.from(productImage.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+    const templateBuffer = Buffer.from(templateImage.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+    
+    // Resize product to fit in template (60% of canvas)
+    const productSize = Math.round(Math.min(dims.width, dims.height) * 0.6)
+    const productResized = await sharp(productBuffer)
+      .resize(productSize, productSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer()
+    
+    // Composite: template as background, product on top (centered)
+    const xOffset = Math.round((dims.width - productSize) / 2)
+    const yOffset = Math.round((dims.height - productSize) / 2.5) // Slightly above center
+    
+    const composited = await sharp(templateBuffer)
+      .resize(dims.width, dims.height, { fit: 'cover' })
+      .composite([{
+        input: productResized,
+        top: yOffset,
+        left: xOffset
+      }])
+      .jpeg({ quality: 90 })
+      .toBuffer()
+    
+    return `data:image/jpeg;base64,${composited.toString('base64')}`
+  } catch (error) {
+    console.error('❌ Composite error:', error)
+    throw error
+  }
+}
+
+// ================================
 // 🎯 MAIN FUNCTION: ALL-IN-ONE UMKM BRANDING
 // ================================
 export async function generateUMKMBranding(
@@ -190,21 +234,30 @@ export async function generateUMKMBranding(
     const prompt = buildUMKMBrandingPrompt(request, processedImage ? true : false)
     const templateResult = await generateTemplateWithHuggingFace(prompt, request.format)
     
+    let finalDesign: string
+    
     if (!templateResult.success || !templateResult.imageBase64) {
-      console.warn('⚠️ Template generation failed, using fallback')
-      // Import fallback function
+      console.warn('⚠️ Template generation failed, using enhanced fallback with product image')
+      // Import fallback function and pass product image
       const { generateFallbackTemplate } = await import('./external-apis')
-      const fallback = generateFallbackTemplate(prompt, request.format)
-      templateResult.imageBase64 = fallback.imageBase64
-    }
-    
-    // STEP 4: If we have product image, composite it with template
-    let finalDesign = templateResult.imageBase64!
-    
-    if (processedImage && templateResult.imageBase64) {
-      console.log('🖼️ Step 4: Compositing product image with template...')
-      // For now, use the template. In production, composite them together
-      finalDesign = templateResult.imageBase64
+      const fallback = generateFallbackTemplate(prompt, request.format, processedImage || undefined)
+      finalDesign = fallback.imageBase64!
+    } else {
+      // STEP 4: If we have product image, composite it with AI template
+      if (processedImage) {
+        console.log('🖼️ Step 4: Compositing product image with AI template...')
+        try {
+          const composited = await compositeProductWithTemplate(processedImage, templateResult.imageBase64, request.format)
+          finalDesign = composited
+        } catch (error) {
+          console.warn('⚠️ Composite failed, using fallback with product image')
+          const { generateFallbackTemplate } = await import('./external-apis')
+          const fallback = generateFallbackTemplate(prompt, request.format, processedImage)
+          finalDesign = fallback.imageBase64!
+        }
+      } else {
+        finalDesign = templateResult.imageBase64
+      }
     }
     
     // STEP 5: Generate marketing suggestions

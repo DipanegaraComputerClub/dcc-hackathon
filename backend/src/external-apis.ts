@@ -217,9 +217,10 @@ async function generateWithStabilityAI(
     formData.append('prompt', `UMKM product branding ${style}: ${prompt}. Professional, clean, vibrant`)
     formData.append('output_format', 'jpeg')
     formData.append('aspect_ratio', style === 'story' ? '9:16' : '1:1')
+    formData.append('negative_prompt', 'blurry, low quality, watermark, text')
     
     const response = await axios.post(
-      'https://api.stability.ai/v2beta/stable-image/generate/sd3',
+      'https://api.stability.ai/v2beta/stable-image/generate/core',
       formData,
       {
         headers: {
@@ -250,43 +251,100 @@ async function generateWithStabilityAI(
 // Final fallback: Return professional-looking placeholder
 export function generateFallbackTemplate(
   prompt: string,
-  style: string
+  style: string,
+  productImage?: string
 ): TemplateGenerationResult {
-  console.log('⚠️ Using fallback template generator')
+  console.log('⚠️ Using enhanced fallback template generator')
   
-  const dimensions = style === 'story' ? { width: 720, height: 1280 } : { width: 1024, height: 1024 }
+  const dimensions = style === 'story' ? { width: 1080, height: 1920 } : { width: 1080, height: 1080 }
   
-  // Generate professional placeholder SVG
-  const placeholderSvg = `
-    <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+  // Extract theme and colors from prompt
+  const isMinimalist = prompt.includes('minimalist') || prompt.includes('minimal')
+  const isElegant = prompt.includes('elegant') || prompt.includes('luxury')
+  const isBold = prompt.includes('bold') || prompt.includes('modern')
+  const isPastel = prompt.includes('pastel') || prompt.includes('cute')
+  
+  // Theme-based color schemes
+  let gradientColors = { start: '#FF6B6B', end: '#FFD93D', accent: '#FF8C42' }
+  
+  if (isMinimalist) {
+    gradientColors = { start: '#F8F9FA', end: '#E9ECEF', accent: '#495057' }
+  } else if (isElegant) {
+    gradientColors = { start: '#2C3E50', end: '#34495E', accent: '#F39C12' }
+  } else if (isBold) {
+    gradientColors = { start: '#E74C3C', end: '#9B59B6', accent: '#F1C40F' }
+  } else if (isPastel) {
+    gradientColors = { start: '#FFB3BA', end: '#BAFFC9', accent: '#BAE1FF' }
+  }
+  
+  // Professional template SVG with product image slot
+  const templateSvg = `
+    <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#FFD93D;stop-opacity:1" />
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${gradientColors.start};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${gradientColors.end};stop-opacity:1" />
         </linearGradient>
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
+        </filter>
+        <clipPath id="roundedRect">
+          <rect x="${dimensions.width * 0.1}" y="${dimensions.height * 0.15}" 
+                width="${dimensions.width * 0.8}" height="${dimensions.height * 0.5}" 
+                rx="30"/>
+        </clipPath>
       </defs>
-      <rect width="100%" height="100%" fill="url(#grad)"/>
-      <rect x="5%" y="5%" width="90%" height="90%" fill="white" rx="20"/>
-      <text x="50%" y="35%" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#FF6B6B" text-anchor="middle" dominant-baseline="middle">
-        🎨 UMKM Design
-      </text>
-      <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="#333" text-anchor="middle" dominant-baseline="middle">
-        Template Demo Mode
-      </text>
-      <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="16" fill="#666" text-anchor="middle" dominant-baseline="middle">
-        Configure API keys for AI generation
-      </text>
-      <text x="50%" y="70%" font-family="Arial, sans-serif" font-size="14" fill="#999" text-anchor="middle" dominant-baseline="middle">
-        Hugging Face • Stability AI • Remove.bg
-      </text>
+      
+      <!-- Background -->
+      <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+      
+      <!-- Decorative circles -->
+      <circle cx="${dimensions.width * 0.85}" cy="${dimensions.height * 0.15}" r="${dimensions.width * 0.3}" fill="${gradientColors.accent}" opacity="0.1"/>
+      <circle cx="${dimensions.width * 0.15}" cy="${dimensions.height * 0.85}" r="${dimensions.width * 0.25}" fill="${gradientColors.accent}" opacity="0.15"/>
+      
+      <!-- Main content card -->
+      <rect x="${dimensions.width * 0.08}" y="${dimensions.height * 0.12}" 
+            width="${dimensions.width * 0.84}" height="${dimensions.height * 0.76}" 
+            fill="white" rx="30" filter="url(#shadow)"/>
+      
+      ${productImage ? `
+        <!-- Product image container -->
+        <image href="${productImage}" 
+               x="${dimensions.width * 0.1}" y="${dimensions.height * 0.15}" 
+               width="${dimensions.width * 0.8}" height="${dimensions.height * 0.5}" 
+               clip-path="url(#roundedRect)"
+               preserveAspectRatio="xMidYMid slice"/>
+      ` : `
+        <!-- Product placeholder -->
+        <rect x="${dimensions.width * 0.1}" y="${dimensions.height * 0.15}" 
+              width="${dimensions.width * 0.8}" height="${dimensions.height * 0.5}" 
+              fill="${gradientColors.accent}" opacity="0.2" rx="30"/>
+        <text x="${dimensions.width * 0.5}" y="${dimensions.height * 0.4}" 
+              font-family="Arial, sans-serif" font-size="${dimensions.width * 0.05}" 
+              font-weight="bold" fill="${gradientColors.accent}" 
+              text-anchor="middle" opacity="0.5">📦</text>
+      `}
+      
+      <!-- Bottom section for text -->
+      <rect x="${dimensions.width * 0.1}" y="${dimensions.height * 0.68}" 
+            width="${dimensions.width * 0.8}" height="${dimensions.height * 0.15}" 
+            fill="${gradientColors.accent}" opacity="0.1" rx="20"/>
+      
+      <!-- Demo badge -->
+      <rect x="${dimensions.width * 0.7}" y="${dimensions.height * 0.05}" 
+            width="${dimensions.width * 0.25}" height="${dimensions.height * 0.04}" 
+            fill="${gradientColors.accent}" rx="${dimensions.height * 0.02}"/>
+      <text x="${dimensions.width * 0.825}" y="${dimensions.height * 0.075}" 
+            font-family="Arial, sans-serif" font-size="${dimensions.width * 0.022}" 
+            font-weight="bold" fill="white" text-anchor="middle">DEMO MODE</text>
     </svg>
   `.trim()
   
-  const placeholderBase64 = `data:image/svg+xml;base64,${Buffer.from(placeholderSvg).toString('base64')}`
+  const templateBase64 = `data:image/svg+xml;base64,${Buffer.from(templateSvg).toString('base64')}`
   
   return {
     success: true,
-    imageBase64: placeholderBase64
+    imageBase64: templateBase64
   }
 }
 
