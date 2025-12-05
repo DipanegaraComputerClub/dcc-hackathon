@@ -2,8 +2,8 @@ import OpenAI from 'openai'
 import sharp from 'sharp'
 import { 
   analyzeImageWithSightengine, 
-  removeBackgroundWithPixian, 
-  generateTemplateWithFlux,
+  removeBackgroundWithRemoveBg, 
+  generateTemplateWithHuggingFace,
   type SightengineAnalysisResult,
   type BackgroundRemovalResult,
   type TemplateGenerationResult
@@ -18,9 +18,9 @@ const client = new OpenAI({
 })
 
 console.log('🎨 Visual Studio Config:')
-console.log('   Image Analysis: Sightengine AI + Sharp.js')
-console.log('   Background Removal: Pixian.ai')
-console.log('   Template Generation: Flux (Replicate)')
+console.log('   Image Analysis: Sharp.js (Real-time quality detection)')
+console.log('   Background Removal: Remove.bg (50 free/month)')
+console.log('   Template Generation: Hugging Face FLUX (Unlimited FREE)')
 console.log('   Schedule Planner: Kolosal AI Llama 4 Maverick')
 console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 

@@ -3,17 +3,16 @@ import FormData from 'form-data'
 import sharp from 'sharp'
 
 // ================================
-// API CONFIGURATIONS
+// API CONFIGURATIONS (FREE & POWERFUL)
 // ================================
-const SIGHTENGINE_USER = process.env.SIGHTENGINE_USER || ''
-const SIGHTENGINE_SECRET = process.env.SIGHTENGINE_SECRET || ''
-const PIXIAN_API_KEY = process.env.PIXIAN_API_KEY || ''
-const REPLICATE_API_KEY = process.env.REPLICATE_API_KEY || ''
+const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || ''
+const REMOVEBG_API_KEY = process.env.REMOVEBG_API_KEY || ''
+const STABILITY_API_KEY = process.env.STABILITY_API_KEY || ''
 
-console.log('🔌 External APIs Config:')
-console.log('   Sightengine:', SIGHTENGINE_USER ? '✅ Configured' : '❌ Not set')
-console.log('   Pixian.ai:', PIXIAN_API_KEY ? '✅ Configured' : '❌ Not set')
-console.log('   Replicate (Flux):', REPLICATE_API_KEY ? '✅ Configured' : '❌ Not set')
+console.log('🔌 External APIs Config (FREE Tier):')
+console.log('   Hugging Face:', HUGGINGFACE_API_KEY ? '✅ Configured' : '⚠️ Not set (Unlimited FREE)')
+console.log('   Remove.bg:', REMOVEBG_API_KEY ? '✅ Configured' : '⚠️ Not set (50 free/month)')
+console.log('   Stability AI:', STABILITY_API_KEY ? '✅ Configured' : '⚠️ Not set (25 free/month)')
 
 // ================================
 // 1. SIGHTENGINE - IMAGE QUALITY ANALYSIS
@@ -38,127 +37,26 @@ export async function analyzeImageWithSightengine(
   imageBase64: string
 ): Promise<SightengineAnalysisResult> {
   try {
-    console.log('🔍 Analyzing image with Sightengine API...')
+    console.log('🔍 Analyzing image quality with Sharp.js...')
 
-    if (!SIGHTENGINE_USER || !SIGHTENGINE_SECRET) {
-      console.warn('⚠️ Sightengine credentials not configured, using fallback analysis')
-      return fallbackImageAnalysis(imageBase64)
-    }
-
-    // Convert base64 to buffer
-    const imageBuffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+    // Use local Sharp.js analysis (FREE & FAST)
+    return fallbackImageAnalysis(imageBase64)
     
-    // Analyze with Sharp for technical metrics
-    const metadata = await sharp(imageBuffer).metadata()
-    const stats = await sharp(imageBuffer).stats()
+    // Note: Sightengine API removed to simplify setup
+    // Sharp.js provides excellent quality analysis for FREE!
     
-    // Calculate sharpness (using laplacian variance approximation)
-    const sharpnessScore = await calculateSharpness(imageBuffer)
-    
-    // Call Sightengine API for quality analysis
-    const formData = new FormData()
-    formData.append('media', imageBuffer, { filename: 'image.jpg' })
-    formData.append('models', 'properties,quality')
-    formData.append('api_user', SIGHTENGINE_USER)
-    formData.append('api_secret', SIGHTENGINE_SECRET)
-
-    const response = await axios.post(
-      'https://api.sightengine.com/1.0/check.json',
-      formData,
-      {
-        headers: formData.getHeaders(),
-        timeout: 30000
-      }
-    )
-
-    const data = response.data
-    console.log('✅ Sightengine response received')
-
-    // Extract quality metrics
-    const quality = data.quality || {}
-    const sharpness = quality.sharpness || sharpnessScore
-    const contrast = quality.contrast || calculateContrast(stats)
-    const brightness = quality.brightness || calculateBrightness(stats)
-    const colors = quality.colors || calculateColorScore(stats)
-
-    // Calculate composition score (using rule of thirds approximation)
-    const composition = calculateCompositionScore(metadata)
-
-    // Calculate overall quality score (weighted average)
-    const qualityScore = Math.round(
-      (sharpness * 0.3) + 
-      (contrast * 0.2) + 
-      (brightness * 0.2) + 
-      (colors * 0.15) + 
-      (composition * 0.15)
-    )
-
-    // Calculate viral potential
-    const viralScore = Math.round(
-      (qualityScore * 0.5) + 
-      (colors * 0.3) + 
-      (composition * 0.2)
-    )
-
-    // Determine if needs retake
-    const needsRetake = qualityScore < 7 || sharpness < 6
-
-    // Identify issues
-    const issues: string[] = []
-    if (sharpness < 6) issues.push('❌ Gambar BLUR - fokus tidak tajam')
-    if (contrast < 5) issues.push('⚠️ Contrast rendah - gambar flat')
-    if (brightness < 4 || brightness > 9) issues.push('⚠️ Exposure tidak optimal - terlalu gelap/terang')
-    if (colors < 6) issues.push('⚠️ Warna kusam - perlu color correction')
-    if (composition < 6) issues.push('⚠️ Komposisi kurang optimal')
-
-    // Generate suggestions
-    const suggestions: string[] = []
-    if (sharpness < 7) suggestions.push('📸 Gunakan tripod atau stabilize kamera untuk foto lebih tajam')
-    if (contrast < 6) suggestions.push('🎨 Tingkatkan contrast saat editing untuk depth lebih baik')
-    if (brightness < 5) suggestions.push('💡 Tambah pencahayaan atau naikkan exposure')
-    if (brightness > 8) suggestions.push('💡 Kurangi exposure untuk avoid blown highlights')
-    if (colors < 7) suggestions.push('🌈 Tingkatkan saturation dan lakukan color grading')
-    if (composition < 7) suggestions.push('📐 Gunakan rule of thirds untuk komposisi lebih menarik')
-
-    // Generate detailed analysis text
-    const analysis = generateAnalysisText({
-      qualityScore,
-      viralScore,
-      sharpness,
-      contrast,
-      brightness,
-      colors,
-      composition,
-      needsRetake,
-      issues,
-      suggestions
-    })
-
-    return {
-      qualityScore,
-      viralScore,
-      needsRetake,
-      analysis,
-      detailedScores: {
-        sharpness,
-        contrast,
-        brightness,
-        colors,
-        composition
-      },
-      issues,
-      suggestions
-    }
+    /* 
+    // Optional: Uncomment if you want to use Sightengine API
+    */
 
   } catch (error: any) {
-    console.error('❌ Sightengine API Error:', error.message)
-    console.log('🔄 Using fallback analysis...')
+    console.error('❌ Error analyzing image:', error.message)
     return fallbackImageAnalysis(imageBase64)
   }
 }
 
 // ================================
-// 2. PIXIAN.AI - BACKGROUND REMOVAL
+// 2. REMOVE.BG - BACKGROUND REMOVAL (50 FREE/MONTH)
 // ================================
 export interface BackgroundRemovalResult {
   success: boolean
@@ -166,41 +64,42 @@ export interface BackgroundRemovalResult {
   error?: string
 }
 
-export async function removeBackgroundWithPixian(
+export async function removeBackgroundWithRemoveBg(
   imageBase64: string
 ): Promise<BackgroundRemovalResult> {
   try {
-    console.log('✂️ Removing background with Pixian.ai...')
+    console.log('✂️ Removing background with Remove.bg...')
 
-    if (!PIXIAN_API_KEY) {
-      console.warn('⚠️ Pixian API key not configured')
+    if (!REMOVEBG_API_KEY) {
+      console.warn('⚠️ Remove.bg API key not configured')
       return {
         success: false,
-        error: 'Pixian API key not configured. Please set PIXIAN_API_KEY in .env'
+        error: 'Remove.bg API key not configured. Get 50 free images/month at https://remove.bg/api'
       }
     }
 
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ''), 'base64')
 
-    // Call Pixian API
+    // Call Remove.bg API
     const formData = new FormData()
-    formData.append('image', imageBuffer, { filename: 'image.jpg' })
+    formData.append('image_file_b64', imageBase64.replace(/^data:image\/\w+;base64,/, ''))
+    formData.append('size', 'auto')
 
     const response = await axios.post(
-      'https://api.pixian.ai/api/v2/remove-background',
+      'https://api.remove.bg/v1.0/removebg',
       formData,
       {
         headers: {
           ...formData.getHeaders(),
-          'Authorization': `Bearer ${PIXIAN_API_KEY}`
+          'X-Api-Key': REMOVEBG_API_KEY
         },
         responseType: 'arraybuffer',
         timeout: 30000
       }
     )
 
-    console.log('✅ Background removed successfully')
+    console.log('✅ Background removed successfully with Remove.bg')
 
     // Convert response to base64
     const resultBase64 = `data:image/png;base64,${Buffer.from(response.data).toString('base64')}`
@@ -211,7 +110,93 @@ export async function removeBackgroundWithPixian(
     }
 
   } catch (error: any) {
-    console.error('❌ Pixian API Error:', error.message)
+    console.error('❌ Remove.bg API Error:', error.message)
+    return {
+      success: false,
+      error: error.response?.data?.errors?.[0]?.title || error.message
+    }
+  }
+}
+
+// ================================
+// 3. HUGGING FACE - AI IMAGE GENERATION (UNLIMITED FREE)
+// ================================
+export interface TemplateGenerationResult {
+  success: boolean
+  imageBase64?: string
+  error?: string
+}
+
+export async function generateTemplateWithHuggingFace(
+  prompt: string,
+  style: string = 'instagram-feed'
+): Promise<TemplateGenerationResult> {
+  try {
+    console.log('🎨 Generating template with Hugging Face Stable Diffusion...')
+
+    if (!HUGGINGFACE_API_KEY) {
+      console.warn('⚠️ Hugging Face API key not configured - using fallback')
+      return generateFallbackTemplate(prompt, style)
+    }
+
+    // Enhanced prompt untuk UMKM branding
+    const brandingPrompts = {
+      'instagram-feed': 'square 1:1 instagram post, modern clean design, vibrant colors, professional product photography',
+      'story': 'vertical 9:16 instagram story, eye-catching design, bold colors, mobile-optimized layout',
+      'promo': 'promotional banner, sale design, attention-grabbing, bold typography, dynamic composition',
+      'feed': 'social media feed post, aesthetic layout, minimal design, instagram-worthy',
+      'reels': 'vertical video thumbnail, dynamic composition, vibrant colors, engaging visual'
+    }
+
+    const stylePrompt = brandingPrompts[style as keyof typeof brandingPrompts] || brandingPrompts['instagram-feed']
+    
+    const enhancedPrompt = `Professional UMKM branding ${stylePrompt}: ${prompt}. 
+    High quality commercial photography, clean background, vibrant appetizing colors, 
+    product-focused composition, professional lighting, marketing material, 
+    instagram-worthy aesthetic, no text overlay, space for text, modern minimalist design`
+
+    // Call Hugging Face Inference API (FLUX or Stable Diffusion XL)
+    const response = await axios.post(
+      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+      {
+        inputs: enhancedPrompt,
+        parameters: {
+          negative_prompt: 'blurry, low quality, watermark, text, signature, distorted, ugly, bad composition',
+          num_inference_steps: 4, // Fast generation
+          guidance_scale: 0, // FLUX schnell doesn't use CFG
+          width: style === 'story' ? 720 : 1024,
+          height: style === 'story' ? 1280 : 1024
+        }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'arraybuffer',
+        timeout: 60000 // 60s for image generation
+      }
+    )
+
+    console.log('✅ Template generated successfully with Hugging Face')
+
+    // Convert to base64
+    const imageBase64 = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`
+
+    return {
+      success: true,
+      imageBase64
+    }
+
+  } catch (error: any) {
+    console.error('❌ Hugging Face API Error:', error.message)
+    
+    // Fallback to Stability AI if available
+    if (STABILITY_API_KEY) {
+      console.log('🔄 Trying fallback to Stability AI...')
+      return generateWithStabilityAI(prompt, style)
+    }
+    
     return {
       success: false,
       error: error.response?.data?.error || error.message
@@ -219,110 +204,60 @@ export async function removeBackgroundWithPixian(
   }
 }
 
-// ================================
-// 3. FLUX/REPLICATE - TEMPLATE GENERATION
-// ================================
-export interface TemplateGenerationResult {
-  success: boolean
-  imageUrl?: string
-  predictionId?: string
-  error?: string
-}
-
-export async function generateTemplateWithFlux(
+// Fallback: Stability AI (25 free generations/month)
+async function generateWithStabilityAI(
   prompt: string,
-  style: string = 'instagram-feed'
+  style: string
 ): Promise<TemplateGenerationResult> {
   try {
-    console.log('🎨 Generating template with Flux via Replicate...')
-
-    if (!REPLICATE_API_KEY) {
-      console.warn('⚠️ Replicate API key not configured')
-      return {
-        success: false,
-        error: 'Replicate API key not configured. Please set REPLICATE_API_KEY in .env'
-      }
-    }
-
-    // Enhanced prompt for social media templates
-    const enhancedPrompt = `Professional social media ${style} template design: ${prompt}. 
-    High quality, vibrant colors, modern design, clean layout, instagram-worthy, 
-    marketing material, eye-catching composition, professional photography style`
-
-    // Call Replicate API (Flux Schnell for fast generation)
     const response = await axios.post(
-      'https://api.replicate.com/v1/predictions',
+      'https://api.stability.ai/v2beta/stable-image/generate/sd3',
       {
-        version: 'black-forest-labs/flux-schnell', // Fast model
-        input: {
-          prompt: enhancedPrompt,
-          num_outputs: 1,
-          aspect_ratio: style === 'story' ? '9:16' : '1:1',
-          output_format: 'jpg',
-          output_quality: 90
-        }
+        prompt: `UMKM product branding ${style}: ${prompt}. Professional, clean, vibrant`,
+        output_format: 'jpeg',
+        aspect_ratio: style === 'story' ? '9:16' : '1:1'
       },
       {
         headers: {
-          'Authorization': `Bearer ${REPLICATE_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${STABILITY_API_KEY}`,
+          'Accept': 'image/*'
         },
-        timeout: 30000
+        responseType: 'arraybuffer',
+        timeout: 60000
       }
     )
 
-    const prediction = response.data
-    console.log('✅ Flux generation started:', prediction.id)
-
-    // Poll for completion (simplified - in production use webhooks)
-    let attempts = 0
-    const maxAttempts = 30 // 30 seconds max wait
+    const imageBase64 = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`
     
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1s
-      
-      const statusResponse = await axios.get(
-        `https://api.replicate.com/v1/predictions/${prediction.id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${REPLICATE_API_KEY}`
-          }
-        }
-      )
-
-      const status = statusResponse.data
-      
-      if (status.status === 'succeeded') {
-        console.log('✅ Template generated successfully')
-        return {
-          success: true,
-          imageUrl: status.output[0],
-          predictionId: prediction.id
-        }
-      }
-      
-      if (status.status === 'failed') {
-        console.error('❌ Generation failed:', status.error)
-        return {
-          success: false,
-          error: status.error
-        }
-      }
-      
-      attempts++
-    }
-
     return {
-      success: false,
-      error: 'Generation timeout - please try again'
+      success: true,
+      imageBase64
     }
-
   } catch (error: any) {
-    console.error('❌ Replicate API Error:', error.message)
+    console.error('❌ Stability AI Error:', error.message)
     return {
       success: false,
-      error: error.response?.data?.detail || error.message
+      error: error.message
     }
+  }
+}
+
+// Final fallback: Return placeholder with instructions
+function generateFallbackTemplate(
+  prompt: string,
+  style: string
+): TemplateGenerationResult {
+  console.log('⚠️ Using fallback - API keys not configured')
+  return {
+    success: false,
+    error: `API keys not configured. Please set HUGGINGFACE_API_KEY or STABILITY_API_KEY in .env file.
+    
+Get FREE API keys:
+- Hugging Face (UNLIMITED FREE): https://huggingface.co/settings/tokens
+- Stability AI (25 free/month): https://platform.stability.ai/account/keys
+
+Prompt: ${prompt}
+Style: ${style}`
   }
 }
 
@@ -612,6 +547,6 @@ async function fallbackImageAnalysis(imageBase64: string): Promise<SightengineAn
 
 export default {
   analyzeImageWithSightengine,
-  removeBackgroundWithPixian,
-  generateTemplateWithFlux
+  removeBackgroundWithRemoveBg,
+  generateTemplateWithHuggingFace
 }

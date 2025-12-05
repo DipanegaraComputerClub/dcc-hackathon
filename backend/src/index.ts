@@ -593,8 +593,8 @@ app.post('/api/visual-studio/remove-background', async (c) => {
       }, 400)
     }
 
-    const { removeBackgroundWithPixian } = await import('./external-apis')
-    const result = await removeBackgroundWithPixian(imageBase64)
+    const { removeBackgroundWithRemoveBg } = await import('./external-apis')
+    const result = await removeBackgroundWithRemoveBg(imageBase64)
 
     if (!result.success) {
       return c.json({ 
@@ -649,8 +649,8 @@ app.post('/api/visual-studio/generate-design', async (c) => {
       }, 400)
     }
 
-    const { generateTemplateWithFlux } = await import('./external-apis')
-    const result = await generateTemplateWithFlux(prompt, style || 'instagram-feed')
+    const { generateTemplateWithHuggingFace } = await import('./external-apis')
+    const result = await generateTemplateWithHuggingFace(prompt, style || 'instagram-feed')
 
     if (!result.success) {
       return c.json({ 
