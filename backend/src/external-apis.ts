@@ -158,17 +158,17 @@ export async function generateTemplateWithHuggingFace(
     product-focused composition, professional lighting, marketing material, 
     instagram-worthy aesthetic, no text overlay, space for text, modern minimalist design`
 
-    // Call Hugging Face Inference API (FLUX or Stable Diffusion XL)
+    // Call Hugging Face Inference API - Using Stable Diffusion XL
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
       {
         inputs: enhancedPrompt,
         parameters: {
           negative_prompt: 'blurry, low quality, watermark, text, signature, distorted, ugly, bad composition',
-          num_inference_steps: 4, // Fast generation
-          guidance_scale: 0, // FLUX schnell doesn't use CFG
-          width: style === 'story' ? 720 : 1024,
-          height: style === 'story' ? 1280 : 1024
+          num_inference_steps: 30,
+          guidance_scale: 7.5,
+          width: style === 'story' ? 768 : 1024,
+          height: style === 'story' ? 1344 : 1024
         }
       },
       {
@@ -177,7 +177,7 @@ export async function generateTemplateWithHuggingFace(
           'Content-Type': 'application/json'
         },
         responseType: 'arraybuffer',
-        timeout: 60000 // 60s for image generation
+        timeout: 120000 // 120s for image generation
       }
     )
 
@@ -213,17 +213,19 @@ async function generateWithStabilityAI(
   style: string
 ): Promise<TemplateGenerationResult> {
   try {
+    const formData = new FormData()
+    formData.append('prompt', `UMKM product branding ${style}: ${prompt}. Professional, clean, vibrant`)
+    formData.append('output_format', 'jpeg')
+    formData.append('aspect_ratio', style === 'story' ? '9:16' : '1:1')
+    
     const response = await axios.post(
       'https://api.stability.ai/v2beta/stable-image/generate/sd3',
-      {
-        prompt: `UMKM product branding ${style}: ${prompt}. Professional, clean, vibrant`,
-        output_format: 'jpeg',
-        aspect_ratio: style === 'story' ? '9:16' : '1:1'
-      },
+      formData,
       {
         headers: {
           'Authorization': `Bearer ${STABILITY_API_KEY}`,
-          'Accept': 'image/*'
+          'Accept': 'image/*',
+          ...formData.getHeaders()
         },
         responseType: 'arraybuffer',
         timeout: 60000
@@ -245,25 +247,37 @@ async function generateWithStabilityAI(
   }
 }
 
-// Final fallback: Return placeholder for demo
-function generateFallbackTemplate(
+// Final fallback: Return professional-looking placeholder
+export function generateFallbackTemplate(
   prompt: string,
   style: string
 ): TemplateGenerationResult {
-  console.log('⚠️ Using fallback - API keys not configured')
+  console.log('⚠️ Using fallback template generator')
   
-  // Generate simple placeholder SVG as base64
+  const dimensions = style === 'story' ? { width: 720, height: 1280 } : { width: 1024, height: 1024 }
+  
+  // Generate professional placeholder SVG
   const placeholderSvg = `
-    <svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#f0f0f0"/>
-      <text x="50%" y="45%" font-family="Arial" font-size="24" fill="#666" text-anchor="middle" dominant-baseline="middle">
-        🎨 Template Demo
+    <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#FFD93D;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grad)"/>
+      <rect x="5%" y="5%" width="90%" height="90%" fill="white" rx="20"/>
+      <text x="50%" y="35%" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#FF6B6B" text-anchor="middle" dominant-baseline="middle">
+        🎨 UMKM Design
       </text>
-      <text x="50%" y="52%" font-family="Arial" font-size="16" fill="#999" text-anchor="middle" dominant-baseline="middle">
-        ${prompt.substring(0, 50)}
+      <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="#333" text-anchor="middle" dominant-baseline="middle">
+        Template Demo Mode
       </text>
-      <text x="50%" y="58%" font-family="Arial" font-size="14" fill="#aaa" text-anchor="middle" dominant-baseline="middle">
-        Setup API key untuk generate real template
+      <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="16" fill="#666" text-anchor="middle" dominant-baseline="middle">
+        Configure API keys for AI generation
+      </text>
+      <text x="50%" y="70%" font-family="Arial, sans-serif" font-size="14" fill="#999" text-anchor="middle" dominant-baseline="middle">
+        Hugging Face • Stability AI • Remove.bg
       </text>
     </svg>
   `.trim()

@@ -190,8 +190,12 @@ export async function generateUMKMBranding(
     const prompt = buildUMKMBrandingPrompt(request, processedImage ? true : false)
     const templateResult = await generateTemplateWithHuggingFace(prompt, request.format)
     
-    if (!templateResult.success) {
-      throw new Error(templateResult.error || 'Failed to generate template')
+    if (!templateResult.success || !templateResult.imageBase64) {
+      console.warn('⚠️ Template generation failed, using fallback')
+      // Import fallback function
+      const { generateFallbackTemplate } = await import('./external-apis')
+      const fallback = generateFallbackTemplate(prompt, request.format)
+      templateResult.imageBase64 = fallback.imageBase64
     }
     
     // STEP 4: If we have product image, composite it with template
