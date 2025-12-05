@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   UploadCloud, ImageIcon, Sparkles, Eraser, ChevronDown, LayoutTemplate, 
   Calendar as CalendarIcon, Clock, CheckCircle2, ArrowRight, RefreshCw,
-  Image as ImageLucide 
+  Image as ImageLucide, Scissors, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { API_URL } from "@/config/api";
@@ -37,6 +37,10 @@ export default function VisualStudioPage() {
   const [contentType, setContentType] = useState("");
   const [businessGoal, setBusinessGoal] = useState("engagement");
   const [duration, setDuration] = useState("7");
+  
+  // Studio Desain states
+  const [designImage, setDesignImage] = useState<string | null>(null);
+  const [backgroundRemoved, setBackgroundRemoved] = useState(false);
 
   // --- HANDLER FUNGSI ---
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +52,8 @@ export default function VisualStudioPage() {
       setAnalysisResult(null);
       setTemplateResult(null);
       setScheduleResult(null);
+      setDesignImage(null);
+      setBackgroundRemoved(false);
       setProcessedImage(null);
       setError("");
     }
@@ -95,8 +101,14 @@ export default function VisualStudioPage() {
 
       console.log('Analysis result:', data.data);
       setAnalysisResult(data.data);
-      setProcessedImage(uploadedImage);
-      setActiveTab("design");
+      setDesignImage(uploadedImage); // Set image untuk di Studio Desain
+      
+      // Auto proceed to design if quality is good
+      const needsRetake = data.data.metadata?.needsRetake || false;
+      if (!needsRetake) {
+        // Foto bagus, bisa langsung ke design (tapi user bisa stay di tab ini untuk lihat detail)
+        // setActiveTab("design"); // Optional: auto switch
+      }
 
     } catch (err: any) {
       console.error('Error analyzing image:', err);
@@ -104,6 +116,19 @@ export default function VisualStudioPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // REMOVE BACKGROUND (Simulated)
+  const handleRemoveBackground = () => {
+    setIsLoading(true);
+    // Simulate API call to remove.bg or similar service
+    setTimeout(() => {
+      setIsLoading(false);
+      setBackgroundRemoved(true);
+      // In production, this would be the actual no-bg image URL
+      setDesignImage(uploadedImage); // For now, use same image
+      alert("Background removal simulation complete! (Dalam production akan menggunakan remove.bg API)");
+    }, 2000);
   };
 
   // 2. GENERATE TEMPLATE DESIGN
@@ -310,13 +335,55 @@ export default function VisualStudioPage() {
                        </Button>
                     </div>
                   ) : analysisResult ? (
-                    <div className="flex-1 flex flex-col justify-between h-full">
-                      <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-100 dark:border-purple-800 text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-wrap flex-1 overflow-y-auto max-h-[400px]">
+                    <div className="flex-1 flex flex-col justify-between h-full space-y-4">
+                      {/* Score Card */}
+                      {analysisResult.metadata && (
+                        <div className={cn(
+                          "p-6 rounded-xl border-2 text-center",
+                          analysisResult.metadata.needsRetake 
+                            ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700" 
+                            : "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                        )}>
+                          <div className="text-5xl font-black mb-2">
+                            {analysisResult.metadata.qualityScore || 8}/10
+                          </div>
+                          <div className={cn(
+                            "text-lg font-bold mb-2",
+                            analysisResult.metadata.needsRetake ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400"
+                          )}>
+                            {analysisResult.metadata.needsRetake ? "❌ PERLU RETAKE" : "✅ FOTO BAGUS!"}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {analysisResult.metadata.needsRetake 
+                              ? "Foto masih bisa ditingkatkan untuk hasil maksimal" 
+                              : "Siap untuk tahap design & posting!"}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Analysis Detail */}
+                      <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-100 dark:border-purple-800 text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-wrap flex-1 overflow-y-auto max-h-[350px]">
                         {analysisResult.analysis}
                       </div>
-                      <Button onClick={() => setActiveTab("design")} className="w-full bg-red-600 hover:bg-red-700 text-white mt-4 py-6 text-lg font-bold group">
-                        Lanjut ke Desain <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
+                      
+                      {/* Action Buttons */}
+                      <div className="space-y-2">
+                        {analysisResult.metadata?.needsRetake ? (
+                          <>
+                            <Button onClick={handleReset} variant="outline" className="w-full py-6 text-lg font-bold border-2">
+                              <RefreshCw className="h-5 w-5 mr-2" />
+                              Upload Foto Baru
+                            </Button>
+                            <Button onClick={() => setActiveTab("design")} className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-bold">
+                              Tetap Lanjut (Tidak Disarankan)
+                            </Button>
+                          </>
+                        ) : (
+                          <Button onClick={() => setActiveTab("design")} className="w-full bg-red-600 hover:bg-red-700 text-white py-6 text-lg font-bold group shadow-lg shadow-red-500/30">
+                            Lanjut ke Studio Desain <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-xl m-4">
@@ -334,11 +401,11 @@ export default function VisualStudioPage() {
         {activeTab === "design" && (
              <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 
-                {/* FORM INPUT KIRI */}
-                <Card className="md:col-span-1 bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 h-fit">
+                {/* IMAGE PREVIEW & ACTIONS - KIRI */}
+                <Card className="md:col-span-1 bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800">
                     <CardHeader>
-                        <CardTitle>🎨 Generate Template Design</CardTitle>
-                        <CardDescription>AI akan buatkan design template untuk Anda</CardDescription>
+                        <CardTitle>🖼️ Image Preview</CardTitle>
+                        <CardDescription>Edit dan siapkan foto Anda</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {error && (
@@ -347,68 +414,122 @@ export default function VisualStudioPage() {
                           </div>
                         )}
                         
-                        <div>
-                          <label className={labelStyle}>Template Type</label>
-                          <select 
-                            value={templateType}
-                            onChange={(e) => setTemplateType(e.target.value)}
-                            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-gray-800 dark:bg-gray-900 dark:text-white transition-all"
-                          >
-                            <option value="promo">Promo/Sale</option>
-                            <option value="story">Instagram Story</option>
-                            <option value="feed">Instagram Feed</option>
-                            <option value="reels">Reels/TikTok</option>
-                            <option value="carousel">Carousel</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className={labelStyle}>Theme/Konsep</label>
-                          <Input 
-                            placeholder="Contoh: Flash Sale Weekend"
-                            value={theme}
-                            onChange={(e) => setTheme(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-
-                        <div>
-                          <label className={labelStyle}>Brand Color</label>
-                          <div className="flex gap-2">
-                            <Input 
-                              type="color"
-                              value={brandColor}
-                              onChange={(e) => setBrandColor(e.target.value)}
-                              className="w-16 h-10"
+                        {/* Image Display */}
+                        {designImage ? (
+                          <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-checkerboard">
+                            <img 
+                              src={designImage} 
+                              alt="Preview" 
+                              className={cn(
+                                "w-full h-full object-contain transition-all duration-300",
+                                backgroundRemoved && "drop-shadow-2xl"
+                              )}
                             />
+                            {backgroundRemoved && (
+                              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                ✓ BG Removed
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center">
+                            <div className="text-center text-gray-400">
+                              <ImageLucide className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                              <p className="text-sm">Tidak ada foto</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        {designImage && (
+                          <div className="space-y-2">
+                            <Button 
+                              onClick={handleRemoveBackground}
+                              disabled={isLoading || backgroundRemoved}
+                              variant="outline"
+                              className="w-full py-5 font-semibold border-2"
+                            >
+                              {isLoading ? (
+                                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                              ) : backgroundRemoved ? (
+                                <Check className="h-4 w-4 mr-2" />
+                              ) : (
+                                <Scissors className="h-4 w-4 mr-2" />
+                              )}
+                              {backgroundRemoved ? 'Background Dihapus' : 'Hapus Background'}
+                            </Button>
+                            
+                            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                              <p className="text-xs text-gray-500 mb-2">Generate Template Design:</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Template Form */}
+                        <div className="space-y-3">
+                          <div>
+                            <label className={labelStyle}>Template Type</label>
+                            <select 
+                              value={templateType}
+                              onChange={(e) => setTemplateType(e.target.value)}
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-gray-800 dark:bg-gray-900 dark:text-white transition-all"
+                            >
+                              <option value="promo">Promo/Sale</option>
+                              <option value="story">Instagram Story</option>
+                              <option value="feed">Instagram Feed</option>
+                              <option value="reels">Reels/TikTok</option>
+                              <option value="carousel">Carousel</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className={labelStyle}>Theme/Konsep</label>
                             <Input 
-                              type="text"
-                              value={brandColor}
-                              onChange={(e) => setBrandColor(e.target.value)}
-                              className="flex-1"
-                              placeholder="#FF6347"
+                              placeholder="Contoh: Flash Sale Weekend"
+                              value={theme}
+                              onChange={(e) => setTheme(e.target.value)}
+                              className="w-full"
                             />
                           </div>
-                        </div>
 
-                        <div>
-                          <label className={labelStyle}>Target Audience</label>
-                          <Input 
-                            placeholder="Contoh: Mahasiswa, Pekerja 25-40 tahun"
-                            value={targetAudience}
-                            onChange={(e) => setTargetAudience(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
+                          <div>
+                            <label className={labelStyle}>Brand Color</label>
+                            <div className="flex gap-2">
+                              <Input 
+                                type="color"
+                                value={brandColor}
+                                onChange={(e) => setBrandColor(e.target.value)}
+                                className="w-12 h-9"
+                              />
+                              <Input 
+                                type="text"
+                                value={brandColor}
+                                onChange={(e) => setBrandColor(e.target.value)}
+                                className="flex-1"
+                                placeholder="#FF6347"
+                              />
+                            </div>
+                          </div>
 
-                        <Button 
-                          onClick={handleGenerateTemplate} 
-                          disabled={isLoading || !theme || !targetAudience}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 font-bold"
-                        >
-                          {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
-                          {isLoading ? 'Generating...' : 'Generate Template'}
-                        </Button>
+                          <div>
+                            <label className={labelStyle}>Target Audience</label>
+                            <Input 
+                              placeholder="Contoh: Mahasiswa, Pekerja 25-40 tahun"
+                              value={targetAudience}
+                              onChange={(e) => setTargetAudience(e.target.value)}
+                              className="w-full"
+                            />
+                          </div>
+
+                          <Button 
+                            onClick={handleGenerateTemplate} 
+                            disabled={isLoading || !theme || !targetAudience}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-5 font-bold shadow-lg"
+                          >
+                            {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
+                            {isLoading ? 'Generating...' : 'Generate Template Design'}
+                          </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -421,6 +542,40 @@ export default function VisualStudioPage() {
                     <CardContent className="flex-1 flex flex-col p-6 overflow-y-auto max-h-[600px]">
                         {templateResult ? (
                             <div className="space-y-6">
+                              {/* Template Preview Mockup */}
+                              {designImage && (
+                                <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl border-2 border-gray-300 dark:border-gray-700 shadow-xl">
+                                  <div className="absolute top-3 right-3 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                                    AI GENERATED PREVIEW
+                                  </div>
+                                  <div className="relative aspect-[4/5] max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl" style={{backgroundColor: brandColor || '#FF6347'}}>
+                                    <img 
+                                      src={designImage} 
+                                      alt="Template Preview" 
+                                      className="w-full h-full object-cover opacity-80 mix-blend-overlay"
+                                    />
+                                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white">
+                                      <div className="text-right">
+                                        <div className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-bold">
+                                          {templateType.toUpperCase()}
+                                        </div>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <h2 className="text-3xl font-black drop-shadow-2xl leading-tight">
+                                          {theme || "SPECIAL PROMO"}
+                                        </h2>
+                                        <div className="inline-block bg-white text-gray-900 px-6 py-3 rounded-lg font-bold text-lg shadow-xl">
+                                          {templateResult.ctaSuggestions?.[0] || "BELI SEKARANG!"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <p className="text-center text-xs text-gray-600 dark:text-gray-400 mt-4 italic">
+                                    ⚠️ Ini preview simulasi. Gunakan Canva/Figma untuk design final.
+                                  </p>
+                                </div>
+                              )}
+
                               {/* Design Suggestions */}
                               <div className="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-xl border border-gray-200 dark:border-gray-800">
                                 <h3 className="font-bold text-lg mb-3 text-gray-900 dark:text-white">🎨 Design Concept</h3>

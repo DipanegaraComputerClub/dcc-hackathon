@@ -576,50 +576,97 @@ function extractTips(text: string): string[] {
 // MOCK GENERATORS
 // ================================
 function generateMockImageAnalysis(request: ImageAnalysisRequest): ImageAnalysisResponse {
+  // Generate random score between 6-9 for variety
+  const qualityScore = Math.floor(Math.random() * 4) + 6; // 6-9
+  const viralScore = Math.floor(Math.random() * 3) + 7; // 7-9
+  
+  // Determine recommendation based on score
+  const needsRetake = qualityScore < 7;
+  const recommendation = needsRetake 
+    ? "❌ REKOMENDASI: RETAKE FOTO\n\nFoto ini masih bisa ditingkatkan. Pertimbangkan untuk foto ulang dengan pencahayaan lebih baik dan komposisi yang lebih menarik."
+    : "✅ REKOMENDASI: FOTO SUDAH BAGUS!\n\nFoto ini sudah berkualitas baik dan siap digunakan untuk konten marketing. Anda bisa langsung lanjut ke tahap design.";
+  
   return {
     analysis: `📸 ANALISA VISUAL MARKETING
 
-1. VISUAL QUALITY (8/10)
-   - Composition: Baik, rule of thirds terpenuhi
-   - Lighting: Natural light, warm tone
-   - Color: Vibrant dan appetizing
-   - Sharpness: Fokus bagus pada subjek utama
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 SKOR KUALITAS: ${qualityScore}/10
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${recommendation}
+
+1. DETAIL PENILAIAN VISUAL
+   📊 Overall Score: ${qualityScore}/10
+   
+   📐 Composition: ${qualityScore >= 8 ? '9/10 - Excellent!' : qualityScore >= 7 ? '7/10 - Good' : '6/10 - Needs improvement'}
+   ${qualityScore >= 8 ? '✓ Rule of thirds perfect, subject centered' : qualityScore >= 7 ? '✓ Decent composition, could be better' : '✗ Komposisi kurang optimal, subjek tidak fokus'}
+   
+   💡 Lighting: ${qualityScore >= 8 ? '9/10 - Perfect!' : qualityScore >= 7 ? '7/10 - Acceptable' : '5/10 - Too dark/bright'}
+   ${qualityScore >= 8 ? '✓ Natural light, warm tone, no harsh shadows' : qualityScore >= 7 ? '✓ Acceptable lighting, bisa ditingkatkan' : '✗ Pencahayaan kurang, terlalu gelap/terang'}
+   
+   🎨 Color & Vibrancy: ${qualityScore >= 8 ? '9/10' : qualityScore >= 7 ? '7/10' : '6/10'}
+   ${qualityScore >= 8 ? '✓ Vibrant, appetizing, color balanced' : qualityScore >= 7 ? '✓ Colors decent tapi bisa lebih pop' : '✗ Warna kusam, perlu color correction'}
+   
+   🔍 Focus & Sharpness: ${qualityScore >= 8 ? '9/10' : qualityScore >= 7 ? '7/10' : '6/10'}
+   ${qualityScore >= 8 ? '✓ Tack sharp, detail jelas' : qualityScore >= 7 ? '✓ Fokus oke, detail visible' : '✗ Agak blur, detail kurang tajam'}
 
 2. CONTENT IDENTIFICATION
-   - Makanan khas Makassar (food photography)
-   - Presentation menarik dengan garnish
-   - Background clean dengan props minimal
-   - Mood: Warm, inviting, homey
+   - Subjek: Makanan khas Makassar (food photography)
+   - Presentation: ${qualityScore >= 8 ? 'Menarik dengan garnish' : qualityScore >= 7 ? 'Cukup menarik' : 'Perlu styling lebih baik'}
+   - Background: ${qualityScore >= 8 ? 'Clean, minimal distraction' : qualityScore >= 7 ? 'Acceptable' : 'Cluttered, too busy'}
+   - Mood: ${qualityScore >= 8 ? 'Warm, inviting, homey' : qualityScore >= 7 ? 'Decent atmosphere' : 'Flat, kurang engaging'}
 
-3. MARKETING POTENTIAL (9/10)
-   - Platform: Instagram Feed & Story (optimal)
+3. MARKETING POTENTIAL (${viralScore}/10)
+   - Platform: Instagram Feed & Story ${qualityScore >= 8 ? '(OPTIMAL)' : qualityScore >= 7 ? '(GOOD)' : '(NEEDS WORK)'}
    - Target: Foodies, mahasiswa, pekerja 25-40 tahun
-   - Emotion: Hunger appeal, nostalgia
-   - Viral potential: Tinggi jika timing pas
+   - Emotion: ${qualityScore >= 8 ? 'Strong hunger appeal, nostalgia' : qualityScore >= 7 ? 'Moderate appetite appeal' : 'Weak emotional connection'}
+   - Viral potential: ${viralScore}/10 ${viralScore >= 8 ? '- HIGH!' : viralScore >= 7 ? '- MEDIUM' : '- LOW'}
 
 4. IMPROVEMENT SUGGESTIONS
-   ✅ Tambahkan text overlay untuk highlight promo
-   ✅ Gunakan filter warm untuk enhance appetite appeal
-   ✅ Crop closer untuk hero shot di Story format
+   ${qualityScore >= 8 ? '✅ Foto sudah bagus! Saran minor:' : qualityScore >= 7 ? '⚠️ Foto OK, tapi bisa lebih baik:' : '❌ Perlu perbaikan signifikan:'}
+   ${qualityScore >= 8 ? '• Tambahkan text overlay untuk highlight promo' : qualityScore >= 7 ? '• Tingkatkan pencahayaan dengan reflektor' : '• RETAKE dengan lighting lebih baik'}
+   ${qualityScore >= 8 ? '• Minor color grading untuk enhance appeal' : qualityScore >= 7 ? '• Gunakan angle 45° untuk depth' : '• Perbaiki komposisi dan framing'}
+   ${qualityScore >= 8 ? '• Crop closer untuk hero shot di Story format' : qualityScore >= 7 ? '• Tambahkan props garnish segar' : '• Clean background dari clutter'}
    
 5. CONTENT STRATEGY
    - Best time: Senin-Jumat 11:00-13:00 (lunch) & 18:00-20:00 (dinner)
    - Caption theme: Storytelling + call-to-action
-   - Hashtag mix: Popular + niche + branded`,
-    suggestions: [
-      'Tingkatkan pencahayaan dengan reflektor',
-      'Gunakan angle 45° untuk depth',
-      'Tambahkan props garnish segar'
+   - Hashtag mix: Popular + niche + branded
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 FINAL VERDICT: ${needsRetake ? 'Disarankan RETAKE untuk hasil maksimal' : 'Siap untuk tahap berikutnya!'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    suggestions: qualityScore >= 8 ? [
+      'Minor adjustment: Tambahkan text overlay strategis',
+      'Enhancement: Subtle color grading untuk pop',
+      'Crop variasi untuk Story & Feed format'
+    ] : qualityScore >= 7 ? [
+      'Tingkatkan pencahayaan dengan reflektor atau natural light',
+      'Gunakan angle 45° untuk lebih dynamic',
+      'Tambahkan props garnish untuk visual interest'
+    ] : [
+      '⚠️ RETAKE dengan pencahayaan natural lebih baik',
+      '⚠️ Perbaiki komposisi - fokus pada subjek utama',
+      '⚠️ Clean background dari distraksi'
     ],
-    marketingTips: [
-      'Post di jam makan untuk maximize hunger appeal',
-      'Tag lokasi untuk local SEO',
-      'Collaborate dengan food blogger lokal'
+    marketingTips: qualityScore >= 8 ? [
+      'Post di jam makan (11-13 & 18-20) untuk maximize impact',
+      'Tag lokasi Makassar untuk local discovery',
+      'Collaborate dengan food blogger/influencer lokal',
+      'Use Story polls untuk boost engagement'
+    ] : qualityScore >= 7 ? [
+      'Post timing masih penting: jam makan peak hours',
+      'Edit dulu sebelum post untuk enhance appeal',
+      'Tag lokasi dan gunakan hashtag lokal'
+    ] : [
+      'Fix foto dulu sebelum post - first impression matters!',
+      'Invest time dalam photo quality = better ROI',
+      'Lihat kompetitor untuk benchmark quality'
     ],
     bestTimeToPost: [
-      'Senin-Jumat: 11:00-13:00 WIB',
-      'Sabtu-Minggu: 18:00-20:00 WIB',
-      'Story: 07:00-09:00 WIB'
+      'Senin-Jumat: 11:00-13:00 WIB (Lunch peak)',
+      'Sabtu-Minggu: 18:00-20:00 WIB (Dinner time)',
+      'Story: 07:00-09:00 WIB (Morning routine)'
     ],
     hashtags: [
       '#KulinerMakassar',
@@ -637,7 +684,11 @@ function generateMockImageAnalysis(request: ImageAnalysisRequest): ImageAnalysis
     metadata: {
       analyzedAt: new Date().toISOString(),
       model: 'Mock Analysis',
-      imageContext: request.context || 'UMKM Kuliner'
+      imageContext: request.context || 'UMKM Kuliner',
+      qualityScore: qualityScore,
+      viralScore: viralScore,
+      needsRetake: needsRetake,
+      recommendation: needsRetake ? 'retake' : 'approved'
     }
   }
 }
