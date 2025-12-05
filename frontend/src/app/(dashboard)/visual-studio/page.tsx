@@ -91,14 +91,32 @@ export default function VisualStudioPage() {
     }
   };
 
-  // Download image
-  const handleDownload = () => {
+  // Download image as PNG or JPG
+  const handleDownload = async (formatType: 'png' | 'jpg' = 'png') => {
     if (!previewImage) return;
     
-    const link = document.createElement('a');
-    link.href = previewImage;
-    link.download = `${productName.replace(/\s+/g, '-')}-design.png`;
-    link.click();
+    try {
+      // Convert base64 to blob
+      const response = await fetch(previewImage);
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${productName.replace(/\s+/g, '-')}-${Date.now()}.${formatType}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      // Fallback to simple download
+      const link = document.createElement('a');
+      link.href = previewImage;
+      link.download = `${productName.replace(/\s+/g, '-')}-${Date.now()}.${formatType}`;
+      link.click();
+    }
   };
 
   // Share to social media (placeholder)
@@ -429,20 +447,32 @@ export default function VisualStudioPage() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleDownload}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white py-5 font-bold"
-                    >
-                      <Download className="h-5 w-5 mr-2" />
-                      Download
-                    </Button>
+                  <div className="space-y-2">
+                    {/* Download Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleDownload('png')}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-5 font-bold"
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        Download PNG
+                      </Button>
+                      <Button
+                        onClick={() => handleDownload('jpg')}
+                        className="flex-1 bg-green-700 hover:bg-green-800 text-white py-5 font-bold"
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        Download JPG
+                      </Button>
+                    </div>
+                    
+                    {/* Share Button */}
                     <Button
                       onClick={handleShare}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-5 font-bold"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 font-bold"
                     >
                       <Share2 className="h-5 w-5 mr-2" />
-                      Posting
+                      Posting ke Social Media
                     </Button>
                   </div>
 

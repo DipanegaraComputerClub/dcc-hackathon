@@ -4,6 +4,7 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
+    "@huggingface/inference": "^4.13.4",
     "@supabase/supabase-js": "^2.86.0",
     "axios": "^1.13.2",
     "form-data": "^4.0.1",

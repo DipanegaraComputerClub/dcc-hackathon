@@ -18,10 +18,10 @@ const client = new OpenAI({
 })
 
 console.log('🎨 Visual Studio Config:')
-console.log('   Image Analysis: Sharp.js (Real-time quality detection)')
-console.log('   Background Removal: Remove.bg (50 free/month)')
-console.log('   Template Generation: Hugging Face FLUX (Unlimited FREE)')
-console.log('   Schedule Planner: Kolosal AI Llama 4 Maverick')
+console.log('   Image Analysis: Sharp.js (FREE)')
+console.log('   Background Removal: Remove.bg (50/month)')
+console.log('   Template Gen: FLUX.1-schnell → FLUX.1-dev → SDXL-Lightning (FREE)')
+console.log('   Fallback: Stability AI Core → Creative SVG')
 console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 
 // ================================
@@ -157,31 +157,51 @@ async function compositeProductWithTemplate(
     const productBuffer = Buffer.from(productImage.replace(/^data:image\/\w+;base64,/, ''), 'base64')
     const templateBuffer = Buffer.from(templateImage.replace(/^data:image\/\w+;base64,/, ''), 'base64')
     
-    // Resize product to fit in template (60% of canvas)
-    const productSize = Math.round(Math.min(dims.width, dims.height) * 0.6)
+    // Get product metadata for aspect ratio
+    const productMeta = await sharp(productBuffer).metadata()
+    const productAspect = (productMeta.width || 1) / (productMeta.height || 1)
+    
+    // Resize product to fit in template (70% of canvas, maintain aspect)
+    const maxSize = Math.round(Math.min(dims.width, dims.height) * 0.7)
+    let productWidth = maxSize
+    let productHeight = maxSize
+    
+    if (productAspect > 1) {
+      productHeight = Math.round(maxSize / productAspect)
+    } else {
+      productWidth = Math.round(maxSize * productAspect)
+    }
+    
+    // Resize product with transparency
     const productResized = await sharp(productBuffer)
-      .resize(productSize, productSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .resize(productWidth, productHeight, { 
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
       .png()
       .toBuffer()
     
     // Composite: template as background, product on top (centered)
-    const xOffset = Math.round((dims.width - productSize) / 2)
-    const yOffset = Math.round((dims.height - productSize) / 2.5) // Slightly above center
+    const xOffset = Math.round((dims.width - productWidth) / 2)
+    const yOffset = Math.round((dims.height - productHeight) / 2.2) // Slightly above center
     
     const composited = await sharp(templateBuffer)
       .resize(dims.width, dims.height, { fit: 'cover' })
       .composite([{
         input: productResized,
         top: yOffset,
-        left: xOffset
+        left: xOffset,
+        blend: 'over'
       }])
-      .jpeg({ quality: 90 })
+      .jpeg({ quality: 95 })
       .toBuffer()
     
+    console.log(`   ✅ Composited ${productWidth}x${productHeight} product onto ${dims.width}x${dims.height} template`)
     return `data:image/jpeg;base64,${composited.toString('base64')}`
-  } catch (error) {
-    console.error('❌ Composite error:', error)
-    throw error
+  } catch (error: any) {
+    console.error('❌ Composite error:', error.message)
+    // Return template if composite fails
+    return templateImage
   }
 }
 
@@ -240,7 +260,14 @@ export async function generateUMKMBranding(
       console.warn('⚠️ Template generation failed, using enhanced fallback with product image')
       // Import fallback function and pass product image
       const { generateFallbackTemplate } = await import('./external-apis')
-      const fallback = generateFallbackTemplate(prompt, request.format, processedImage || undefined)
+      const fallback = generateFallbackTemplate(
+        prompt, 
+        request.format, 
+        processedImage || undefined,
+        request.theme,
+        request.brandColor,
+        request.productName
+      )
       finalDesign = fallback.imageBase64!
     } else {
       // STEP 4: If we have product image, composite it with AI template
@@ -252,7 +279,14 @@ export async function generateUMKMBranding(
         } catch (error) {
           console.warn('⚠️ Composite failed, using fallback with product image')
           const { generateFallbackTemplate } = await import('./external-apis')
-          const fallback = generateFallbackTemplate(prompt, request.format, processedImage)
+          const fallback = generateFallbackTemplate(
+            prompt, 
+            request.format, 
+            processedImage,
+            request.theme,
+            request.brandColor,
+            request.productName
+          )
           finalDesign = fallback.imageBase64!
         }
       } else {
@@ -288,69 +322,64 @@ export async function generateUMKMBranding(
   }
 }
 
-// Helper: Build AI prompt for UMKM branding
+// Helper: Build AI-optimized prompt for UMKM branding (Diffusion Models)
 function buildUMKMBrandingPrompt(request: UMKMBrandingRequest, hasProductImage: boolean): string {
-  const themeDescriptions = {
-    'elegant': 'elegant luxury style with gold accents, sophisticated typography, premium feel',
-    'cute-pastel': 'cute pastel colors, soft gradients, playful elements, kawaii aesthetic',
-    'bold-modern': 'bold vibrant colors, strong typography, geometric shapes, energetic vibe',
-    'minimalist': 'clean minimal design, lots of white space, simple lines, modern aesthetic',
-    'premium': 'premium luxury branding, dark elegant colors, sophisticated composition',
-    'playful': 'fun playful design, bright colors, dynamic elements, youthful energy'
+  // Optimized theme keywords for diffusion models
+  const themeKeywords = {
+    'elegant': 'elegant, luxury, gold accents, sophisticated, premium, refined, classy',
+    'cute-pastel': 'cute, pastel colors, soft, kawaii, adorable, sweet, gentle, dreamy',
+    'bold-modern': 'bold, vibrant, modern, energetic, dynamic, striking, powerful',
+    'minimalist': 'minimalist, clean, simple, white space, modern, sleek, professional',
+    'premium': 'premium, luxury, high-end, sophisticated, exclusive, elegant, upscale',
+    'playful': 'playful, fun, colorful, cheerful, youthful, energetic, happy'
   }
   
-  const businessContexts = {
-    'makanan': 'Indonesian food product, appetizing presentation, warm inviting colors',
-    'fashion': 'fashion product, stylish modern look, trendy aesthetic',
-    'kosmetik': 'beauty cosmetic product, clean elegant design, feminine appeal',
-    'kerajinan': 'handmade craft product, artisanal authentic feel, cultural elements',
-    'cafe': 'cafe coffee shop, cozy warm atmosphere, lifestyle aesthetic',
-    'kuliner': 'culinary food business, delicious appealing visuals, foodie vibes',
-    'lainnya': 'general UMKM business, professional clean presentation'
+  // Business-specific visual keywords
+  const businessVisuals = {
+    'makanan': 'delicious Indonesian food, appetizing, mouth-watering, fresh ingredients, food photography',
+    'fashion': 'stylish fashion, trendy clothing, modern apparel, fashionable, chic',
+    'kosmetik': 'beauty cosmetics, skincare products, elegant packaging, feminine, clean',
+    'kerajinan': 'handmade crafts, artisanal products, traditional Indonesian art, authentic',
+    'cafe': 'cozy cafe atmosphere, coffee culture, warm inviting, lifestyle',
+    'kuliner': 'culinary delights, gourmet food, restaurant quality, foodie aesthetic',
+    'lainnya': 'professional product display, clean presentation, commercial photography'
   }
   
-  const formatSpecs = {
-    'instagram-square': '1:1 square format Instagram post',
-    'instagram-story': '9:16 vertical Instagram Story format',
-    'tiktok': '9:16 vertical TikTok video thumbnail',
-    'facebook': '1.91:1 horizontal Facebook post'
+  // Format-specific composition
+  const formatComposition = {
+    'instagram-square': 'centered composition, balanced layout, square 1:1 ratio',
+    'instagram-story': 'vertical composition, portrait orientation, 9:16 ratio',
+    'tiktok': 'vertical dynamic layout, attention-grabbing, mobile-first, 9:16',
+    'facebook': 'horizontal wide composition, landscape, 1.91:1 ratio'
   }
   
-  return `Professional UMKM social media branding design:
-
-PRODUCT: "${request.productName}"
-BUSINESS TYPE: ${businessContexts[request.businessType]}
-DESIGN THEME: ${themeDescriptions[request.theme]}
-FORMAT: ${formatSpecs[request.format]}
-BRAND COLOR: ${request.brandColor} as primary accent color
-TARGET MARKET: ${request.targetMarket}
-
-${hasProductImage ? 
-  'COMPOSITION: Product image will be placed in foreground, create complementary background design' :
-  'COMPOSITION: Generate complete product visualization with branding elements'
+  // Build optimized prompt for diffusion models
+  const corePrompt = hasProductImage 
+    ? `Professional Indonesian UMKM social media design, ${businessVisuals[request.businessType]}, ${themeKeywords[request.theme]}, ${formatComposition[request.format]}`
+    : `Professional Indonesian UMKM product photography, ${request.productName}, ${businessVisuals[request.businessType]}, ${themeKeywords[request.theme]}, ${formatComposition[request.format]}`
+  
+  const styleModifiers = `vibrant colors, ${request.brandColor} color scheme, professional lighting, studio quality, commercial photography, high resolution, sharp focus, clean background`
+  
+  const compositionGuide = hasProductImage
+    ? `product in foreground, decorative background, complementary colors, negative space for text overlay`
+    : `product-focused, eye-level view, attractive presentation, instagram-worthy aesthetic`
+  
+  const targetAudience = `appealing to ${request.targetMarket}, Indonesian market, social media optimized`
+  
+  const additionalContext = request.additionalInfo ? `, ${request.additionalInfo}` : ''
+  
+  // Final optimized prompt
+  return `${corePrompt}, ${styleModifiers}, ${compositionGuide}, ${targetAudience}${additionalContext}, masterpiece, best quality, professional commercial photography, 8k uhd, trending on instagram`
 }
 
-REQUIREMENTS:
-- High quality professional commercial photography style
-- Clean modern composition optimized for social media
-- ${request.theme} aesthetic throughout
-- Use ${request.brandColor} as primary brand color with complementary palette
-- Include space for text overlay (do NOT add any text)
-- Focus on visual appeal and brand identity
-- Instagram-worthy, scroll-stopping design
-- Suitable for ${request.businessType} UMKM business
-- Target audience: ${request.targetMarket}
-${request.additionalInfo ? `- Additional: ${request.additionalInfo}` : ''}
-
-OUTPUT: Professional social media ready design, NO TEXT, visual focus only, ready for UMKM posting`
-}
-
-// Helper: Generate marketing suggestions
+// Helper: Generate structured marketing suggestions for UMKM
 function generateMarketingSuggestions(request: UMKMBrandingRequest): {
   caption: string
   hashtags: string[]
   bestPostingTime: string[]
   targetPlatform: string[]
+  designDirection: string
+  colorStrategy: string
 } {
   const captionTemplates = {
     'makanan': `✨ ${request.productName} - Lezat & Berkualitas!\n\n🍽️ Dibuat dengan bahan pilihan terbaik\n📍 Tersedia sekarang untuk ${request.targetMarket}\n💬 DM untuk order!`,
@@ -373,6 +402,15 @@ function generateMarketingSuggestions(request: UMKMBrandingRequest): {
     '#OpenOrder'
   ]
   
+  const themeStrategies = {
+    'elegant': 'Gunakan font serif, spacing luas, foto high-end quality',
+    'cute-pastel': 'Warna soft pastel, elemen playful, font rounded',
+    'bold-modern': 'Kontras tinggi, geometric shapes, font bold sans-serif',
+    'minimalist': 'White space maksimal, clean lines, typography focus',
+    'premium': 'Dark background, gold accents, luxury feel',
+    'playful': 'Bright colors, dynamic elements, fun typography'
+  }
+
   return {
     caption,
     hashtags,
@@ -381,7 +419,9 @@ function generateMarketingSuggestions(request: UMKMBrandingRequest): {
       '📱 TikTok: 12:00-14:00 & 18:00-22:00 WIB',
       '📱 Facebook: 10:00-12:00 & 19:00-20:00 WIB'
     ],
-    targetPlatform: ['Instagram', 'TikTok', 'Facebook', 'WhatsApp Business']
+    targetPlatform: ['Instagram', 'TikTok', 'Facebook', 'WhatsApp Business'],
+    designDirection: themeStrategies[request.theme],
+    colorStrategy: `Primary: ${request.brandColor}, gunakan complementary colors untuk balance visual`
   }
 }
 

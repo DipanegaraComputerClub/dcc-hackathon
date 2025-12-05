@@ -5,6 +5,7 @@
     "": {
       "name": "backend",
       "dependencies": {
+        "@huggingface/inference": "^4.13.4",
         "@supabase/supabase-js": "^2.86.0",
         "axios": "^1.13.2",
         "form-data": "^4.0.1",
@@ -19,6 +20,12 @@
   },
   "packages": {
     "@emnapi/runtime": ["@emnapi/runtime@1.7.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-PVtJr5CmLwYAU9PZDMITZoR5iAOShYREoR45EyyLrbntV50mdePTgUn4AmOw90Ifcj+x2kRjdzr1HP3RrNiHGA=="],
+
+    "@huggingface/inference": ["@huggingface/inference@4.13.4", "", { "dependencies": { "@huggingface/jinja": "^0.5.1", "@huggingface/tasks": "^0.19.65" } }, "sha512-1G6jBDYLAZw7oNrJdMp+0/CafeoNaCLzrDd9fYSX3nhjzMuyWIPZ/MtP5EwXdC0htlFPx+R6JGqPhctAalQO+w=="],
+
+    "@huggingface/jinja": ["@huggingface/jinja@0.5.3", "", {}, "sha512-asqfZ4GQS0hD876Uw4qiUb7Tr/V5Q+JZuo2L+BtdrD4U40QU58nIRq3ZSgAzJgT874VLjhGVacaYfrdpXtEvtA=="],
+
+    "@huggingface/tasks": ["@huggingface/tasks@0.19.66", "", {}, "sha512-cj3+pAxyMWRZXepxdgVUUrlbLVhSD7+G6lt/HI7GKUo8pOdsre4CWVcu+4AXptY9btaCqyBGzTOCD7Ve2OtTfw=="],
 
     "@img/colour": ["@img/colour@1.0.0", "", {}, "sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw=="],
 

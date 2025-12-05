@@ -158,28 +158,46 @@ export async function generateTemplateWithHuggingFace(
     product-focused composition, professional lighting, marketing material, 
     instagram-worthy aesthetic, no text overlay, space for text, modern minimalist design`
 
-    // Call Hugging Face Inference API - Using Stable Diffusion XL
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
-      {
-        inputs: enhancedPrompt,
-        parameters: {
-          negative_prompt: 'blurry, low quality, watermark, text, signature, distorted, ugly, bad composition',
-          num_inference_steps: 30,
-          guidance_scale: 7.5,
-          width: style === 'story' ? 768 : 1024,
-          height: style === 'story' ? 1344 : 1024
-        }
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        responseType: 'arraybuffer',
-        timeout: 120000 // 120s for image generation
+    const models = [
+      { name: 'black-forest-labs/FLUX.1-schnell', steps: 4, cfg: 0 },
+      { name: 'black-forest-labs/FLUX.1-dev', steps: 25, cfg: 7 },
+      { name: 'ByteDance/SDXL-Lightning', steps: 8, cfg: 1 }
+    ]
+    
+    let response: any = null
+    
+    for (const model of models) {
+      try {
+        response = await axios.post(
+          `https://api-inference.huggingface.co/models/${model.name}`,
+          {
+            inputs: enhancedPrompt,
+            parameters: {
+              num_inference_steps: model.steps,
+              guidance_scale: model.cfg
+            }
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            responseType: 'arraybuffer',
+            timeout: 120000
+          }
+        )
+        console.log(`✅ Generated with ${model.name}`)
+        break
+      } catch (err: any) {
+        const status = err.response?.status
+        if (status === 410) console.log(`⚠️ ${model.name} deprecated, trying next`)
+        else if (status === 503) console.log(`⏳ ${model.name} loading, trying next`)
+        else console.log(`❌ ${model.name} failed: ${status || err.message}`)
+        continue
       }
-    )
+    }
+    
+    if (!response) throw new Error('All HF models unavailable')
 
     console.log('✅ Template generated successfully with Hugging Face')
 
@@ -213,134 +231,190 @@ async function generateWithStabilityAI(
   style: string
 ): Promise<TemplateGenerationResult> {
   try {
-    const formData = new FormData()
-    formData.append('prompt', `UMKM product branding ${style}: ${prompt}. Professional, clean, vibrant`)
-    formData.append('output_format', 'jpeg')
-    formData.append('aspect_ratio', style === 'story' ? '9:16' : '1:1')
-    formData.append('negative_prompt', 'blurry, low quality, watermark, text')
-    
     const response = await axios.post(
       'https://api.stability.ai/v2beta/stable-image/generate/core',
-      formData,
+      { prompt: `Professional UMKM ${style}: ${prompt}. Clean, vibrant, commercial` },
       {
         headers: {
           'Authorization': `Bearer ${STABILITY_API_KEY}`,
-          'Accept': 'image/*',
-          ...formData.getHeaders()
+          'Accept': 'image/png',
+          'Content-Type': 'application/json'
         },
         responseType: 'arraybuffer',
         timeout: 60000
       }
     )
 
-    const imageBase64 = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`
+    const imageBase64 = `data:image/png;base64,${Buffer.from(response.data).toString('base64')}`
+    console.log('✅ Stability AI success')
     
-    return {
-      success: true,
-      imageBase64
-    }
+    return { success: true, imageBase64 }
   } catch (error: any) {
-    console.error('❌ Stability AI Error:', error.message)
-    return {
-      success: false,
-      error: error.message
-    }
+    const status = error.response?.status
+    if (status === 401) console.log('❌ Stability AI: Invalid API key')
+    else console.log(`❌ Stability AI: ${status || error.message}`)
+    return { success: false, error: error.message }
   }
 }
 
-// Final fallback: Return professional-looking placeholder
+// Final fallback: Creative UMKM-focused templates
 export function generateFallbackTemplate(
   prompt: string,
   style: string,
-  productImage?: string
+  productImage?: string,
+  theme: string = 'minimalist',
+  brandColor: string = '#FF6347',
+  productName?: string
 ): TemplateGenerationResult {
-  console.log('⚠️ Using enhanced fallback template generator')
+  console.log(`🎨 Generating creative ${theme} template with fallback`)
   
-  const dimensions = style === 'story' ? { width: 1080, height: 1920 } : { width: 1080, height: 1080 }
+  const dimensions = style === 'story' 
+    ? { width: 1080, height: 1920 } 
+    : { width: 1080, height: 1080 }
   
-  // Extract theme and colors from prompt
-  const isMinimalist = prompt.includes('minimalist') || prompt.includes('minimal')
-  const isElegant = prompt.includes('elegant') || prompt.includes('luxury')
-  const isBold = prompt.includes('bold') || prompt.includes('modern')
-  const isPastel = prompt.includes('pastel') || prompt.includes('cute')
-  
-  // Theme-based color schemes
-  let gradientColors = { start: '#FF6B6B', end: '#FFD93D', accent: '#FF8C42' }
-  
-  if (isMinimalist) {
-    gradientColors = { start: '#F8F9FA', end: '#E9ECEF', accent: '#495057' }
-  } else if (isElegant) {
-    gradientColors = { start: '#2C3E50', end: '#34495E', accent: '#F39C12' }
-  } else if (isBold) {
-    gradientColors = { start: '#E74C3C', end: '#9B59B6', accent: '#F1C40F' }
-  } else if (isPastel) {
-    gradientColors = { start: '#FFB3BA', end: '#BAFFC9', accent: '#BAE1FF' }
+  // Color helper
+  const adjustBrightness = (hex: string, percent: number): string => {
+    const num = parseInt(hex.replace('#', ''), 16)
+    const r = Math.max(0, Math.min(255, (num >> 16) + percent))
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + percent))
+    const b = Math.max(0, Math.min(255, (num & 0x0000FF) + percent))
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
   }
   
-  // Professional template SVG with product image slot
-  const templateSvg = `
-    <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-      <defs>
-        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:${gradientColors.start};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${gradientColors.end};stop-opacity:1" />
-        </linearGradient>
-        <filter id="shadow">
-          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
-        </filter>
-        <clipPath id="roundedRect">
-          <rect x="${dimensions.width * 0.1}" y="${dimensions.height * 0.15}" 
-                width="${dimensions.width * 0.8}" height="${dimensions.height * 0.5}" 
-                rx="30"/>
-        </clipPath>
-      </defs>
-      
-      <!-- Background -->
-      <rect width="100%" height="100%" fill="url(#bgGrad)"/>
-      
-      <!-- Decorative circles -->
-      <circle cx="${dimensions.width * 0.85}" cy="${dimensions.height * 0.15}" r="${dimensions.width * 0.3}" fill="${gradientColors.accent}" opacity="0.1"/>
-      <circle cx="${dimensions.width * 0.15}" cy="${dimensions.height * 0.85}" r="${dimensions.width * 0.25}" fill="${gradientColors.accent}" opacity="0.15"/>
-      
-      <!-- Main content card -->
-      <rect x="${dimensions.width * 0.08}" y="${dimensions.height * 0.12}" 
-            width="${dimensions.width * 0.84}" height="${dimensions.height * 0.76}" 
-            fill="white" rx="30" filter="url(#shadow)"/>
-      
-      ${productImage ? `
-        <!-- Product image container -->
-        <image href="${productImage}" 
-               x="${dimensions.width * 0.1}" y="${dimensions.height * 0.15}" 
-               width="${dimensions.width * 0.8}" height="${dimensions.height * 0.5}" 
-               clip-path="url(#roundedRect)"
-               preserveAspectRatio="xMidYMid slice"/>
-      ` : `
-        <!-- Product placeholder -->
-        <rect x="${dimensions.width * 0.1}" y="${dimensions.height * 0.15}" 
-              width="${dimensions.width * 0.8}" height="${dimensions.height * 0.5}" 
-              fill="${gradientColors.accent}" opacity="0.2" rx="30"/>
-        <text x="${dimensions.width * 0.5}" y="${dimensions.height * 0.4}" 
-              font-family="Arial, sans-serif" font-size="${dimensions.width * 0.05}" 
-              font-weight="bold" fill="${gradientColors.accent}" 
-              text-anchor="middle" opacity="0.5">📦</text>
-      `}
-      
-      <!-- Bottom section for text -->
-      <rect x="${dimensions.width * 0.1}" y="${dimensions.height * 0.68}" 
-            width="${dimensions.width * 0.8}" height="${dimensions.height * 0.15}" 
-            fill="${gradientColors.accent}" opacity="0.1" rx="20"/>
-      
-      <!-- Demo badge -->
-      <rect x="${dimensions.width * 0.7}" y="${dimensions.height * 0.05}" 
-            width="${dimensions.width * 0.25}" height="${dimensions.height * 0.04}" 
-            fill="${gradientColors.accent}" rx="${dimensions.height * 0.02}"/>
-      <text x="${dimensions.width * 0.825}" y="${dimensions.height * 0.075}" 
-            font-family="Arial, sans-serif" font-size="${dimensions.width * 0.022}" 
-            font-weight="bold" fill="white" text-anchor="middle">DEMO MODE</text>
-    </svg>
-  `.trim()
+  const brandLight = adjustBrightness(brandColor, 40)
+  const brandDark = adjustBrightness(brandColor, -30)
   
-  const templateBase64 = `data:image/svg+xml;base64,${Buffer.from(templateSvg).toString('base64')}`
+  // Add randomization for variety
+  const seed = Date.now() % 1000
+  const randomRotation = (seed % 30) - 15 // -15 to 15 degrees
+  const randomScale = 0.9 + (seed % 20) / 100 // 0.9 to 1.1
+  const randomX = (seed % 10) - 5 // -5 to 5% shift
+  const randomY = (seed % 10) - 5
+  
+  let templateSvg = ''
+  
+  // Generate theme-specific templates
+  if (theme === 'cute-pastel' || theme.includes('pastel')) {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE5EC"/>
+            <stop offset="50%" stop-color="#FFF0F5"/>
+            <stop offset="100%" stop-color="#E5F5FF"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#FFB6C1" flood-opacity="0.3"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <ellipse cx="20%" cy="15%" rx="80" ry="50" fill="white" opacity="0.7"/>
+        <ellipse cx="80%" cy="20%" rx="70" ry="45" fill="white" opacity="0.7"/>
+        <text x="10%" y="85%" font-size="40" opacity="0.6">💕</text>
+        <text x="88%" y="88%" font-size="40" opacity="0.6">💕</text>
+        <rect x="10%" y="25%" width="80%" height="60%" fill="white" rx="40" filter="url(#shadow)"/>
+        ${productImage ? `<image href="${productImage}" x="15%" y="30%" width="70%" height="45%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 30px)"/>` : `<text x="50%" y="53%" font-size="80" text-anchor="middle">🌸</text>`}
+        <rect x="15%" y="78%" width="70%" height="12%" fill="#FFB6C1" rx="25"/>
+        <text x="50%" y="84.5%" font-family="Comic Sans MS" font-size="32" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${productName || 'Kawaii'} ♡</text>
+      </svg>`
+  } else if (theme === 'elegant' || theme.includes('luxury')) {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1a1a1a"/>
+            <stop offset="100%" stop-color="#2d2d2d"/>
+          </linearGradient>
+          <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FFD700"/>
+            <stop offset="50%" stop-color="#FFA500"/>
+            <stop offset="100%" stop-color="#FFD700"/>
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <rect x="5%" y="5%" width="90%" height="2" fill="url(#gold)"/>
+        <rect x="5%" y="95%" width="90%" height="2" fill="url(#gold)"/>
+        ${productImage ? `<circle cx="50%" cy="45%" r="255" fill="url(#gold)"/><image href="${productImage}" x="27%" y="22%" width="46%" height="46%" preserveAspectRatio="xMidYMid slice" clip-path="circle(250px at 50% 50%)"/>` : `<circle cx="50%" cy="45%" r="250" fill="${brandColor}" opacity="0.2"/><text x="50%" y="47%" font-size="100" text-anchor="middle" fill="url(#gold)">✨</text>`}
+        <text x="50%" y="82%" font-family="Georgia" font-size="48" font-weight="bold" fill="url(#gold)" text-anchor="middle">${productName || 'Luxury'}</text>
+        <text x="50%" y="88%" font-family="Georgia" font-size="24" fill="#999" text-anchor="middle">PREMIUM QUALITY</text>
+      </svg>`
+  } else if (theme === 'bold-modern' || theme.includes('bold')) {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${brandColor}"/>
+            <stop offset="100%" stop-color="${brandDark}"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <polygon points="0,0 ${dimensions.width},0 ${dimensions.width},200" fill="black" opacity="0.1"/>
+        <polygon points="0,${dimensions.height} ${dimensions.width},${dimensions.height} 0,${dimensions.height - 200}" fill="white" opacity="0.1"/>
+        <rect x="10%" y="20%" width="80%" height="65%" fill="white" rx="20" filter="url(#shadow)"/>
+        ${productImage ? `<image href="${productImage}" x="15%" y="25%" width="70%" height="50%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 15px)"/>` : `<text x="50%" y="50%" font-size="100" font-weight="900" text-anchor="middle" fill="${brandColor}">⚡</text>`}
+        <rect x="5%" y="88%" width="90%" height="10%" fill="black"/>
+        <text x="50%" y="93.5%" font-family="Impact" font-size="42" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="middle">${(productName || 'BOLD').toUpperCase()}</text>
+      </svg>`
+  } else if (theme === 'playful') {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF6B9D"/>
+            <stop offset="50%" stop-color="#FEC163"/>
+            <stop offset="100%" stop-color="#C3F0FF"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="4" dy="8" stdDeviation="10" flood-color="${brandColor}" flood-opacity="0.4"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <circle cx="15%" cy="12%" r="40" fill="#FFD93D" opacity="0.6"/>
+        <circle cx="88%" cy="18%" r="50" fill="#6BCB77" opacity="0.6"/>
+        <circle cx="10%" cy="85%" r="45" fill="#4D96FF" opacity="0.6"/>
+        <text x="20%" y="25%" font-size="35" transform="rotate(-15 216 270)">⭐</text>
+        <text x="82%" y="30%" font-size="40" transform="rotate(20 886 324)">✨</text>
+        <rect x="12%" y="28%" width="76%" height="58%" fill="white" rx="35" filter="url(#shadow)" transform="rotate(-2 ${dimensions.width/2} ${dimensions.height/2})"/>
+        ${productImage ? `<image href="${productImage}" x="18%" y="33%" width="64%" height="43%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 25px)"/>` : `<text x="50%" y="56%" font-size="90" text-anchor="middle" fill="${brandColor}">🎉</text>`}
+        <ellipse cx="50%" cy="82%" rx="38%" ry="8%" fill="${brandColor}"/>
+        <text x="50%" y="83.5%" font-family="Comic Sans MS" font-size="38" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${productName || 'Fun'} 🎊</text>
+      </svg>`
+  } else if (theme === 'premium') {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#1a1a1a"/></linearGradient>
+          <linearGradient id="accent" x1="0%" x2="100%"><stop offset="0%" stop-color="${brandColor}"/><stop offset="100%" stop-color="${brandDark}"/></linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <rect x="3%" y="3%" width="94%" height="94%" fill="none" stroke="url(#accent)" stroke-width="3" rx="15"/>
+        <rect x="5%" y="5%" width="90%" height="90%" fill="none" stroke="url(#accent)" stroke-width="1" rx="12"/>
+        <text x="8%" y="10%" font-size="30" fill="${brandColor}">◆</text>
+        <text x="92%" y="10%" font-size="30" fill="${brandColor}">◆</text>
+        ${productImage ? `<rect x="18%" y="20%" width="64%" height="50%" fill="url(#accent)" rx="10"/><image href="${productImage}" x="20%" y="22%" width="60%" height="46%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 8px)"/>` : `<text x="50%" y="47%" font-size="120" text-anchor="middle" fill="url(#accent)">👑</text>`}
+        <line x1="20%" y1="78%" x2="80%" y2="78%" stroke="url(#accent)" stroke-width="2"/>
+        <text x="50%" y="85%" font-family="Georgia" font-size="40" font-weight="bold" fill="${brandColor}" text-anchor="middle">${productName || 'Premium'}</text>
+        <text x="50%" y="91%" font-family="Georgia" font-size="20" fill="#888" text-anchor="middle" letter-spacing="3">EXCLUSIVE</text>
+      </svg>`
+  } else {
+    // Minimalist (default)
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FAFAFA"/>
+            <stop offset="100%" stop-color="#F0F0F0"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.1"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <circle cx="15%" cy="15%" r="120" fill="${brandLight}" opacity="0.3"/>
+        <circle cx="85%" cy="85%" r="150" fill="${brandColor}" opacity="0.2"/>
+        <rect x="8%" y="8%" width="84%" height="84%" fill="white" rx="30" filter="url(#shadow)"/>
+        ${productImage ? `<image href="${productImage}" x="15%" y="15%" width="70%" height="55%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 20px)"/>` : `<text x="50%" y="42%" font-size="80" text-anchor="middle" fill="${brandColor}">🎨</text>`}
+        <rect x="12%" y="75%" width="76%" height="15%" fill="${brandColor}" rx="15"/>
+        <text x="50%" y="82.5%" font-family="Arial" font-size="36" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${productName || 'Product'}</text>
+      </svg>`
+  }
+  
+  const templateBase64 = `data:image/svg+xml;base64,${Buffer.from(templateSvg.trim()).toString('base64')}`
   
   return {
     success: true,
