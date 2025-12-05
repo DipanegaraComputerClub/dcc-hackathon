@@ -7,20 +7,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  UploadCloud, ImageIcon, Sparkles, Eraser, LayoutTemplate, 
+  UploadCloud, ImageIcon, Sparkles, Eraser, ChevronDown, LayoutTemplate, 
   Calendar as CalendarIcon, Clock, CheckCircle2, ArrowRight, RefreshCw,
   Image as ImageLucide 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { API_URL } from "@/config/api";
 
 export default function VisualStudioPage() {
   const [activeTab, setActiveTab] = useState("upload");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   
   // Data State
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [templateResult, setTemplateResult] = useState<any>(null);
+  const [scheduleResult, setScheduleResult] = useState<any>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
+  
+  // Form states for template generation
+  const [templateType, setTemplateType] = useState("promo");
+  const [theme, setTheme] = useState("");
+  const [brandColor, setBrandColor] = useState("#FF6347");
+  const [targetAudience, setTargetAudience] = useState("");
+  
+  // Form states for schedule planner
+  const [contentType, setContentType] = useState("");
+  const [businessGoal, setBusinessGoal] = useState("engagement");
+  const [duration, setDuration] = useState("7");
 
   // --- HANDLER FUNGSI ---
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,50 +44,168 @@ export default function VisualStudioPage() {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setUploadedImage(imageUrl);
-      setAnalysisResult(null); // Reset hasil lama
+      setUploadedFile(file);
+      setAnalysisResult(null);
+      setTemplateResult(null);
+      setScheduleResult(null);
       setProcessedImage(null);
+      setError("");
     }
   };
 
-  const simulateAnalysis = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setAnalysisResult("📸 Analisa AI:\nFoto makanan (Coto Makassar), pencahayaan bagus (alami), angle top-down.\n\n💡 Saran:\nCocok untuk konten 'Makan Siang' atau promo. Tambahkan teks warna kuning/putih agar kontras.");
-      setProcessedImage(uploadedImage); // Sementara pakai gambar asli dulu
-      setActiveTab("design"); // Pindah ke tab desain
-    }, 2000);
+  // Convert image to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
-  const simulateRemoveBg = () => {
+  // 1. ANALYZE IMAGE WITH AI
+  const handleAnalyzeImage = async () => {
+    if (!uploadedFile) {
+      setError("Mohon upload gambar terlebih dahulu");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const imageBase64 = await fileToBase64(uploadedFile);
+
+      const response = await fetch(`${API_URL}/api/visual-studio/analyze-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64,
+          context: "UMKM kuliner Makassar"
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Gagal menganalisa gambar');
+      }
+
+      console.log('Analysis result:', data.data);
+      setAnalysisResult(data.data);
+      setProcessedImage(uploadedImage);
+      setActiveTab("design");
+
+    } catch (err: any) {
+      console.error('Error analyzing image:', err);
+      setError(err.message || 'Terjadi kesalahan saat menganalisa gambar');
+    } finally {
       setIsLoading(false);
-      // Ganti URL ini dengan hasil API remove.bg nanti
-      setProcessedImage("https://placehold.co/600x600/png?text=Background+Removed"); 
-    }, 1500);
+    }
   };
 
-  const simulateGenerateTemplate = () => {
+  // 2. GENERATE TEMPLATE DESIGN
+  const handleGenerateTemplate = async () => {
+    if (!theme || !targetAudience) {
+      setError("Mohon isi Theme dan Target Audience");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const imageBase64 = uploadedFile ? await fileToBase64(uploadedFile) : undefined;
+
+      const response = await fetch(`${API_URL}/api/visual-studio/generate-template`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64,
+          templateType,
+          theme,
+          brandColor,
+          targetAudience
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Gagal generate template');
+      }
+
+      console.log('Template result:', data.data);
+      setTemplateResult(data.data);
+
+    } catch (err: any) {
+      console.error('Error generating template:', err);
+      setError(err.message || 'Terjadi kesalahan saat generate template');
+    } finally {
       setIsLoading(false);
-      // Ganti URL ini dengan hasil generate template
-      setProcessedImage("https://placehold.co/600x600/red/white?text=Template+Promo+Jumat");
-    }, 2000);
+    }
   };
 
-   const handleSchedule = () => {
+  // 3. GENERATE SCHEDULE PLANNER
+  const handleGenerateSchedule = async () => {
+    if (!contentType || !targetAudience) {
+      setError("Mohon isi Content Type dan Target Audience");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const imageBase64 = uploadedFile ? await fileToBase64(uploadedFile) : undefined;
+
+      const response = await fetch(`${API_URL}/api/visual-studio/schedule-planner`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64,
+          contentType,
+          targetAudience,
+          businessGoal,
+          duration: parseInt(duration)
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Gagal generate schedule');
+      }
+
+      console.log('Schedule result:', data.data);
+      setScheduleResult(data.data);
+
+    } catch (err: any) {
+      console.error('Error generating schedule:', err);
+      setError(err.message || 'Terjadi kesalahan saat generate schedule');
+    } finally {
       setIsLoading(false);
-      alert("Mantap Daeng! Konten berhasil dijadwalkan.");
-      // Reset ke awal
-      setActiveTab("upload");
-      setUploadedImage(null);
-      setAnalysisResult(null);
-      setProcessedImage(null);
-    }, 1500);
+    }
+  };
+
+  const handleReset = () => {
+    setActiveTab("upload");
+    setUploadedImage(null);
+    setUploadedFile(null);
+    setAnalysisResult(null);
+    setTemplateResult(null);
+    setScheduleResult(null);
+    setProcessedImage(null);
+    setError("");
+    setTheme("");
+    setTargetAudience("");
+    setContentType("");
   };
 
   const labelStyle = "text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block";
@@ -162,18 +296,23 @@ export default function VisualStudioPage() {
                   <CardDescription>AI akan melihat kualitas foto ta' & memberi saran.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 flex flex-col p-6 pt-0">
+                  {error && (
+                    <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                      {error}
+                    </div>
+                  )}
                   {uploadedImage && !analysisResult ? (
                     <div className="flex-1 flex flex-col items-center justify-center gap-4">
                        <p className="text-sm text-gray-500">Foto sudah siap. Klik tombol di bawah.</p>
-                       <Button onClick={simulateAnalysis} disabled={isLoading} className="bg-red-600 hover:bg-red-700 text-white w-full py-6 text-lg font-bold shadow-lg shadow-red-500/20">
+                       <Button onClick={handleAnalyzeImage} disabled={isLoading} className="bg-red-600 hover:bg-red-700 text-white w-full py-6 text-lg font-bold shadow-lg shadow-red-500/20">
                           {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
-                          Mulai Analisa Foto
+                          {isLoading ? 'Menganalisa dengan AI...' : 'Mulai Analisa Foto'}
                        </Button>
                     </div>
                   ) : analysisResult ? (
                     <div className="flex-1 flex flex-col justify-between h-full">
-                      <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-100 dark:border-purple-800 text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-wrap flex-1 overflow-y-auto">
-                        {analysisResult}
+                      <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-100 dark:border-purple-800 text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-wrap flex-1 overflow-y-auto max-h-[400px]">
+                        {analysisResult.analysis}
                       </div>
                       <Button onClick={() => setActiveTab("design")} className="w-full bg-red-600 hover:bg-red-700 text-white mt-4 py-6 text-lg font-bold group">
                         Lanjut ke Desain <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -195,66 +334,164 @@ export default function VisualStudioPage() {
         {activeTab === "design" && (
              <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 
-                {/* TOOLBAR KIRI */}
+                {/* FORM INPUT KIRI */}
                 <Card className="md:col-span-1 bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 h-fit">
                     <CardHeader>
-                        <CardTitle>Alat Edit Ajaib</CardTitle>
-                        <CardDescription>Pilih efek yang mau dipakai.</CardDescription>
+                        <CardTitle>🎨 Generate Template Design</CardTitle>
+                        <CardDescription>AI akan buatkan design template untuk Anda</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Button onClick={simulateRemoveBg} disabled={isLoading} variant="outline" className="w-full justify-start py-6 border-gray-200 dark:border-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:text-gray-200">
-                             {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-3 text-red-500" /> : <Eraser className="h-5 w-5 mr-3 text-red-500" />}
-                             <div className="text-left">
-                                <span className="block font-bold">Hapus Background</span>
-                                <span className="text-xs font-normal text-gray-500">Jadikan transparan otomatis</span>
-                             </div>
-                        </Button>
-                        <Button onClick={simulateGenerateTemplate} disabled={isLoading} variant="outline" className="w-full justify-start py-6 border-gray-200 dark:border-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-900/20 dark:text-gray-200">
-                             {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-3 text-blue-500" /> : <LayoutTemplate className="h-5 w-5 mr-3 text-blue-500" />}
-                             <div className="text-left">
-                                <span className="block font-bold">Buat Template Promo</span>
-                                <span className="text-xs font-normal text-gray-500">Desain instan ala Canva</span>
-                             </div>
+                        {error && (
+                          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-red-600 dark:text-red-400 text-sm">
+                            {error}
+                          </div>
+                        )}
+                        
+                        <div>
+                          <label className={labelStyle}>Template Type</label>
+                          <select 
+                            value={templateType}
+                            onChange={(e) => setTemplateType(e.target.value)}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-gray-800 dark:bg-gray-900 dark:text-white transition-all"
+                          >
+                            <option value="promo">Promo/Sale</option>
+                            <option value="story">Instagram Story</option>
+                            <option value="feed">Instagram Feed</option>
+                            <option value="reels">Reels/TikTok</option>
+                            <option value="carousel">Carousel</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className={labelStyle}>Theme/Konsep</label>
+                          <Input 
+                            placeholder="Contoh: Flash Sale Weekend"
+                            value={theme}
+                            onChange={(e) => setTheme(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+
+                        <div>
+                          <label className={labelStyle}>Brand Color</label>
+                          <div className="flex gap-2">
+                            <Input 
+                              type="color"
+                              value={brandColor}
+                              onChange={(e) => setBrandColor(e.target.value)}
+                              className="w-16 h-10"
+                            />
+                            <Input 
+                              type="text"
+                              value={brandColor}
+                              onChange={(e) => setBrandColor(e.target.value)}
+                              className="flex-1"
+                              placeholder="#FF6347"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={labelStyle}>Target Audience</label>
+                          <Input 
+                            placeholder="Contoh: Mahasiswa, Pekerja 25-40 tahun"
+                            value={targetAudience}
+                            onChange={(e) => setTargetAudience(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+
+                        <Button 
+                          onClick={handleGenerateTemplate} 
+                          disabled={isLoading || !theme || !targetAudience}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 font-bold"
+                        >
+                          {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
+                          {isLoading ? 'Generating...' : 'Generate Template'}
                         </Button>
                     </CardContent>
                 </Card>
 
-                {/* PREVIEW KANAN */}
-                <Card className="md:col-span-2 bg-gray-50 dark:bg-gray-900/50 border-dashed border-2 border-gray-300 dark:border-gray-700 shadow-none overflow-hidden flex flex-col h-[500px]">
-                    <CardHeader className="pb-2 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-                        <CardTitle className="text-center text-sm uppercase tracking-wider text-gray-500">Preview Hasil Edit</CardTitle>
+                {/* HASIL TEMPLATE KANAN */}
+                <Card className="md:col-span-2 bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-800">
+                        <CardTitle className="text-center">📋 Design Recommendations</CardTitle>
+                        <CardDescription className="text-center">AI-generated template suggestions</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col items-center justify-center p-6 relative">
-                        {processedImage ? (
-                            <div className="relative w-full h-full rounded-lg overflow-hidden shadow-lg">
-                                <img src={processedImage} alt="Processed" className="w-full h-full object-contain bg-[url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fpng-vector%2F20190419%2Fourmid%2Fpngtree-transparency-grid-seamless-pattern-png-image_956272.jpg&f=1&nofb=1&ipt=c7d00207865768370950672283995777c0062723')] bg-repeat" /> {/* Background catur transparan */}
+                    <CardContent className="flex-1 flex flex-col p-6 overflow-y-auto max-h-[600px]">
+                        {templateResult ? (
+                            <div className="space-y-6">
+                              {/* Design Suggestions */}
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-xl border border-gray-200 dark:border-gray-800">
+                                <h3 className="font-bold text-lg mb-3 text-gray-900 dark:text-white">🎨 Design Concept</h3>
+                                <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                                  {templateResult.designSuggestions}
+                                </div>
+                              </div>
+
+                              {/* Layout Recommendations */}
+                              {templateResult.layoutRecommendations && templateResult.layoutRecommendations.length > 0 && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-xl border border-blue-200 dark:border-blue-800">
+                                  <h3 className="font-bold text-lg mb-3 text-blue-900 dark:text-blue-300">📐 Layout Options</h3>
+                                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                                    {templateResult.layoutRecommendations.map((layout: string, idx: number) => (
+                                      <li key={idx} className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-0.5">•</span>
+                                        <span>{layout}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Color Scheme */}
+                              {templateResult.colorScheme && templateResult.colorScheme.length > 0 && (
+                                <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-200 dark:border-purple-800">
+                                  <h3 className="font-bold text-lg mb-3 text-purple-900 dark:text-purple-300">🎨 Color Palette</h3>
+                                  <div className="flex flex-wrap gap-3">
+                                    {templateResult.colorScheme.map((color: string, idx: number) => (
+                                      <div key={idx} className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <div 
+                                          className="w-8 h-8 rounded-md border-2 border-gray-300 dark:border-gray-600" 
+                                          style={{backgroundColor: color}}
+                                        />
+                                        <span className="text-sm font-mono text-gray-700 dark:text-gray-300">{color}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* CTA Suggestions */}
+                              {templateResult.ctaSuggestions && templateResult.ctaSuggestions.length > 0 && (
+                                <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-xl border border-green-200 dark:border-green-800">
+                                  <h3 className="font-bold text-lg mb-3 text-green-900 dark:text-green-300">🎯 Call-to-Action Ideas</h3>
+                                  <div className="flex flex-wrap gap-2">
+                                    {templateResult.ctaSuggestions.map((cta: string, idx: number) => (
+                                      <span key={idx} className="bg-white dark:bg-gray-800 px-4 py-2 rounded-full text-sm font-semibold text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700">
+                                        {cta}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                         ) : (
-                           <div className="flex flex-col items-center text-gray-400">
-                                <ImageIcon className="h-16 w-16 mb-2 opacity-20" />
-                                <p>Pilih alat di kiri untuk melihat hasil.</p>
+                           <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                                <LayoutTemplate className="h-16 w-16 mb-3 opacity-20" />
+                                <p className="text-center">Isi form di kiri dan klik Generate untuk melihat rekomendasi design</p>
                            </div>
-                        )}
-                        
-                        {/* Loading Overlay */}
-                        {isLoading && (
-                            <div className="absolute inset-0 bg-white/80 dark:bg-black/80 flex items-center justify-center z-10 backdrop-blur-sm">
-                                <div className="flex flex-col items-center">
-                                    <RefreshCw className="h-10 w-10 text-red-600 animate-spin mb-2" />
-                                    <p className="font-bold text-gray-800 dark:text-white">Sedang memproses...</p>
-                                </div>
-                            </div>
                         )}
                     </CardContent>
                     
                     {/* FOOTER BUTTON */}
-                    <div className="p-4 bg-white dark:bg-[#020617] border-t border-gray-200 dark:border-gray-800 text-center">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 text-center">
                          <Button 
                             onClick={() => setActiveTab("planner")} 
                             className="bg-red-600 hover:bg-red-700 text-white px-10 py-6 text-lg font-bold shadow-lg shadow-red-500/20 active:scale-95 transition-all"
-                            disabled={!processedImage}
+                            disabled={!templateResult}
                          >
-                            Gambar Oke, Lanjut Jadwal! <CheckCircle2 className="h-5 w-5 ml-2" />
+                            Lanjut ke Jadwal Posting! <ArrowRight className="h-5 w-5 ml-2" />
                          </Button>
                     </div>
                 </Card>
@@ -264,35 +501,192 @@ export default function VisualStudioPage() {
 
         {/* ================= LANGKAH 3: PLANNER (JADWAL) ================= */}
         {activeTab === "planner" && (
-             <div className="grid md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 
-                {/* KIRI: PREVIEW FINAL */}
-                <Card className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 h-fit">
-                   <CardHeader>
-                     <CardTitle>Finalisasi Konten</CardTitle>
-                   </CardHeader>
-                   <CardContent className="space-y-4">
-                      {processedImage && (
-                        <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm bg-gray-100">
-                             <img src={processedImage} alt="Final" className="w-full h-full object-contain" />
+                {/* FORM INPUT */}
+                <Card className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800">
+                    <CardHeader>
+                        <CardTitle>📅 Generate Content Schedule</CardTitle>
+                        <CardDescription>AI akan buatkan jadwal posting optimal berdasarkan trend & analytics</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {error && (
+                          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-red-600 dark:text-red-400 text-sm">
+                            {error}
+                          </div>
+                        )}
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <label className={labelStyle}>Content Type</label>
+                            <Input 
+                              placeholder="Contoh: Foto makanan, Promo, Story"
+                              value={contentType}
+                              onChange={(e) => setContentType(e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label className={labelStyle}>Target Audience</label>
+                            <Input 
+                              placeholder="Contoh: Mahasiswa Makassar"
+                              value={targetAudience}
+                              onChange={(e) => setTargetAudience(e.target.value)}
+                            />
+                          </div>
                         </div>
-                      )}
-                      <div>
-                        <label className={labelStyle}>Caption Postingan</label>
-                        <Textarea placeholder="Tulis caption di sini atau gunakan hasil dari Studio Kata AI..." className="h-32 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 focus:border-red-500 focus:ring-red-500/20 resize-none" />
-                      </div>
-                   </CardContent>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <label className={labelStyle}>Business Goal</label>
+                            <select 
+                              value={businessGoal}
+                              onChange={(e) => setBusinessGoal(e.target.value)}
+                              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+                            >
+                              <option value="awareness">Brand Awareness</option>
+                              <option value="engagement">Engagement & Community</option>
+                              <option value="sales">Sales & Conversion</option>
+                              <option value="traffic">Website/Store Traffic</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className={labelStyle}>Duration (Hari)</label>
+                            <Input 
+                              type="number"
+                              min="1"
+                              max="30"
+                              placeholder="7"
+                              value={duration}
+                              onChange={(e) => setDuration(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <Button 
+                          onClick={handleGenerateSchedule} 
+                          disabled={isLoading || !contentType || !targetAudience}
+                          className="w-full bg-gradient-to-r from-red-600 to-purple-600 hover:from-red-700 hover:to-purple-700 text-white py-6 text-lg font-bold shadow-lg"
+                        >
+                          {isLoading ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
+                          {isLoading ? 'Generating Schedule...' : 'Generate AI Schedule'}
+                        </Button>
+                    </CardContent>
                 </Card>
 
-                {/* KANAN: WAKTU TAYANG */}
-                <Card className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 h-fit">
-                    <CardHeader>
-                        <CardTitle>Waktu Tayang</CardTitle>
-                        <CardDescription>Jadwalkan agar postingan naik otomatis.</CardDescription>
+                {/* SCHEDULE RESULTS */}
+                {scheduleResult && (
+                  <Card className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+                      <CardTitle>📊 Your Content Calendar</CardTitle>
+                      <CardDescription>{duration} hari posting schedule dengan optimal timing</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        
-                        {/* Date Picker Manual */}
+                    <CardContent className="p-6 space-y-6 max-h-[600px] overflow-y-auto">
+                      
+                      {/* Overall Strategy */}
+                      {scheduleResult.overallStrategy && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-xl border border-blue-200 dark:border-blue-800">
+                          <h3 className="font-bold text-lg mb-3 text-blue-900 dark:text-blue-300">📋 Overall Strategy</h3>
+                          <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            {scheduleResult.overallStrategy}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Daily Schedule */}
+                      {scheduleResult.schedule && scheduleResult.schedule.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-white">📅 Daily Schedule</h3>
+                          {scheduleResult.schedule.map((item: any, idx: number) => (
+                            <div key={idx} className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <span className="font-bold text-red-600 dark:text-red-400">Hari {item.day}</span>
+                                  <span className="text-gray-500 ml-2 text-sm">• {item.date}</span>
+                                </div>
+                                <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">{item.time}</span>
+                              </div>
+                              <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                <strong>Content:</strong> {item.contentIdea}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                <strong>Platform:</strong> {item.platform.join(', ')}
+                              </div>
+                              {item.reasoning && (
+                                <div className="text-xs text-gray-500 dark:text-gray-500 italic">
+                                  💡 {item.reasoning}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* KPI Targets */}
+                      {scheduleResult.kpiTargets && scheduleResult.kpiTargets.length > 0 && (
+                        <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-xl border border-green-200 dark:border-green-800">
+                          <h3 className="font-bold text-lg mb-3 text-green-900 dark:text-green-300">🎯 KPI Targets</h3>
+                          <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            {scheduleResult.kpiTargets.map((kpi: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span>{kpi}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Tips */}
+                      {scheduleResult.tips && scheduleResult.tips.length > 0 && (
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-5 rounded-xl border border-yellow-200 dark:border-yellow-800">
+                          <h3 className="font-bold text-lg mb-3 text-yellow-900 dark:text-yellow-300">💡 Pro Tips</h3>
+                          <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            {scheduleResult.tips.map((tip: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-yellow-500">•</span>
+                                <span>{tip}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Reset Button */}
+                      <div className="pt-4 text-center">
+                        <Button 
+                          onClick={handleReset}
+                          variant="outline"
+                          className="w-full md:w-auto px-8 py-3 font-bold"
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Mulai dari Awal
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {!scheduleResult && (
+                  <Card className="bg-gray-50 dark:bg-gray-900/50 border-dashed border-2 border-gray-300 dark:border-gray-700">
+                    <CardContent className="flex flex-col items-center justify-center py-16 text-gray-400">
+                      <CalendarIcon className="h-16 w-16 mb-3 opacity-20" />
+                      <p className="text-center">Isi form di atas dan klik Generate untuk melihat AI schedule</p>
+                    </CardContent>
+                  </Card>
+                )}
+             </div>
+        )}
+
+        {/* Backup manual schedule section if needed */}
+        {false && activeTab === "planner" && (
+             <div className="grid md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <Card className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 h-fit">
+                   <CardHeader>
+                     <CardTitle>Manual Schedule</CardTitle>
+                   </CardHeader>
+                   <CardContent className="space-y-6">
                         <div>
                             <label className={labelStyle}>Tanggal Posting</label>
                             <div className="relative">
@@ -303,24 +697,8 @@ export default function VisualStudioPage() {
                                 />
                             </div>
                         </div>
-                        
-                         {/* Time Picker Manual */}
-                         <div>
-                            <label className={labelStyle}>Jam Tayang (WITA)</label>
-                             <div className="relative">
-                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                                <select className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pl-10 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-gray-800 dark:bg-gray-900 dark:text-white appearance-none cursor-pointer">
-                                    <option>09:00 WITA (Pagi - Sarapan)</option>
-                                    <option>12:00 WITA (Siang - Istirahat)</option>
-                                    <option>17:00 WITA (Sore - Pulang Kantor)</option>
-                                    <option>20:00 WITA (Malam - Santai)</option>
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                            </div>
-                         </div>
-
-                         <div className="pt-4">
-                            <Button onClick={handleSchedule} disabled={isLoading} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-6 text-lg font-bold shadow-lg shadow-red-500/20 transition-all active:scale-95">
+                        <div className="pt-4">
+                            <Button disabled={isLoading} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-6 text-lg font-bold shadow-lg shadow-red-500/20 transition-all active:scale-95">
                                 {isLoading ? (
                                     <> <RefreshCw className="animate-spin mr-2" /> Menjadwalkan... </>
                                 ) : (
