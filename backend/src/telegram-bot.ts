@@ -208,6 +208,8 @@ Gunakan /menu untuk lihat opsi yang tersedia.
     }
 
     try {
+      console.log(`💬 Saving comment - Profile: ${profileId}, User: ${msg.from?.first_name}, Message: ${commentText}`);
+      
       // Save comment to database
       const { data, error } = await supabase
         .from('umkm_evaluations')
@@ -221,15 +223,23 @@ Gunakan /menu untuk lihat opsi yang tersedia.
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
+
+      console.log('✅ Comment saved:', data);
 
       await bot.sendMessage(chatId, 
-        '✅ *Komentar terkirim!*\n\nTim admin akan melihat komentar Anda di dashboard.',
+        '✅ *Komentar terkirim!*\n\nTim admin akan melihat komentar Anda di dashboard.\n\n📱 Lihat di: /menu → Dashboard Admin → Evaluasi',
         { parse_mode: 'Markdown' }
       );
-    } catch (error) {
-      console.error('Error saving comment:', error);
-      await bot.sendMessage(chatId, '❌ Gagal mengirim komentar. Coba lagi nanti.');
+    } catch (error: any) {
+      console.error('❌ Error saving comment:', error);
+      const errorMsg = error?.message || 'Unknown error';
+      await bot.sendMessage(chatId, 
+        `❌ Gagal mengirim komentar.\n\nError: ${errorMsg}\n\nCoba lagi dengan: /komentar [pesan Anda]`
+      );
     }
   });
 
@@ -250,6 +260,8 @@ Gunakan /menu untuk lihat opsi yang tersedia.
     }
 
     try {
+      console.log(`💬 Saving evaluation - Profile: ${profileId}, User: ${msg.from?.first_name}, Message: ${evaluationText}`);
+      
       const { data, error } = await supabase
         .from('umkm_evaluations')
         .insert({
@@ -262,15 +274,23 @@ Gunakan /menu untuk lihat opsi yang tersedia.
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
+
+      console.log('✅ Evaluation saved:', data);
 
       await bot.sendMessage(chatId, 
-        '✅ *Evaluasi terkirim!*\n\nTim admin akan melihat evaluasi Anda di dashboard.',
+        '✅ *Evaluasi terkirim!*\n\nTim admin akan melihat evaluasi Anda di dashboard.\n\n📱 Lihat di: Dashboard Admin → Evaluasi',
         { parse_mode: 'Markdown' }
       );
-    } catch (error) {
-      console.error('Error saving evaluation:', error);
-      await bot.sendMessage(chatId, '❌ Gagal mengirim evaluasi. Coba lagi nanti.');
+    } catch (error: any) {
+      console.error('❌ Error saving evaluation:', error);
+      const errorMsg = error?.message || 'Unknown error';
+      await bot.sendMessage(chatId, 
+        `❌ Gagal mengirim evaluasi.\n\nError: ${errorMsg}\n\nCoba lagi dengan: /evaluasi [pesan Anda]`
+      );
     }
   });
 
@@ -320,16 +340,27 @@ async function handleLaporanCommand(msg: TelegramBot.Message) {
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    // Get transactions for current month
-    const { data: transactions, error } = await supabase
+    // Get ALL transactions for this profile (not just current month)
+    const { data: allTransactions, error: allError } = await supabase
       .from('umkm_transactions')
       .select('*')
       .eq('profile_id', profileId)
-      .gte('transaction_date', `${year}-${month.toString().padStart(2, '0')}-01`)
-      .lt('transaction_date', `${month === 12 ? year + 1 : year}-${month === 12 ? '01' : (month + 1).toString().padStart(2, '0')}-01`)
       .order('transaction_date', { ascending: false });
 
-    if (error) throw error;
+    if (allError) throw allError;
+
+    // Get transactions for current month
+    const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+    
+    const transactions = allTransactions?.filter(t => {
+      const tDate = t.transaction_date;
+      return tDate >= startDate && tDate < endDate;
+    }) || [];
+
+    console.log(`📊 Laporan - Profile: ${profileId}, Total: ${allTransactions?.length}, Bulan ini: ${transactions.length}`);
 
     // Calculate totals
     const totalIncome = transactions
@@ -354,22 +385,42 @@ async function handleLaporanCommand(msg: TelegramBot.Message) {
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
 
-    const report = `
+    // Count transaction types
+    const incomeTransactions = transactions.filter(t => t.type === 'in');
+    const expenseTransactions = transactions.filter(t => t.type === 'out');
+
+    let report = `
 📊 *LAPORAN KEUANGAN*
 ${profile?.business_name || 'UMKM'}
 
 📅 Periode: ${monthNames[month - 1]} ${year}
 
 💰 *RINGKASAN:*
-• Pemasukan: Rp ${totalIncome.toLocaleString('id-ID')}
-• Pengeluaran: Rp ${totalExpense.toLocaleString('id-ID')}
+• Pemasukan: Rp ${totalIncome.toLocaleString('id-ID')} (${incomeTransactions.length}x)
+• Pengeluaran: Rp ${totalExpense.toLocaleString('id-ID')} (${expenseTransactions.length}x)
 • Saldo: Rp ${balance.toLocaleString('id-ID')}
-• Total Transaksi: ${transactions?.length || 0}
+• Total Transaksi: ${transactions.length}
 
 ${balance >= 0 ? '✅ Bisnis untung!' : '⚠️ Perlu perhatian!'}
+`;
 
-_Untuk laporan lengkap, akses dashboard admin._
-    `;
+    // Add recent transactions summary
+    if (transactions.length > 0) {
+      report += '\n📝 *Transaksi Terbaru:*\n';
+      const recent = transactions.slice(0, 5);
+      recent.forEach((t, i) => {
+        const date = new Date(t.transaction_date);
+        const dateStr = `${date.getDate()}/${date.getMonth() + 1}`;
+        const type = t.type === 'in' ? '📥' : '📤';
+        report += `${i + 1}. ${type} ${dateStr} - Rp ${Number(t.amount).toLocaleString('id-ID')}\n`;
+      });
+      
+      if (transactions.length > 5) {
+        report += `\n_... dan ${transactions.length - 5} transaksi lainnya_\n`;
+      }
+    }
+
+    report += '\n_Untuk laporan lengkap, akses dashboard admin._';
 
     await bot.sendMessage(chatId, report, { parse_mode: 'Markdown' });
 
