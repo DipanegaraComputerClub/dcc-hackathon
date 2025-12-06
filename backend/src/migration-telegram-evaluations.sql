@@ -28,23 +28,24 @@ ALTER TABLE umkm_evaluations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow authenticated users to view evaluations" ON umkm_evaluations;
 DROP POLICY IF EXISTS "Allow anyone to insert evaluations" ON umkm_evaluations;
 DROP POLICY IF EXISTS "Allow authenticated users to update evaluations" ON umkm_evaluations;
+DROP POLICY IF EXISTS "Allow anon to insert evaluations" ON umkm_evaluations;
+DROP POLICY IF EXISTS "Enable insert for all users" ON umkm_evaluations;
+DROP POLICY IF EXISTS "Enable select for authenticated users" ON umkm_evaluations;
+DROP POLICY IF EXISTS "Enable update for authenticated users" ON umkm_evaluations;
 
--- Allow authenticated users to view evaluations
-CREATE POLICY "Allow authenticated users to view evaluations"
+-- Allow ALL to select (for backend to read)
+CREATE POLICY "Enable select for authenticated users"
   ON umkm_evaluations FOR SELECT
-  TO authenticated
   USING (true);
 
--- Allow anyone to insert evaluations (for Telegram bot)
-CREATE POLICY "Allow anyone to insert evaluations"
+-- Allow ALL to insert (for Telegram bot)
+CREATE POLICY "Enable insert for all users"
   ON umkm_evaluations FOR INSERT
-  TO public
   WITH CHECK (true);
 
--- Allow authenticated users to update evaluations
-CREATE POLICY "Allow authenticated users to update evaluations"
+-- Allow ALL to update (for admin dashboard)
+CREATE POLICY "Enable update for authenticated users"
   ON umkm_evaluations FOR UPDATE
-  TO authenticated
   USING (true)
   WITH CHECK (true);
 
