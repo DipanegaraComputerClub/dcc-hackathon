@@ -1,11 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "bun install && bun run build",
-  "installCommand": "bun install",
-  "outputDirectory": ".",
   "builds": [
     {
-      "src": "api/index.js",
+      "src": "package.json",
       "use": "@vercel/node"
     }
   ],
