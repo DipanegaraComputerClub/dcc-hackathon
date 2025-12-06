@@ -2,7 +2,7 @@
   "name": "backend",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "build": "bun build src/index.ts --outfile index.js"
+    "build": "bun build src/index.ts --outfile index.js --target node --external sharp --external node-telegram-bot-api"
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.4",

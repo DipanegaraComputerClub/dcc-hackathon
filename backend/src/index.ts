@@ -1800,12 +1800,26 @@ app.delete('/api/evaluations/:id', async (c) => {
 // ============================================
 import { initTelegramBot } from './telegram-bot'
 
-// Start Telegram Bot
-if (process.env.TELEGRAM_BOT_TOKEN) {
+// Start Telegram Bot (only in development, not in Vercel serverless)
+const isVercel = !!process.env.VERCEL
+if (process.env.TELEGRAM_BOT_TOKEN && !isVercel) {
   console.log('🤖 Initializing Telegram Bot...')
   initTelegramBot()
+} else if (isVercel) {
+  console.log('⚠️ Telegram Bot disabled in Vercel serverless environment')
 } else {
   console.warn('⚠️ TELEGRAM_BOT_TOKEN not set. Bot features disabled.')
 }
 
+// Export for Vercel serverless
 export default app
+
+// Start server only in development (Bun)
+if (!isVercel) {
+  const port = Number(process.env.PORT) || 3000
+  console.log(`Started development server: http://localhost:${port}`)
+  export default {
+    port,
+    fetch: app.fetch,
+  }
+}
