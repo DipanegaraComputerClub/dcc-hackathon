@@ -1798,28 +1798,37 @@ app.delete('/api/evaluations/:id', async (c) => {
 // ============================================
 // INITIALIZE TELEGRAM BOT
 // ============================================
+// TELEGRAM BOT INITIALIZATION
+// ============================================
 import { initTelegramBot } from './telegram-bot'
 
-// Start Telegram Bot (only in development, not in Vercel serverless)
-const isVercel = !!process.env.VERCEL
+// Detect environment
+const isVercel = !!process.env.VERCEL || process.env.NODE_ENV === 'production'
+
+// Start Telegram Bot (only in development, not in serverless)
 if (process.env.TELEGRAM_BOT_TOKEN && !isVercel) {
   console.log('🤖 Initializing Telegram Bot...')
   initTelegramBot()
 } else if (isVercel) {
-  console.log('⚠️ Telegram Bot disabled in Vercel serverless environment')
+  console.log('⚠️ Telegram Bot disabled in serverless environment (Vercel)')
+  console.log('   All API endpoints remain functional')
 } else {
   console.warn('⚠️ TELEGRAM_BOT_TOKEN not set. Bot features disabled.')
 }
 
-// Export for Vercel serverless
+// ============================================
+// SERVER STARTUP & EXPORT
+// ============================================
+
+// For Vercel serverless deployment
 export default app
 
-// Start server only in development (Bun)
-if (!isVercel) {
+// For local development with Bun
+if (!isVercel && import.meta.main) {
   const port = Number(process.env.PORT) || 3000
   console.log(`Started development server: http://localhost:${port}`)
-  export default {
+  Bun.serve({
     port,
     fetch: app.fetch,
-  }
+  })
 }
