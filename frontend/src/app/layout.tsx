@@ -8,6 +8,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "TABE AI",
   description: "Platform AI untuk UMKM kuliner Makassar: branding, konten marketing, dan engagement pelanggan lebih gampang, nakko.",
+    icons: {
+    icon: "/tabe-ai.jpg",
+    shortcut: "/tabe-ai.jpg",
+    apple: "/tabe-ai.jpg",
+  },
 };
 
 export default function RootLayout({
