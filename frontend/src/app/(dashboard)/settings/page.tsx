@@ -232,6 +232,61 @@ export default function SettingsPage() {
         {/* SINGLE COLUMN LAYOUT */}
         <div className="space-y-6 max-w-4xl">
           
+          {/* TELEGRAM BOT INFO */}
+          {profile?.id && (
+            <Card className="shadow-sm border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-blue-900 dark:text-blue-100">Telegram Bot - Kode Bisnis</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+                    Gunakan kode ini untuk login ke Telegram Bot dan akses laporan keuangan
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-4 py-3 bg-white dark:bg-gray-900 border border-blue-300 dark:border-blue-700 rounded-md text-sm font-mono text-blue-900 dark:text-blue-100 select-all">
+                      {profile.id}
+                    </code>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(profile.id);
+                        addToast({
+                          title: "Copied! 📋",
+                          description: "Kode bisnis berhasil dicopy",
+                          variant: "success",
+                        });
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-900 rounded-md p-4 border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    📱 Cara Pakai Telegram Bot:
+                  </p>
+                  <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
+                    <li>Buka Telegram, cari bot: <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">@dcc_hackathon_bot</code></li>
+                    <li>Kirim: <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">/start</code></li>
+                    <li>Login dengan kode di atas: <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">/login {profile.id.substring(0, 8)}...</code></li>
+                    <li>Gunakan <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">/menu</code> untuk lihat opsi</li>
+                  </ol>
+                  
+                  <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      💡 Dengan bot, Anda bisa: Lihat laporan keuangan, Kirim evaluasi ke tim, Cek ringkasan bisnis
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
           {/* BUSINESS PROFILE CARD */}
           <Card className="shadow-sm border">
             <CardHeader>

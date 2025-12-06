@@ -7,7 +7,7 @@
 1. Buka Telegram, cari `@BotFather`
 2. Kirim: `/newbot`
 3. Nama bot: `TABE AI Bot` (atau sesuai keinginan)
-4. Username: `tabe_ai_umkm_bot` (harus unique, akhiri dengan _bot)
+4. Username: `dcc_hackathon_bot` (harus unique, akhiri dengan _bot)
 5. **COPY TOKEN** yang diberikan
 
 ### Step 2: Setup Backend (1 menit)
@@ -50,14 +50,29 @@ Cek log, harus muncul:
 
 ## 📱 Cara Pakai (untuk Boss)
 
-### Connect Bot
+### Connect Bot (Login)
 
-1. Login ke dashboard web: https://your-app.com/settings
-2. Copy **Profile ID** dari halaman Settings
-3. Di Telegram, kirim:
+1. **Buka Dashboard Settings**
+   - Login ke: https://your-app.com/settings
+   - Lihat card **"Telegram Bot - Kode Bisnis"** di bagian atas
+   - Klik tombol **"Copy"** untuk copy kode
+
+2. **Login di Telegram**
    ```
-   /connect [paste-profile-id-here]
+   /login [paste-kode-bisnis-disini]
    ```
+   
+   Contoh:
+   ```
+   /login 550e8400-e29b-41d4-a716-446655440000
+   ```
+
+3. **Cek berhasil login**
+   ```
+   /menu
+   ```
+   
+   Bot akan tampilkan menu jika sudah terkoneksi
 
 ### Lihat Laporan
 

@@ -99,7 +99,8 @@ Gunakan /menu untuk lihat opsi yang tersedia.
     const keyboard = {
       keyboard: [
         [{ text: '📊 Laporan Bulan Ini' }, { text: '💰 Ringkasan Bisnis' }],
-        [{ text: '📝 Kirim Evaluasi' }, { text: '📈 Laporan Custom' }],
+        [{ text: '📥 Transaksi Masuk' }, { text: '📤 Transaksi Keluar' }],
+        [{ text: '📝 Kirim Komentar' }, { text: '📈 Laporan Custom' }],
         [{ text: '❓ Help' }, { text: '🚪 Logout' }]
       ],
       resize_keyboard: true
@@ -140,9 +141,17 @@ Gunakan /menu untuk lihat opsi yang tersedia.
         await handleRingkasanCommand(msg);
         break;
       
-      case '📝 Kirim Evaluasi':
+      case '📥 Transaksi Masuk':
+        await handleTransaksiMasukCommand(msg);
+        break;
+      
+      case '📤 Transaksi Keluar':
+        await handleTransaksiKeluarCommand(msg);
+        break;
+      
+      case '📝 Kirim Komentar':
         await bot.sendMessage(chatId, 
-          '📝 *Kirim Evaluasi*\n\nKetik evaluasi Anda, lalu saya akan menyimpannya untuk tim admin.\n\nFormat:\n`/evaluasi [pesan evaluasi Anda]`\n\nContoh:\n`/evaluasi Penjualan bulan ini bagus, tingkatkan produksi!`',
+          '📝 *Kirim Komentar/Evaluasi*\n\nKetik komentar Anda, lalu saya akan menyimpannya untuk tim admin.\n\nFormat:\n`/komentar [pesan Anda]`\n\nContoh:\n`/komentar Penjualan bulan ini bagus, tingkatkan produksi!`',
           { parse_mode: 'Markdown' }
         );
         break;
@@ -162,15 +171,16 @@ Gunakan /menu untuk lihat opsi yang tersedia.
 /login [kode] - Login
 /menu - Tampilkan menu
 /laporan - Laporan bulan ini
-/laporan [bulan] [tahun] - Laporan custom
+/masuk - Transaksi masuk (5 terbaru)
+/keluar - Transaksi keluar (5 terbaru)
 /ringkasan - Ringkasan bisnis
-/evaluasi [pesan] - Kirim evaluasi
+/komentar [pesan] - Kirim komentar
 /logout - Keluar
 
 *Tips:*
 • Gunakan tombol keyboard untuk akses cepat
 • Laporan otomatis untuk bulan berjalan
-• Evaluasi akan dikirim ke dashboard admin
+• Komentar akan dikirim ke dashboard admin
         `, { parse_mode: 'Markdown' });
         break;
       
@@ -181,7 +191,49 @@ Gunakan /menu untuk lihat opsi yang tersedia.
     }
   });
 
-  // /evaluasi [message] - Send evaluation to admin
+  // /komentar [message] - Send comment/evaluation to admin
+  bot.onText(/\/komentar (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const profileId = authorizedUsers[chatId];
+
+    if (!profileId) {
+      await bot.sendMessage(chatId, '❌ Anda belum login! Gunakan /login [kode_bisnis]');
+      return;
+    }
+
+    const commentText = match?.[1]?.trim();
+    if (!commentText) {
+      await bot.sendMessage(chatId, '❌ Komentar tidak boleh kosong!');
+      return;
+    }
+
+    try {
+      // Save comment to database
+      const { data, error } = await supabase
+        .from('umkm_evaluations')
+        .insert({
+          profile_id: profileId,
+          message: commentText,
+          sender_name: msg.from?.first_name || 'Boss',
+          telegram_chat_id: chatId,
+          status: 'unread'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await bot.sendMessage(chatId, 
+        '✅ *Komentar terkirim!*\n\nTim admin akan melihat komentar Anda di dashboard.',
+        { parse_mode: 'Markdown' }
+      );
+    } catch (error) {
+      console.error('Error saving comment:', error);
+      await bot.sendMessage(chatId, '❌ Gagal mengirim komentar. Coba lagi nanti.');
+    }
+  });
+
+  // /evaluasi - alias for /komentar
   bot.onText(/\/evaluasi (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const profileId = authorizedUsers[chatId];
@@ -198,7 +250,6 @@ Gunakan /menu untuk lihat opsi yang tersedia.
     }
 
     try {
-      // Save evaluation to database
       const { data, error } = await supabase
         .from('umkm_evaluations')
         .insert({
@@ -226,6 +277,16 @@ Gunakan /menu untuk lihat opsi yang tersedia.
   // /ringkasan - Business summary
   bot.onText(/\/ringkasan/, async (msg) => {
     await handleRingkasanCommand(msg);
+  });
+
+  // /masuk - Show income transactions
+  bot.onText(/\/masuk/, async (msg) => {
+    await handleTransaksiMasukCommand(msg);
+  });
+
+  // /keluar - Show expense transactions
+  bot.onText(/\/keluar/, async (msg) => {
+    await handleTransaksiKeluarCommand(msg);
   });
 
   // /logout
@@ -378,6 +439,120 @@ _Update real-time dari dashboard admin._
   } catch (error) {
     console.error('Error generating summary:', error);
     await bot.sendMessage(chatId, '❌ Gagal mengambil data bisnis. Coba lagi nanti.');
+  }
+}
+
+async function handleTransaksiMasukCommand(msg: TelegramBot.Message) {
+  if (!bot) return;
+  
+  const chatId = msg.chat.id;
+  const profileId = authorizedUsers[chatId];
+
+  if (!profileId) {
+    await bot.sendMessage(chatId, '❌ Anda belum login! Gunakan /login [kode_bisnis]');
+    return;
+  }
+
+  await bot.sendMessage(chatId, '⏳ Mengambil transaksi masuk...');
+
+  try {
+    // Get income transactions (latest 10)
+    const { data: transactions, error } = await supabase
+      .from('umkm_transactions')
+      .select('*')
+      .eq('profile_id', profileId)
+      .eq('type', 'in')
+      .order('transaction_date', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+
+    if (!transactions || transactions.length === 0) {
+      await bot.sendMessage(chatId, '📥 Belum ada transaksi pemasukan.');
+      return;
+    }
+
+    // Calculate total
+    const total = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+
+    // Format transactions list
+    let message = `📥 *TRANSAKSI MASUK* (10 Terbaru)\n\n`;
+    
+    transactions.forEach((t, index) => {
+      const date = new Date(t.transaction_date);
+      const dateStr = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      message += `${index + 1}. *${dateStr}*\n`;
+      message += `   💰 Rp ${Number(t.amount).toLocaleString('id-ID')}\n`;
+      if (t.description) {
+        message += `   📝 ${t.description}\n`;
+      }
+      message += `\n`;
+    });
+
+    message += `\n✅ *Total Pemasukan:* Rp ${total.toLocaleString('id-ID')}`;
+
+    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+
+  } catch (error) {
+    console.error('Error fetching income transactions:', error);
+    await bot.sendMessage(chatId, '❌ Gagal mengambil data transaksi. Coba lagi nanti.');
+  }
+}
+
+async function handleTransaksiKeluarCommand(msg: TelegramBot.Message) {
+  if (!bot) return;
+  
+  const chatId = msg.chat.id;
+  const profileId = authorizedUsers[chatId];
+
+  if (!profileId) {
+    await bot.sendMessage(chatId, '❌ Anda belum login! Gunakan /login [kode_bisnis]');
+    return;
+  }
+
+  await bot.sendMessage(chatId, '⏳ Mengambil transaksi keluar...');
+
+  try {
+    // Get expense transactions (latest 10)
+    const { data: transactions, error } = await supabase
+      .from('umkm_transactions')
+      .select('*')
+      .eq('profile_id', profileId)
+      .eq('type', 'out')
+      .order('transaction_date', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+
+    if (!transactions || transactions.length === 0) {
+      await bot.sendMessage(chatId, '📤 Belum ada transaksi pengeluaran.');
+      return;
+    }
+
+    // Calculate total
+    const total = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+
+    // Format transactions list
+    let message = `📤 *TRANSAKSI KELUAR* (10 Terbaru)\n\n`;
+    
+    transactions.forEach((t, index) => {
+      const date = new Date(t.transaction_date);
+      const dateStr = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      message += `${index + 1}. *${dateStr}*\n`;
+      message += `   💸 Rp ${Number(t.amount).toLocaleString('id-ID')}\n`;
+      if (t.description) {
+        message += `   📝 ${t.description}\n`;
+      }
+      message += `\n`;
+    });
+
+    message += `\n💳 *Total Pengeluaran:* Rp ${total.toLocaleString('id-ID')}`;
+
+    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+
+  } catch (error) {
+    console.error('Error fetching expense transactions:', error);
+    await bot.sendMessage(chatId, '❌ Gagal mengambil data transaksi. Coba lagi nanti.');
   }
 }
 

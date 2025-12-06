@@ -24,6 +24,11 @@ CREATE INDEX IF NOT EXISTS idx_evaluations_created ON umkm_evaluations(created_a
 -- RLS Policies
 ALTER TABLE umkm_evaluations ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow authenticated users to view evaluations" ON umkm_evaluations;
+DROP POLICY IF EXISTS "Allow anyone to insert evaluations" ON umkm_evaluations;
+DROP POLICY IF EXISTS "Allow authenticated users to update evaluations" ON umkm_evaluations;
+
 -- Allow authenticated users to view evaluations
 CREATE POLICY "Allow authenticated users to view evaluations"
   ON umkm_evaluations FOR SELECT
@@ -52,6 +57,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop trigger if exists before creating
+DROP TRIGGER IF EXISTS set_evaluations_timestamp ON umkm_evaluations;
+
 CREATE TRIGGER set_evaluations_timestamp
 BEFORE UPDATE ON umkm_evaluations
 FOR EACH ROW
@@ -78,6 +86,11 @@ CREATE INDEX IF NOT EXISTS idx_telegram_users_profile ON telegram_bot_users(prof
 CREATE INDEX IF NOT EXISTS idx_telegram_users_chat ON telegram_bot_users(telegram_chat_id);
 
 ALTER TABLE telegram_bot_users ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow anyone to view telegram users" ON telegram_bot_users;
+DROP POLICY IF EXISTS "Allow anyone to insert telegram users" ON telegram_bot_users;
+DROP POLICY IF EXISTS "Allow anyone to update telegram users" ON telegram_bot_users;
 
 CREATE POLICY "Allow anyone to view telegram users"
   ON telegram_bot_users FOR SELECT

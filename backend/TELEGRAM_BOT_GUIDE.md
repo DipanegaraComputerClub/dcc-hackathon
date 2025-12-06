@@ -52,7 +52,7 @@ Lihat log:
 ### A. Setup Awal (Boss)
 
 1. **Buka bot di Telegram**
-   - Cari username bot Anda (misal: `@tabe_ai_umkm_bot`)
+   - Cari username bot Anda (misal: `@dcc_hackathon_bot`)
    - Atau scan QR code dari BotFather
 
 2. **Start bot**
@@ -60,15 +60,20 @@ Lihat log:
    /start
    ```
 
-3. **Dapatkan Profile ID**
-   - Login ke dashboard web (https://your-domain.com/settings)
-   - Di halaman Settings, akan ada informasi Profile ID
-   - Copy Profile ID (format UUID)
+3. **Dapatkan Kode Bisnis (Profile ID)**
+   - Login ke dashboard web: https://your-domain.com/settings
+   - Di bagian atas halaman Settings, ada card **"Telegram Bot - Kode Bisnis"**
+   - Klik tombol **"Copy"** untuk copy kode bisnis
+   - Kode format UUID: `550e8400-e29b-41d4-a716-446655440000`
 
-4. **Connect bot dengan akun**
+   ![Settings Profile ID](docs/settings-profile-id.png)
+
+4. **Login bot dengan kode bisnis**
    ```
-   /connect 550e8400-e29b-41d4-a716-446655440000
+   /login 550e8400-e29b-41d4-a716-446655440000
    ```
+   
+   Paste kode yang sudah di-copy dari dashboard
    
    ✅ Response: "Berhasil terhubung! Bisnis: Coto Makassar Pak Amir"
 
