@@ -1,4 +1,7 @@
 {
+  "buildCommand": "bun run build",
+  "installCommand": "bun install",
+  "framework": "nextjs",
   "build": {
     "env": {
       "BUN_VERSION": "latest"
