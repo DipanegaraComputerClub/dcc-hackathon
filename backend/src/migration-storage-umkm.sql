@@ -15,33 +15,6 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Enable RLS for storage
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
--- Policy: Anyone can view logos (public bucket)
-CREATE POLICY "Public Access for Logo Viewing"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'umkm-logos');
-
--- Policy: Authenticated users can upload logos
-CREATE POLICY "Authenticated Users Can Upload Logos"
-ON storage.objects FOR INSERT
-WITH CHECK (
-  bucket_id = 'umkm-logos' 
-  AND (auth.role() = 'authenticated' OR auth.role() = 'anon')
-);
-
--- Policy: Users can update their own uploads
-CREATE POLICY "Users Can Update Own Logos"
-ON storage.objects FOR UPDATE
-USING (bucket_id = 'umkm-logos')
-WITH CHECK (bucket_id = 'umkm-logos');
-
--- Policy: Users can delete their own uploads
-CREATE POLICY "Users Can Delete Own Logos"
-ON storage.objects FOR DELETE
-USING (bucket_id = 'umkm-logos');
-
 -- Success message
 DO $$
 BEGIN
@@ -49,4 +22,16 @@ BEGIN
     RAISE NOTICE '📸 Max file size: 5MB';
     RAISE NOTICE '🎨 Allowed types: JPEG, PNG, WebP, GIF';
     RAISE NOTICE '🔓 Public access enabled';
+    RAISE NOTICE '';
+    RAISE NOTICE '⚠️  MANUAL SETUP REQUIRED:';
+    RAISE NOTICE '1. Go to Supabase Dashboard > Storage > Policies';
+    RAISE NOTICE '2. Click on "umkm-logos" bucket';
+    RAISE NOTICE '3. Add policy: "Enable public read access"';
+    RAISE NOTICE '   - Policy name: Public Access';
+    RAISE NOTICE '   - Operation: SELECT';
+    RAISE NOTICE '   - Policy definition: true';
+    RAISE NOTICE '4. Add policy: "Enable insert for all users"';
+    RAISE NOTICE '   - Policy name: Insert Access';
+    RAISE NOTICE '   - Operation: INSERT';
+    RAISE NOTICE '   - Policy definition: true';
 END $$;
