@@ -52,16 +52,30 @@ module.exports = async (req, res) => {
     // Call Hono app
     const response = await app.fetch(request);
     
-    // Send response back to Vercel
-    const responseBody = await response.text();
+    // Set status
+    res.status(response.status);
     
-    // Set response headers
+    // Copy all headers from Hono response
     response.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
     
-    // Send response
-    res.status(response.status).send(responseBody);
+    // Handle different content types properly
+    const contentType = response.headers.get('content-type') || '';
+    
+    if (contentType.includes('application/json')) {
+      // JSON response
+      const data = await response.json();
+      res.json(data);
+    } else if (contentType.includes('text/')) {
+      // Text response
+      const text = await response.text();
+      res.send(text);
+    } else {
+      // Binary/other response
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+    }
     
   } catch (error) {
     console.error('❌ Vercel handler error:', error);
