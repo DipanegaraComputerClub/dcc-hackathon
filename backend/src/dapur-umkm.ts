@@ -122,16 +122,16 @@ export async function calculateBusinessMetrics(profileId: string): Promise<Busin
     // Calculate financial metrics
     const totalIncome = transactions
       ?.filter(t => t.type === 'in')
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0;
+      .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
 
     const totalExpense = transactions
       ?.filter(t => t.type === 'out')
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0;
+      .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
 
     const balance = totalIncome - totalExpense;
 
-    // Inventory analysis
-    const lowStockProducts = products?.filter(p => p.stock < 10) || [];
+    // Inventory analysis - hanya produk dengan stok 1-9 (stok menipis tapi masih ada)
+    const lowStockProducts = products?.filter(p => Number(p.stock) > 0 && Number(p.stock) < 10) || [];
     
     const averageTransactionValue = transactions?.length 
       ? totalIncome / transactions.filter(t => t.type === 'in').length 

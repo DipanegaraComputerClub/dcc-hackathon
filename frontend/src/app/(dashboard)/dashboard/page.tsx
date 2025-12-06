@@ -68,17 +68,35 @@ export default function DashboardPage() {
     try {
       setIsLoading(true);
 
-      // Fetch all data in parallel
-      const [profileRes, productsRes, transactionsRes, insightsRes, summaryRes] = await Promise.all([
-        fetch(`${API_URL}/api/dapur-umkm/profile`),
-        fetch(`${API_URL}/api/dapur-umkm/products`),
-        fetch(`${API_URL}/api/dapur-umkm/transactions`),
-        fetch(`${API_URL}/api/dapur-umkm/insights-history`),
-        fetch(`${API_URL}/api/dapur-umkm/summary`)
+      // First, get profile to get profile_id
+      const profileRes = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const profile = await profileRes.json();
+      
+      const profileData = profile.success ? profile.data : null;
+      const profileId = profileData?.id;
+
+      // If no profile, show empty state
+      if (!profileId) {
+        setDashboardData({
+          profile: null,
+          products: [],
+          transactions: [],
+          aiInsights: [],
+          summary: null
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch remaining data in parallel with profile_id
+      const [productsRes, transactionsRes, insightsRes, summaryRes] = await Promise.all([
+        fetch(`${API_URL}/api/dapur-umkm/products?profile_id=${profileId}`),
+        fetch(`${API_URL}/api/dapur-umkm/transactions?profile_id=${profileId}`),
+        fetch(`${API_URL}/api/dapur-umkm/insights-history?profile_id=${profileId}`),
+        fetch(`${API_URL}/api/dapur-umkm/summary?profile_id=${profileId}`)
       ]);
 
-      const [profile, products, transactions, insights, summary] = await Promise.all([
-        profileRes.json(),
+      const [products, transactions, insights, summary] = await Promise.all([
         productsRes.json(),
         transactionsRes.json(),
         insightsRes.json(),
@@ -86,7 +104,7 @@ export default function DashboardPage() {
       ]);
 
       setDashboardData({
-        profile: profile.success ? profile.data : null,
+        profile: profileData,
         products: products.success ? products.data : [],
         transactions: transactions.success ? transactions.data : [],
         aiInsights: insights.success ? insights.data : [],
@@ -146,9 +164,14 @@ export default function DashboardPage() {
 
   // Calculate metrics
   const totalProducts = dashboardData.products.length;
-  const activeProducts = dashboardData.products.filter(p => p.stock > 0).length;
-  const lowStockProducts = dashboardData.products.filter(p => p.stock > 0 && p.stock < 10).length;
-  const totalRevenue = dashboardData.summary?.total_revenue || 0;
+  const activeProducts = dashboardData.products.filter(p => Number(p.stock) > 0).length;
+  const lowStockProducts = dashboardData.products.filter(p => Number(p.stock) > 0 && Number(p.stock) < 10).length;
+  
+  // Use totalIncome from summary (calculateBusinessMetrics returns this)
+  const totalRevenue = dashboardData.summary?.totalIncome || 0;
+  const totalExpense = dashboardData.summary?.totalExpense || 0;
+  const balance = dashboardData.summary?.balance || 0;
+  
   const totalTransactions = dashboardData.transactions.length;
   const recentTransactions = dashboardData.transactions.slice(0, 5);
   const recentInsights = dashboardData.aiInsights.slice(0, 5);
@@ -156,9 +179,9 @@ export default function DashboardPage() {
   // Calculate today's transactions
   const today = new Date().toISOString().split('T')[0];
   const todayTransactions = dashboardData.transactions.filter(t => 
-    t.transaction_date?.startsWith(today)
+    t.transaction_date?.startsWith(today) && t.type === 'in'
   );
-  const todayRevenue = todayTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+  const todayRevenue = todayTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
   return (
     <DashboardLayout>
@@ -177,7 +200,26 @@ export default function DashboardPage() {
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+            <p className="ml-3 text-gray-600 dark:text-gray-400">Memuat data dashboard...</p>
           </div>
+        ) : !dashboardData.profile ? (
+          <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900">
+            <CardContent className="py-8 text-center">
+              <Store className="w-16 h-16 mx-auto text-amber-600 mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                Profil UMKM Belum Ada
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Anda perlu membuat profil bisnis UMKM terlebih dahulu untuk menggunakan dashboard.
+              </p>
+              <Link href="/management">
+                <Button className="bg-red-600 hover:bg-red-700 text-white">
+                  <Store className="w-4 h-4 mr-2" />
+                  Buat Profil UMKM
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         ) : (
           <>
             {/* RINGKASAN UTAMA */}
@@ -270,8 +312,8 @@ export default function DashboardPage() {
                   </div>
                   <Button
                     onClick={generateContentAnalysis}
-                    disabled={isAnalyzing || !dashboardData.profile}
-                    className="bg-red-600 hover:bg-red-700 text-white"
+                    disabled={isAnalyzing || !dashboardData.profile || dashboardData.products.length === 0}
+                    className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAnalyzing ? (
                       <>
@@ -294,9 +336,16 @@ export default function DashboardPage() {
                     <p className="text-gray-600 dark:text-gray-400 mb-2">
                       Belum ada analisis. Klik tombol di atas untuk mendapatkan rekomendasi konten & statistik bisnis.
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
                       AI akan menganalisis data produk, transaksi, dan performa bisnis Anda
                     </p>
+                    {dashboardData.products.length === 0 && (
+                      <div className="mt-4 p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg inline-block">
+                        <p className="text-sm text-amber-800 dark:text-amber-400">
+                          💡 Tambahkan produk terlebih dahulu untuk hasil analisis yang lebih akurat
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : contentAnalysis && (
                   <div className="space-y-6">
@@ -465,7 +514,11 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {recentTransactions.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-4">Belum ada transaksi</p>
+                    <div className="text-center py-6">
+                      <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-500">Belum ada transaksi</p>
+                      <p className="text-xs text-gray-400 mt-1">Tambahkan transaksi pertama di halaman Management</p>
+                    </div>
                   ) : (
                     recentTransactions.map((trans) => (
                       <div
@@ -508,7 +561,11 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {recentInsights.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-4">Belum ada rekomendasi AI</p>
+                    <div className="text-center py-6">
+                      <Lightbulb className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-500">Belum ada rekomendasi AI</p>
+                      <p className="text-xs text-gray-400 mt-1">Gunakan fitur AI di halaman Management atau generate analisis di atas</p>
+                    </div>
                   ) : (
                     recentInsights.map((insight) => (
                       <div
@@ -551,7 +608,17 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 {dashboardData.products.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">Belum ada produk. Tambahkan produk pertama Anda!</p>
+                  <div className="text-center py-6">
+                    <Package className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                    <p className="text-sm text-gray-500 mb-1">Belum ada produk</p>
+                    <p className="text-xs text-gray-400 mb-3">Tambahkan produk pertama Anda untuk mulai berjualan!</p>
+                    <Link href="/management">
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Package className="w-3 h-3 mr-1" />
+                        Tambah Produk
+                      </Button>
+                    </Link>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {dashboardData.products.slice(0, 5).map((product) => (
