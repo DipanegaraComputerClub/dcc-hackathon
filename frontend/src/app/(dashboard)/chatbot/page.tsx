@@ -6,27 +6,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Send, Bot, User, Trash2, Sparkles, Lightbulb, 
-  RefreshCw, // <-- INI YANG TADI HILANG
+  RefreshCw, ExternalLink, HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 type Message = {
   id: number;
   role: "user" | "ai";
   content: string;
   time: string;
+  suggestions?: string[];
+  resources?: {
+    type: 'link' | 'image' | 'video';
+    title: string;
+    url: string;
+    description?: string;
+  }[];
 };
 
 const suggestions = [
-  "Strategi jualan laris di TikTok?",
-  "Cara hitung modal Coto Makassar?",
-  "Buatkan ide promo Hari Kemerdekaan",
-  "Tips hadapi pelanggan yang rewel"
+  "Bagaimana cara memulai bisnis UMKM?",
+  "Cara bikin foto produk yang bagus?",
+  "Platform apa yang cocok untuk jualan?",
+  "Bagaimana cara promosi yang efektif?"
 ];
 
 export default function ChatbotPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const [showFAQ, setShowFAQ] = useState(false);
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const getCurrentTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -34,13 +47,10 @@ export default function ChatbotPage() {
     {
       id: 1,
       role: "ai",
-      content: "Tabe', Daeng! 👋\nSaya asisten pintar ta'. Mau bahas strategi jualan, ide konten, atau curhat bisnis hari ini?",
+      content: "Ji'! Tabe' Daeng! 👋\n\nSaya Daeng, asisten pintar untuk bantu UMKM ko. Mau tanya tentang:\n- Strategi jualan 🔥\n- Bikin konten menarik ✨\n- Modal dan harga 💰\n- Marketing & promosi 📱\n\nSantai mi, tanya apa saja!",
       time: getCurrentTime()
     }
   ]);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -48,6 +58,23 @@ export default function ChatbotPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Load FAQ on mount
+  useEffect(() => {
+    loadFAQ();
+  }, []);
+
+  const loadFAQ = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/tanya-daeng/faq`);
+      const data = await response.json();
+      if (data.success) {
+        setFaqs(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load FAQ:', error);
+    }
+  };
 
   const handleSend = async (text: string = input) => {
     if (!text.trim()) return;
@@ -63,29 +90,60 @@ export default function ChatbotPage() {
     setInput("");
     setIsLoading(true);
 
-    setTimeout(() => {
-      let aiResponse = "";
-      const lowerText = text.toLowerCase();
+    // Update conversation history
+    const newHistory = [
+      ...conversationHistory,
+      { role: 'user', content: text }
+    ];
 
-      if (lowerText.includes("tiktok") || lowerText.includes("konten")) {
-        aiResponse = "🔥 **Strategi TikTok Viral:**\n\n1. **3 Detik Pertama:** Langsung to the point. Contoh: *'Jangan makan di sini kalau tidak kuat pedas!'*\n2. **Sound Viral:** Pakai lagu yang lagi trending di Makassar.\n3. **POV:** Rekam proses masak dari sudut pandang pembeli.\n\nJangan lupa hashtag #KulinerMakassar #EwakoFood.";
-      } else if (lowerText.includes("modal") || lowerText.includes("harga")) {
-        aiResponse = "💰 **Rumus Hitung Harga:**\n\n`(Modal Bahan + Biaya Gas/Listrik + Gaji Karyawan) + Profit 30-50%`\n\nContoh: Modal seporsi Rp 15.000. Jual Rp 25.000. Untung Rp 10.000 per porsi. Aman mi itu Daeng.";
-      } else if (lowerText.includes("promo")) {
-        aiResponse = "🏷️ **Ide Promo:**\n\n'Beli 2 Gratis 1' khusus jam sepi (misal jam 2-4 sore). Ini bisa pancing orang datang pas warung lagi kosong.";
-      } else {
-        aiResponse = "Pertanyaan mantap Daeng! Intinya konsisten ki' promosi dan jaga kualitas rasa. 💪\n\nAda lagi yang mau ditanyakan?";
-      }
+    try {
+      const response = await fetch(`${API_URL}/api/tanya-daeng/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          conversationHistory: newHistory.slice(-10), // Keep last 10 messages
+          userContext: {
+            businessType: 'umkm',
+            location: 'Indonesia'
+          }
+        })
+      });
 
-      const aiMsg: Message = { 
+      const data = await response.json();
+
+      if (data.success) {
+        const aiMsg: Message = { 
           id: Date.now() + 1, 
           role: "ai", 
-          content: aiResponse,
-          time: getCurrentTime()
+          content: data.data.reply,
+          time: getCurrentTime(),
+          suggestions: data.data.suggestions,
+          resources: data.data.resources
+        };
+        
+        setMessages((prev) => [...prev, aiMsg]);
+        
+        // Update conversation history
+        setConversationHistory([
+          ...newHistory,
+          { role: 'assistant', content: data.data.reply }
+        ]);
+      } else {
+        throw new Error(data.message || 'Failed to get response');
+      }
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      const errorMsg: Message = { 
+        id: Date.now() + 1, 
+        role: "ai", 
+        content: "Aduh ji, Daeng lagi error. Coba lagi sebentar ya kak! 🙏",
+        time: getCurrentTime()
       };
-      setMessages((prev) => [...prev, aiMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const handleClearChat = () => {
@@ -121,10 +179,59 @@ export default function ChatbotPage() {
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleClearChat} className="text-gray-400 hover:text-red-600">
-            <Trash2 className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowFAQ(!showFAQ)} 
+              className="text-gray-400 hover:text-blue-600"
+              title="Lihat FAQ"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleClearChat} 
+              className="text-gray-400 hover:text-red-600"
+              title="Hapus Chat"
+            >
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
+
+        {/* FAQ Panel */}
+        {showFAQ && (
+          <div 
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-lg"
+            style={{ animation: 'slideInFade 0.3s ease-out' }}
+          >
+            <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-blue-500" />
+              Pertanyaan Umum (FAQ)
+            </h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {faqs.map((faq, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    handleSend(faq.question);
+                    setShowFAQ(false);
+                  }}
+                  className="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-sm border border-transparent hover:border-red-200"
+                >
+                  <div className="font-medium text-gray-900 dark:text-white">{faq.question}</div>
+                  <div className="text-xs text-gray-500 mt-1 flex gap-1 flex-wrap">
+                    {faq.keywords.slice(0, 3).map((kw: string, i: number) => (
+                      <span key={i} className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">#{kw}</span>
+                    ))}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* === AREA CHAT === */}
         <div className="flex-1 relative flex flex-col rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-[#f8fafc] dark:bg-[#020617] shadow-inner">
@@ -144,13 +251,16 @@ export default function ChatbotPage() {
                     </span>
                 </div>
 
-                {messages.map((msg) => (
+                {messages.map((msg, index) => (
                     <div 
                         key={msg.id} 
                         className={cn(
-                            "flex w-full animate-in slide-in-from-bottom-4 duration-500",
+                            "flex w-full",
                             msg.role === "user" ? "justify-end" : "justify-start"
                         )}
+                        style={{
+                          animation: `slideInFade 0.5s ease-out ${index * 0.1}s both`
+                        }}
                     >
                         <div className={cn(
                             "flex max-w-[85%] md:max-w-[70%] gap-3 items-end",
@@ -168,21 +278,64 @@ export default function ChatbotPage() {
                                 )}
                             </div>
 
-                            <div className={cn(
-                                "px-5 py-3 shadow-md relative group",
-                                msg.role === "user"
-                                    ? "bg-gradient-to-br from-red-600 to-red-700 text-white rounded-2xl rounded-tr-sm"
-                                    : "bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-800 rounded-2xl rounded-tl-sm"
-                            )}>
-                                <div className="text-[15px] leading-relaxed whitespace-pre-wrap">
-                                    {msg.content}
-                                </div>
+                            <div className="flex flex-col gap-2 max-w-full">
                                 <div className={cn(
-                                    "text-[10px] mt-1 flex items-center justify-end gap-1 opacity-70",
-                                    msg.role === "user" ? "text-red-100" : "text-gray-400"
+                                    "px-5 py-3 shadow-md relative group",
+                                    msg.role === "user"
+                                        ? "bg-gradient-to-br from-red-600 to-red-700 text-white rounded-2xl rounded-tr-sm"
+                                        : "bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-800 rounded-2xl rounded-tl-sm"
                                 )}>
-                                    {msg.time}
+                                    <div className="text-[15px] leading-relaxed whitespace-pre-wrap">
+                                        {msg.content}
+                                    </div>
+                                    <div className={cn(
+                                        "text-[10px] mt-1 flex items-center justify-end gap-1 opacity-70",
+                                        msg.role === "user" ? "text-red-100" : "text-gray-400"
+                                    )}>
+                                        {msg.time}
+                                    </div>
                                 </div>
+
+                                {/* Resources Links */}
+                                {msg.role === "ai" && msg.resources && msg.resources.length > 0 && (
+                                    <div className="flex flex-col gap-2 ml-11">
+                                        {msg.resources.map((resource, idx) => (
+                                            <a
+                                                key={idx}
+                                                href={resource.url}
+                                                className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl hover:shadow-md transition-all group"
+                                            >
+                                                <span className="text-2xl">{resource.type === 'link' ? '🔗' : '📷'}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                        {resource.title}
+                                                    </div>
+                                                    {resource.description && (
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                            {resource.description}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <ExternalLink className="h-4 w-4 text-red-500 group-hover:translate-x-1 transition-transform" />
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Quick Suggestions */}
+                                {msg.role === "ai" && msg.suggestions && msg.suggestions.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 ml-11">
+                                        {msg.suggestions.slice(0, 3).map((suggestion, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleSend(suggestion)}
+                                                className="text-xs px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-900/20 transition-all"
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
