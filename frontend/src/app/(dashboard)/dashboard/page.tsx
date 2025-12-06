@@ -103,147 +103,45 @@ export default function DashboardPage() {
     try {
       setIsAnalyzing(true);
       
-      // Get AI recommendation for content strategy
-      const res = await fetch(`${API_URL}/api/dapur-umkm/ai-advice`, {
+      // Use new dedicated dashboard analysis endpoint
+      const res = await fetch(`${API_URL}/api/dapur-umkm/dashboard-analysis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: `Berdasarkan data bisnis saya:
-- Bisnis: ${dashboardData.profile?.business_name || 'UMKM'}
-- Kategori: ${dashboardData.profile?.category || 'Kuliner'}
-- Total Produk: ${dashboardData.products.length}
-- Produk Terlaris: ${dashboardData.products.sort((a, b) => (b.sold || 0) - (a.sold || 0))[0]?.name || 'Belum ada'}
-- Total Pendapatan: Rp ${(dashboardData.summary?.total_revenue || 0).toLocaleString('id-ID')}
-- Total Transaksi: ${dashboardData.transactions.length}
-
-Buatkan analisis lengkap:
-1. 5 ide konten media sosial yang cocok untuk bisnis saya
-2. Target audience yang tepat
-3. Waktu posting terbaik (jam dan hari)
-4. 3 trending topics yang relevan dengan bisnis saya
-5. Tips meningkatkan conversion rate
-
-Format jawaban dalam bentuk terstruktur dengan poin-poin jelas.`,
-          insight_type: 'marketing'
+          profile_id: dashboardData.profile?.id
         })
       });
 
       const data = await res.json();
       
       if (data.success) {
-        // Parse AI response into structured format
-        const recommendation = data.data.recommendation;
+        // Backend already provides structured data
+        const analysis = data.data;
         
-        // Simple parsing (bisa diperbaiki dengan regex lebih kompleks)
-        const contentIdeas = extractListItems(recommendation, ['ide konten', 'content ideas', '1.', '2.', '3.', '4.', '5.']);
-        const targetAudience = extractSection(recommendation, ['target audience', 'audiens target']);
-        const bestPostingTimes = extractListItems(recommendation, ['waktu posting', 'posting time', 'waktu terbaik']);
-        const trendingTopics = extractListItems(recommendation, ['trending', 'topik populer', 'tren']);
-        const conversionTips = extractListItems(recommendation, ['tips', 'conversion', 'meningkatkan penjualan']);
-
         setContentAnalysis({
-          contentIdeas: contentIdeas.length > 0 ? contentIdeas : [
-            'Posting foto produk dengan customer testimonial',
-            'Behind the scenes proses produksi',
-            'Tips & trik menggunakan produk',
-            'Promo khusus dengan storytelling menarik',
-            'User generated content dari pelanggan setia'
-          ],
-          targetAudience: targetAudience || 'Keluarga muda usia 25-40 tahun yang mencari produk berkualitas dengan harga terjangkau',
-          bestPostingTimes: bestPostingTimes.length > 0 ? bestPostingTimes : [
-            'Senin-Jumat: 11:00-13:00 (jam makan siang)',
-            'Sabtu-Minggu: 18:00-20:00 (prime time)',
-            'Kamis-Jumat: 16:00-17:00 (menjelang weekend)'
-          ],
-          trendingTopics: trendingTopics.length > 0 ? trendingTopics : [
-            'Produk lokal berkualitas',
-            'Sustainable & eco-friendly',
-            'Behind the brand story'
-          ],
+          contentIdeas: analysis.contentIdeas || [],
+          targetAudience: analysis.targetAudience || '',
+          bestPostingTimes: analysis.bestPostingTimes || [],
+          trendingTopics: analysis.trendingTopics || [],
           statistics: {
-            totalRevenue: dashboardData.summary?.total_revenue || 0,
-            growthRate: calculateGrowthRate(),
-            topProduct: dashboardData.products.sort((a, b) => (b.sold || 0) - (a.sold || 0))[0]?.name || 'Belum ada data',
-            conversionTips: conversionTips.length > 0 ? conversionTips : [
-              'Gunakan call-to-action yang jelas',
-              'Tambahkan urgency dengan limited stock',
-              'Showcase social proof & testimonial'
-            ]
+            totalRevenue: analysis.statistics.totalRevenue || 0,
+            growthRate: analysis.statistics.growthRate || '+0%',
+            topProduct: analysis.statistics.topProduct || 'Belum ada data',
+            conversionTips: analysis.conversionTips || []
           }
         });
         
         setShowAnalysis(true);
+      } else {
+        console.error('Analysis failed:', data.message);
+        alert('Gagal generate analisis: ' + (data.message || 'Terjadi kesalahan'));
       }
     } catch (error) {
       console.error('Error generating content analysis:', error);
+      alert('Terjadi kesalahan saat generate analisis');
     } finally {
       setIsAnalyzing(false);
     }
-  };
-
-  const extractListItems = (text: string, keywords: string[]): string[] => {
-    const items: string[] = [];
-    const lines = text.split('\n');
-    let capturing = false;
-    
-    for (const line of lines) {
-      const lowerLine = line.toLowerCase();
-      
-      if (keywords.some(kw => lowerLine.includes(kw))) {
-        capturing = true;
-        continue;
-      }
-      
-      if (capturing && line.trim()) {
-        const cleaned = line.replace(/^[\d\-\*\.\)\s]+/, '').trim();
-        if (cleaned && cleaned.length > 10) {
-          items.push(cleaned);
-        }
-        if (items.length >= 5) break;
-      }
-    }
-    
-    return items;
-  };
-
-  const extractSection = (text: string, keywords: string[]): string => {
-    const lines = text.split('\n');
-    let capturing = false;
-    let result = '';
-    
-    for (const line of lines) {
-      const lowerLine = line.toLowerCase();
-      
-      if (keywords.some(kw => lowerLine.includes(kw))) {
-        capturing = true;
-        continue;
-      }
-      
-      if (capturing && line.trim()) {
-        result += line.trim() + ' ';
-        if (result.length > 100) break;
-      }
-    }
-    
-    return result.trim();
-  };
-
-  const calculateGrowthRate = (): string => {
-    // Simple growth calculation based on recent vs old transactions
-    if (dashboardData.transactions.length < 2) return '+0%';
-    
-    const sorted = [...dashboardData.transactions].sort((a, b) => 
-      new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
-    );
-    
-    const halfPoint = Math.floor(sorted.length / 2);
-    const recentSum = sorted.slice(0, halfPoint).reduce((sum, t) => sum + t.amount, 0);
-    const oldSum = sorted.slice(halfPoint).reduce((sum, t) => sum + t.amount, 0);
-    
-    if (oldSum === 0) return '+100%';
-    
-    const growth = ((recentSum - oldSum) / oldSum * 100).toFixed(1);
-    return growth > 0 ? `+${growth}%` : `${growth}%`;
   };
 
   // Calculate metrics

@@ -384,11 +384,278 @@ export async function getPastInsights(profileId: string, limit: number = 10) {
 }
 
 // ============================================
+// DASHBOARD CONTENT ANALYSIS
+// ============================================
+export async function generateDashboardAnalysis(profileId: string) {
+  try {
+    // Get all business data
+    const [profile, products, transactions, metrics] = await Promise.all([
+      supabase.from('umkm_profiles').select('*').eq('id', profileId).single(),
+      supabase.from('umkm_products').select('*').eq('profile_id', profileId),
+      supabase.from('umkm_transactions').select('*').eq('profile_id', profileId).order('transaction_date', { ascending: false }),
+      calculateBusinessMetrics(profileId)
+    ]);
+
+    if (profile.error) throw profile.error;
+    
+    const businessData = profile.data;
+    const productList = products.data || [];
+    const transactionList = transactions.data || [];
+
+    // Find top product
+    const productSales = productList.map(p => ({
+      name: p.name,
+      sold: p.sold || 0,
+      stock: p.stock || 0,
+      price: p.price || 0
+    })).sort((a, b) => b.sold - a.sold);
+
+    const topProduct = productSales[0]?.name || 'Belum ada data';
+    const totalRevenue = metrics.totalIncome || 0;
+    const totalTransactions = transactionList.length;
+
+    // Calculate growth rate
+    const sortedTransactions = [...transactionList].sort((a, b) => 
+      new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
+    );
+    
+    let growthRate = '+0%';
+    if (sortedTransactions.length >= 2) {
+      const halfPoint = Math.floor(sortedTransactions.length / 2);
+      const recentSum = sortedTransactions.slice(0, halfPoint).reduce((sum, t) => sum + (t.amount || 0), 0);
+      const oldSum = sortedTransactions.slice(halfPoint).reduce((sum, t) => sum + (t.amount || 0), 0);
+      
+      if (oldSum > 0) {
+        const growth = ((recentSum - oldSum) / oldSum * 100).toFixed(1);
+        growthRate = parseFloat(growth) >= 0 ? `+${growth}%` : `${growth}%`;
+      }
+    }
+
+    // Build comprehensive prompt for AI
+    const analysisPrompt = `Sebagai konsultan bisnis UMKM, buatkan analisis lengkap untuk bisnis berikut:
+
+PROFIL BISNIS:
+- Nama: ${businessData.business_name || 'UMKM'}
+- Kategori: ${businessData.category || 'Belum ditentukan'}
+- Deskripsi: ${businessData.description || 'Tidak ada deskripsi'}
+- Lokasi: ${businessData.address || 'Tidak disebutkan'}
+
+DATA PERFORMA:
+- Total Pendapatan: Rp ${totalRevenue.toLocaleString('id-ID')}
+- Total Transaksi: ${totalTransactions}
+- Growth Rate: ${growthRate}
+- Total Produk: ${productList.length}
+- Produk Terlaris: ${topProduct}
+- Stok Rendah: ${metrics.lowStockProducts.length} produk
+
+YANG PERLU DIANALISIS:
+1. **5 IDE KONTEN MEDIA SOSIAL** yang spesifik untuk bisnis ini (bukan template umum). Setiap ide harus:
+   - Relevan dengan kategori bisnis
+   - Bisa langsung dieksekusi
+   - Menarik untuk target market lokal Indonesia
+   - Format: numbering 1-5 dengan deskripsi singkat
+
+2. **TARGET AUDIENCE** yang tepat untuk bisnis ini, jelaskan:
+   - Demografi (usia, gender, pekerjaan)
+   - Psikografi (kebutuhan, pain points)
+   - Behavior (kapan mereka beli, di mana mereka cari info)
+
+3. **3 WAKTU POSTING TERBAIK** untuk media sosial, berikan:
+   - Hari dan jam spesifik (misal: Senin-Jumat 11:00-13:00)
+   - Alasan mengapa waktu tersebut efektif
+   - Platform yang cocok untuk tiap waktu
+
+4. **3 TRENDING TOPICS** yang relevan dengan bisnis ini:
+   - Topik yang sedang trending di Indonesia
+   - Cara mengaitkan bisnis dengan topik tersebut
+   - Hashtag yang bisa dipakai
+
+5. **3 TIPS CONVERSION** untuk meningkatkan penjualan:
+   - Tips praktis dan actionable
+   - Fokus pada closing sale
+   - Bisa diterapkan langsung tanpa budget besar
+
+PENTING: Format jawaban harus terstruktur dengan jelas, gunakan numbering dan bullet points. Jangan gunakan markdown heading (# ##), cukup gunakan teks bold atau numbering.`;
+
+    // Call AI
+    const completion = await kolosalLlama.chat.completions.create({
+      model: LLAMA_MODEL,
+      messages: [
+        { role: 'system', content: UMKM_EXPERT_PROMPT },
+        { role: 'user', content: analysisPrompt }
+      ],
+      temperature: 0.8,
+      max_tokens: 2000,
+      top_p: 0.95
+    });
+
+    const aiResponse = completion.choices[0].message.content || '';
+
+    // Parse AI response into structured format
+    const analysis = parseAIAnalysis(aiResponse);
+
+    // Add statistics
+    const result = {
+      success: true,
+      data: {
+        contentIdeas: analysis.contentIdeas,
+        targetAudience: analysis.targetAudience,
+        bestPostingTimes: analysis.bestPostingTimes,
+        trendingTopics: analysis.trendingTopics,
+        conversionTips: analysis.conversionTips,
+        statistics: {
+          totalRevenue,
+          growthRate,
+          topProduct,
+          totalProducts: productList.length,
+          totalTransactions,
+          lowStockCount: metrics.lowStockProducts.length
+        },
+        rawAnalysis: aiResponse,
+        generatedAt: new Date().toISOString()
+      }
+    };
+
+    // Save to insights history
+    await supabase.from('umkm_ai_insights').insert({
+      profile_id: profileId,
+      insight_type: 'dashboard_analysis',
+      question: 'Dashboard Content & Statistics Analysis',
+      recommendation: aiResponse,
+      context_data: result.data
+    });
+
+    return result;
+
+  } catch (error: any) {
+    console.error('Dashboard Analysis Error:', error);
+    return {
+      success: false,
+      message: error.message || 'Gagal generate analisis dashboard',
+      error: error.response?.data || error
+    };
+  }
+}
+
+// ============================================
+// PARSE AI ANALYSIS RESPONSE
+// ============================================
+function parseAIAnalysis(text: string): {
+  contentIdeas: string[];
+  targetAudience: string;
+  bestPostingTimes: string[];
+  trendingTopics: string[];
+  conversionTips: string[];
+} {
+  const lines = text.split('\n').filter(line => line.trim());
+  
+  const result = {
+    contentIdeas: [] as string[],
+    targetAudience: '',
+    bestPostingTimes: [] as string[],
+    trendingTopics: [] as string[],
+    conversionTips: [] as string[]
+  };
+
+  let currentSection = '';
+  let captureNext = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const lowerLine = line.toLowerCase();
+
+    // Detect sections
+    if (lowerLine.includes('ide konten') || lowerLine.includes('content idea')) {
+      currentSection = 'contentIdeas';
+      captureNext = true;
+      continue;
+    } else if (lowerLine.includes('target audience') || lowerLine.includes('audiens')) {
+      currentSection = 'targetAudience';
+      captureNext = true;
+      continue;
+    } else if (lowerLine.includes('waktu posting') || lowerLine.includes('posting time')) {
+      currentSection = 'bestPostingTimes';
+      captureNext = true;
+      continue;
+    } else if (lowerLine.includes('trending') || lowerLine.includes('topik populer')) {
+      currentSection = 'trendingTopics';
+      captureNext = true;
+      continue;
+    } else if (lowerLine.includes('conversion') || lowerLine.includes('tips')) {
+      currentSection = 'conversionTips';
+      captureNext = true;
+      continue;
+    }
+
+    // Extract content based on current section
+    if (captureNext && line.length > 10) {
+      const cleaned = line.replace(/^[\d\-\*\.\)\:\s]+/, '').trim();
+      
+      if (cleaned.length > 15) {
+        if (currentSection === 'contentIdeas' && result.contentIdeas.length < 5) {
+          result.contentIdeas.push(cleaned);
+        } else if (currentSection === 'bestPostingTimes' && result.bestPostingTimes.length < 3) {
+          result.bestPostingTimes.push(cleaned);
+        } else if (currentSection === 'trendingTopics' && result.trendingTopics.length < 3) {
+          result.trendingTopics.push(cleaned);
+        } else if (currentSection === 'conversionTips' && result.conversionTips.length < 3) {
+          result.conversionTips.push(cleaned);
+        } else if (currentSection === 'targetAudience' && !result.targetAudience) {
+          result.targetAudience = cleaned;
+        }
+      }
+    }
+  }
+
+  // Fallback values if parsing failed
+  if (result.contentIdeas.length === 0) {
+    result.contentIdeas = [
+      'Posting foto produk dengan customer testimonial',
+      'Behind the scenes proses produksi atau persiapan',
+      'Tips dan trik menggunakan atau memilih produk',
+      'Promo spesial dengan storytelling menarik',
+      'User generated content dari pelanggan setia'
+    ];
+  }
+
+  if (!result.targetAudience) {
+    result.targetAudience = 'Keluarga muda usia 25-40 tahun yang aktif di media sosial, mencari produk berkualitas dengan harga terjangkau, peduli dengan produk lokal.';
+  }
+
+  if (result.bestPostingTimes.length === 0) {
+    result.bestPostingTimes = [
+      'Senin-Jumat: 11:00-13:00 (jam istirahat makan siang, orang browsing sosmed)',
+      'Sabtu-Minggu: 18:00-20:00 (prime time weekend, audience lebih santai)',
+      'Kamis-Jumat: 16:00-17:00 (menjelang weekend, mood positif untuk belanja)'
+    ];
+  }
+
+  if (result.trendingTopics.length === 0) {
+    result.trendingTopics = [
+      'Produk lokal berkualitas dan mendukung UMKM Indonesia',
+      'Sustainable dan ramah lingkungan',
+      'Behind the brand story dan perjalanan bisnis'
+    ];
+  }
+
+  if (result.conversionTips.length === 0) {
+    result.conversionTips = [
+      'Gunakan call-to-action yang jelas dan mendesak (misal: "DM sekarang, stok terbatas!")',
+      'Tambahkan urgency dengan limited time offer atau limited stock',
+      'Showcase social proof dengan repost testimoni pelanggan'
+    ];
+  }
+
+  return result;
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 export default {
   getAIRecommendation,
   calculateBusinessMetrics,
   getPastInsights,
+  generateDashboardAnalysis,
   QUICK_INSIGHTS
 };

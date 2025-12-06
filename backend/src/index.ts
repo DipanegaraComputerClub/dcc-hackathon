@@ -1509,4 +1509,82 @@ app.get('/api/dapur-umkm/insights-history', async (c) => {
   }
 })
 
+// ============================================
+// DASHBOARD ANALYTICS
+// ============================================
+
+// Generate comprehensive dashboard analysis with AI
+app.post('/api/dapur-umkm/dashboard-analysis', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { profile_id } = body
+
+    if (!profile_id) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    const { generateDashboardAnalysis } = await import('./dapur-umkm')
+    const result = await generateDashboardAnalysis(profile_id)
+
+    return c.json(result)
+
+  } catch (error: any) {
+    console.error('Error generating dashboard analysis:', error)
+    return c.json({ 
+      success: false,
+      message: error.message || 'Gagal generate analisis dashboard',
+      error: error.toString()
+    }, 500)
+  }
+})
+
+// Get dashboard overview (all data in one call)
+app.get('/api/dapur-umkm/dashboard-overview', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    // Fetch all data in parallel
+    const [profile, products, transactions, insights, summary] = await Promise.all([
+      supabase.from('umkm_profiles').select('*').eq('id', profileId).single(),
+      supabase.from('umkm_products').select('*').eq('profile_id', profileId),
+      supabase.from('umkm_transactions').select('*').eq('profile_id', profileId).order('transaction_date', { ascending: false }).limit(50),
+      supabase.from('umkm_ai_insights').select('*').eq('profile_id', profileId).order('created_at', { ascending: false }).limit(10),
+      supabase.from('umkm_financial_summary').select('*').eq('profile_id', profileId).single()
+    ])
+
+    // Calculate metrics
+    const { calculateBusinessMetrics } = await import('./dapur-umkm')
+    const metrics = await calculateBusinessMetrics(profileId)
+
+    return c.json({
+      success: true,
+      data: {
+        profile: profile.data,
+        products: products.data || [],
+        transactions: transactions.data || [],
+        insights: insights.data || [],
+        summary: summary.data,
+        metrics
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching dashboard overview:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
 export default app
