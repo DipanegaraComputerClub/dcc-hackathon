@@ -1671,4 +1671,141 @@ app.get('/api/dapur-umkm/report', async (c) => {
   }
 })
 
+// ============================================
+// TELEGRAM BOT - EVALUATIONS
+// ============================================
+
+// Get all evaluations for a profile
+app.get('/api/evaluations', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+    const status = c.req.query('status') // unread, read, archived
+
+    let query = supabase
+      .from('umkm_evaluations')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data: data || []
+    })
+  } catch (error: any) {
+    console.error('Error fetching evaluations:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// Mark evaluation as read
+app.put('/api/evaluations/:id/read', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    const { data, error } = await supabase
+      .from('umkm_evaluations')
+      .update({ 
+        status: 'read',
+        read_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+  } catch (error: any) {
+    console.error('Error marking evaluation as read:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// Add admin notes to evaluation
+app.put('/api/evaluations/:id/notes', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const { notes } = body
+
+    const { data, error } = await supabase
+      .from('umkm_evaluations')
+      .update({ admin_notes: notes })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+  } catch (error: any) {
+    console.error('Error adding notes:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// Delete evaluation
+app.delete('/api/evaluations/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    const { error } = await supabase
+      .from('umkm_evaluations')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      message: 'Evaluation deleted successfully'
+    })
+  } catch (error: any) {
+    console.error('Error deleting evaluation:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// ============================================
+// INITIALIZE TELEGRAM BOT
+// ============================================
+import { initTelegramBot } from './telegram-bot'
+
+// Start Telegram Bot
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  console.log('🤖 Initializing Telegram Bot...')
+  initTelegramBot()
+} else {
+  console.warn('⚠️ TELEGRAM_BOT_TOKEN not set. Bot features disabled.')
+}
+
 export default app

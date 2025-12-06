@@ -10,6 +10,7 @@ import {
   Bot,
   Menu,
   Settings,
+  MessageCircle,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const menuItems = [
   { icon: PenTool, label: "Studio Kata AI", href: "/content-studio" },
   { icon: ImageIcon, label: "Studio Visual", href: "/visual-studio" },
   { icon: Store, label: "Dapur UMKM", href: "/management" },
+  { icon: MessageCircle, label: "Evaluasi", href: "/evaluations" },
   { icon: Bot, label: "Tanya Daeng", href: "/chatbot" },
   { icon: Settings, label: "Pengaturan", href: "/settings" },
 ];
