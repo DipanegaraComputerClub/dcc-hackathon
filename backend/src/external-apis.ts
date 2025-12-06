@@ -135,127 +135,29 @@ export async function generateTemplateWithHuggingFace(
   style: string = 'instagram-feed'
 ): Promise<TemplateGenerationResult> {
   try {
-    console.log('🎨 Generating template with Hugging Face Stable Diffusion...')
-
-    if (!HUGGINGFACE_API_KEY) {
-      console.warn('⚠️ Hugging Face API key not configured - using fallback')
-      return generateFallbackTemplate(prompt, style)
-    }
-
-    // Enhanced prompt untuk UMKM branding
-    const brandingPrompts = {
-      'instagram-feed': 'square 1:1 instagram post, modern clean design, vibrant colors, professional product photography',
-      'story': 'vertical 9:16 instagram story, eye-catching design, bold colors, mobile-optimized layout',
-      'promo': 'promotional banner, sale design, attention-grabbing, bold typography, dynamic composition',
-      'feed': 'social media feed post, aesthetic layout, minimal design, instagram-worthy',
-      'reels': 'vertical video thumbnail, dynamic composition, vibrant colors, engaging visual'
-    }
-
-    const stylePrompt = brandingPrompts[style as keyof typeof brandingPrompts] || brandingPrompts['instagram-feed']
+    const { generateWithHuggingFace } = await import('./services/huggingface.client')
+    const { generateWithStabilityAI } = await import('./services/stability.client')
     
-    const enhancedPrompt = `Professional UMKM branding ${stylePrompt}: ${prompt}. 
-    High quality commercial photography, clean background, vibrant appetizing colors, 
-    product-focused composition, professional lighting, marketing material, 
-    instagram-worthy aesthetic, no text overlay, space for text, modern minimalist design`
-
-    const models = [
-      { name: 'black-forest-labs/FLUX.1-schnell', steps: 4, cfg: 0 },
-      { name: 'black-forest-labs/FLUX.1-dev', steps: 25, cfg: 7 },
-      { name: 'ByteDance/SDXL-Lightning', steps: 8, cfg: 1 }
-    ]
+    const result = await generateWithHuggingFace(prompt)
     
-    let response: any = null
-    
-    for (const model of models) {
-      try {
-        response = await axios.post(
-          `https://api-inference.huggingface.co/models/${model.name}`,
-          {
-            inputs: enhancedPrompt,
-            parameters: {
-              num_inference_steps: model.steps,
-              guidance_scale: model.cfg
-            }
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            responseType: 'arraybuffer',
-            timeout: 120000
-          }
-        )
-        console.log(`✅ Generated with ${model.name}`)
-        break
-      } catch (err: any) {
-        const status = err.response?.status
-        if (status === 410) console.log(`⚠️ ${model.name} deprecated, trying next`)
-        else if (status === 503) console.log(`⏳ ${model.name} loading, trying next`)
-        else console.log(`❌ ${model.name} failed: ${status || err.message}`)
-        continue
-      }
+    if (result.success) {
+      return { success: true, imageBase64: result.imageBase64 }
     }
     
-    if (!response) throw new Error('All HF models unavailable')
-
-    console.log('✅ Template generated successfully with Hugging Face')
-
-    // Convert to base64
-    const imageBase64 = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`
-
-    return {
-      success: true,
-      imageBase64
-    }
-
-  } catch (error: any) {
-    console.error('❌ Hugging Face API Error:', error.message)
-    
-    // Fallback to Stability AI if available
     if (STABILITY_API_KEY) {
-      console.log('🔄 Trying fallback to Stability AI...')
-      return generateWithStabilityAI(prompt, style)
-    }
-    
-    return {
-      success: false,
-      error: error.response?.data?.error || error.message
-    }
-  }
-}
-
-// Fallback: Stability AI (25 free generations/month)
-async function generateWithStabilityAI(
-  prompt: string,
-  style: string
-): Promise<TemplateGenerationResult> {
-  try {
-    const response = await axios.post(
-      'https://api.stability.ai/v2beta/stable-image/generate/core',
-      { prompt: `Professional UMKM ${style}: ${prompt}. Clean, vibrant, commercial` },
-      {
-        headers: {
-          'Authorization': `Bearer ${STABILITY_API_KEY}`,
-          'Accept': 'image/png',
-          'Content-Type': 'application/json'
-        },
-        responseType: 'arraybuffer',
-        timeout: 60000
+      const stabilityResult = await generateWithStabilityAI(prompt)
+      if (stabilityResult.success) {
+        return { success: true, imageBase64: stabilityResult.imageBase64 }
       }
-    )
-
-    const imageBase64 = `data:image/png;base64,${Buffer.from(response.data).toString('base64')}`
-    console.log('✅ Stability AI success')
+    }
     
-    return { success: true, imageBase64 }
+    return { success: false, error: 'All AI models failed' }
   } catch (error: any) {
-    const status = error.response?.status
-    if (status === 401) console.log('❌ Stability AI: Invalid API key')
-    else console.log(`❌ Stability AI: ${status || error.message}`)
     return { success: false, error: error.message }
   }
 }
+
+
 
 // Final fallback: Creative UMKM-focused templates
 export function generateFallbackTemplate(

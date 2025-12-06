@@ -251,7 +251,17 @@ export async function generateUMKMBranding(
     // STEP 3: Generate design template with AI
     console.log('🎨 Step 3: Generating branded design template...')
     
-    const prompt = buildUMKMBrandingPrompt(request, processedImage ? true : false)
+    const { buildUMKMPrompt } = await import('./services/templatePrompt')
+    const prompt = buildUMKMPrompt(
+      request.productName,
+      request.businessType,
+      request.theme,
+      request.brandColor,
+      request.targetMarket,
+      request.format,
+      request.additionalInfo
+    )
+    
     const templateResult = await generateTemplateWithHuggingFace(prompt, request.format)
     
     let finalDesign: string
