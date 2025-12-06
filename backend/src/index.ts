@@ -1587,4 +1587,87 @@ app.get('/api/dapur-umkm/dashboard-overview', async (c) => {
   }
 })
 
+// ============================================
+// MONTHLY REPORT
+// ============================================
+
+// Get monthly transaction report
+app.get('/api/dapur-umkm/report', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+    const month = parseInt(c.req.query('month') || '0')
+    const year = parseInt(c.req.query('year') || new Date().getFullYear().toString())
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    if (month < 1 || month > 12) {
+      return c.json({ 
+        success: false,
+        message: 'month harus antara 1-12' 
+      }, 400)
+    }
+
+    // Calculate date range
+    const startDate = new Date(year, month - 1, 1)
+    const endDate = new Date(year, month, 0, 23, 59, 59)
+
+    console.log('Fetching report for:', { profileId, startDate, endDate })
+
+    // Get transactions for the month
+    const { data: transactions, error } = await supabase
+      .from('umkm_transactions')
+      .select('*')
+      .eq('profile_id', profileId)
+      .gte('transaction_date', startDate.toISOString())
+      .lte('transaction_date', endDate.toISOString())
+      .order('transaction_date', { ascending: false })
+
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
+
+    // Calculate summary
+    const totalIncome = transactions
+      ?.filter(t => t.type === 'in')
+      .reduce((sum, t) => sum + Number(t.amount), 0) || 0
+
+    const totalExpense = transactions
+      ?.filter(t => t.type === 'out')
+      .reduce((sum, t) => sum + Number(t.amount), 0) || 0
+
+    const balance = totalIncome - totalExpense
+
+    const monthNames = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ]
+
+    return c.json({
+      success: true,
+      data: {
+        month: monthNames[month - 1],
+        year,
+        totalIncome,
+        totalExpense,
+        balance,
+        transactionCount: transactions?.length || 0,
+        transactions: transactions || []
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching monthly report:', error)
+    return c.json({ 
+      success: false,
+      message: error.message || 'Gagal mengambil laporan bulanan'
+    }, 500)
+  }
+})
+
 export default app

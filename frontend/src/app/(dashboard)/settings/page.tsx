@@ -226,15 +226,7 @@ export default function SettingsPage() {
               Kelola profil bisnis - perubahan akan langsung terlihat di landing page.
             </p>
           </div>
-          <a 
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Lihat Landing Page
-          </a>
+
         </div>
 
         {/* SINGLE COLUMN LAYOUT */}
