@@ -77,16 +77,30 @@ export default function AnalyticsPage() {
     try {
       setIsLoading(true);
       
-      const res = await fetch(
-        `${API_URL}/api/dapur-umkm/report?profile_id=${profile.id}&month=${selectedMonth + 1}&year=${selectedYear}`
-      );
+      const url = `${API_URL}/api/dapur-umkm/report?profile_id=${profile.id}&month=${selectedMonth + 1}&year=${selectedYear}`;
+      console.log('Fetching report from:', url);
+      
+      const res = await fetch(url);
       const data = await res.json();
       
+      console.log('Report response:', data);
+      
       if (data.success) {
+        console.log('Report data:', {
+          totalIncome: data.data.totalIncome,
+          totalExpense: data.data.totalExpense,
+          balance: data.data.balance,
+          transactionCount: data.data.transactionCount,
+          transactions: data.data.transactions?.length
+        });
         setReport(data.data);
+      } else {
+        console.error('Report failed:', data.message);
+        alert('Gagal load report: ' + data.message);
       }
     } catch (error) {
       console.error('Error loading report:', error);
+      alert('Error loading report: ' + error);
     } finally {
       setIsLoading(false);
     }
@@ -99,21 +113,26 @@ export default function AnalyticsPage() {
   };
 
   const exportToCSV = () => {
-    if (!report || !report.transactions.length) return;
+    if (!report || !report.transactions.length) {
+      alert('Tidak ada data transaksi untuk di-export');
+      return;
+    }
 
     const headers = ['Tanggal', 'Deskripsi', 'Kategori', 'Tipe', 'Jumlah'];
     const csvContent = [
       headers.join(','),
       ...report.transactions.map(t => [
         new Date(t.transaction_date).toLocaleDateString('id-ID'),
-        `"${t.description}"`,
-        t.category || '-',
+        `"${t.description.replace(/"/g, '""')}"`, // Escape quotes
+        `"${t.category || '-'}"`,
         t.type === 'in' ? 'Pemasukan' : 'Pengeluaran',
-        t.amount
+        Number(t.amount)
       ].join(','))
     ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Add BOM for proper UTF-8 encoding in Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
@@ -153,7 +172,7 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-1">
+      <div id="print-area" className="space-y-6 p-1">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
@@ -287,18 +306,18 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-4 print:mb-6">
               {/* Total Pemasukan */}
-              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
-                <CardContent className="pt-6">
+              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 print:border print:border-gray-300">
+                <CardContent className="pt-6 print:py-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Pemasukan</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        Rp {report.totalIncome.toLocaleString('id-ID')}
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 print:text-gray-700">Total Pemasukan</p>
+                      <p className="text-2xl font-bold text-green-600 print:text-lg">
+                        Rp {Number(report.totalIncome).toLocaleString('id-ID')}
                       </p>
                     </div>
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full print:hidden">
                       <ArrowUpRight className="h-6 w-6 text-green-600" />
                     </div>
                   </div>
@@ -306,16 +325,16 @@ export default function AnalyticsPage() {
               </Card>
 
               {/* Total Pengeluaran */}
-              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
-                <CardContent className="pt-6">
+              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 print:border print:border-gray-300">
+                <CardContent className="pt-6 print:py-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Pengeluaran</p>
-                      <p className="text-2xl font-bold text-red-600">
-                        Rp {report.totalExpense.toLocaleString('id-ID')}
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 print:text-gray-700">Total Pengeluaran</p>
+                      <p className="text-2xl font-bold text-red-600 print:text-lg">
+                        Rp {Number(report.totalExpense).toLocaleString('id-ID')}
                       </p>
                     </div>
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-full">
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-full print:hidden">
                       <ArrowDownRight className="h-6 w-6 text-red-600" />
                     </div>
                   </div>
@@ -323,16 +342,16 @@ export default function AnalyticsPage() {
               </Card>
 
               {/* Saldo */}
-              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
-                <CardContent className="pt-6">
+              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 print:border print:border-gray-300">
+                <CardContent className="pt-6 print:py-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Saldo</p>
-                      <p className={`text-2xl font-bold ${report.balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                        Rp {report.balance.toLocaleString('id-ID')}
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 print:text-gray-700">Saldo</p>
+                      <p className={`text-2xl font-bold print:text-lg ${report.balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                        Rp {Number(report.balance).toLocaleString('id-ID')}
                       </p>
                     </div>
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full print:hidden">
                       <DollarSign className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
@@ -340,16 +359,16 @@ export default function AnalyticsPage() {
               </Card>
 
               {/* Total Transaksi */}
-              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
-                <CardContent className="pt-6">
+              <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 print:border print:border-gray-300">
+                <CardContent className="pt-6 print:py-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transaksi</p>
-                      <p className="text-2xl font-bold text-purple-600">
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 print:text-gray-700">Total Transaksi</p>
+                      <p className="text-2xl font-bold text-purple-600 print:text-lg">
                         {report.transactionCount}
                       </p>
                     </div>
-                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-full">
+                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-full print:hidden">
                       <ShoppingCart className="h-6 w-6 text-purple-600" />
                     </div>
                   </div>
@@ -426,14 +445,14 @@ export default function AnalyticsPage() {
                         ))}
                       </tbody>
                       <tfoot className="bg-gray-50 dark:bg-gray-800 font-bold">
-                        <tr>
+                        <tr className="border-t-2 border-gray-300">
                           <td colSpan={4} className="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100">
                             TOTAL SALDO:
                           </td>
-                          <td className={`px-4 py-3 text-right text-sm ${
-                            report.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                          <td className={`px-4 py-3 text-right text-sm font-bold ${
+                            Number(report.balance) >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            Rp {report.balance.toLocaleString('id-ID')}
+                            Rp {Number(report.balance).toLocaleString('id-ID')}
                           </td>
                         </tr>
                       </tfoot>
@@ -472,17 +491,159 @@ export default function AnalyticsPage() {
       {/* Print Styles */}
       <style jsx global>{`
         @media print {
+          /* Hide everything by default */
           body * {
             visibility: hidden;
           }
-          .print\\:block, .print\\:block * {
+          
+          /* Show print content */
+          #print-area,
+          #print-area * {
             visibility: visible;
           }
+          
+          /* Position print area */
+          #print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+          }
+          
+          /* Hide non-print elements */
           .print\\:hidden {
             display: none !important;
           }
+          
+          /* Show print-only elements */
+          .print\\:block {
+            display: block !important;
+          }
+          
+          .hidden {
+            display: block !important;
+          }
+          
+          .print\\:mb-6 {
+            margin-bottom: 1.5rem !important;
+          }
+          
+          /* Page settings */
           @page {
             margin: 1.5cm;
+            size: A4;
+          }
+          
+          /* Remove backgrounds */
+          .bg-white,
+          .dark\\:bg-gray-900,
+          .bg-gray-50,
+          .dark\\:bg-gray-800 {
+            background: white !important;
+          }
+          
+          /* Card styling */
+          .shadow-sm,
+          .border {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+          }
+          
+          /* Table styling for print */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: auto;
+          }
+          
+          table th,
+          table td {
+            border: 1px solid #666 !important;
+            padding: 8px !important;
+            font-size: 11px !important;
+          }
+          
+          table thead {
+            background-color: #f3f4f6 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          
+          table tfoot {
+            background-color: #f9fafb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            font-weight: bold;
+          }
+          
+          /* Color adjustments for print */
+          .text-green-600,
+          .text-green-800 {
+            color: #059669 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .text-red-600,
+          .text-red-800 {
+            color: #dc2626 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .text-blue-600 {
+            color: #2563eb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .text-purple-600 {
+            color: #9333ea !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          /* Badge colors */
+          .bg-green-100 {
+            background-color: #d1fae5 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .bg-red-100 {
+            background-color: #fee2e2 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          /* Ensure text is black on print */
+          .text-gray-900,
+          .dark\\:text-gray-100 {
+            color: #111827 !important;
+          }
+          
+          .text-gray-500,
+          .text-gray-600,
+          .dark\\:text-gray-400 {
+            color: #6b7280 !important;
+          }
+          
+          /* Summary cards grid */
+          .grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 1rem !important;
+          }
+          
+          /* Prevent page breaks in summary cards */
+          .grid > * {
+            page-break-inside: avoid;
           }
         }
       `}</style>
