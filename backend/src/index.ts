@@ -1144,12 +1144,13 @@ app.get('/api/dapur-umkm/public/profile', async (c) => {
     // Get the first/active profile (you can add logic for active status later)
     const { data, error } = await supabase
       .from('umkm_profiles')
-      .select('id, business_name, category, address, phone, email, logo_url, description')
+      .select('id, business_name, category, address, logo_url, description')
       .limit(1)
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
 
+    // Only return public-safe fields (no phone, no email for privacy)
     return c.json({
       success: true,
       data: data || null
