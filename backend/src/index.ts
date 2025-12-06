@@ -1049,6 +1049,121 @@ app.post('/api/dapur-umkm/profile', async (c) => {
   }
 })
 
+// Upload logo
+app.post('/api/dapur-umkm/upload-logo', async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const file = formData.get('logo') as File
+    const profileId = formData.get('profile_id') as string
+
+    if (!file) {
+      return c.json({ 
+        success: false,
+        message: 'File logo wajib diupload' 
+      }, 400)
+    }
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'Profile ID diperlukan' 
+      }, 400)
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      return c.json({ 
+        success: false,
+        message: 'Format file harus JPEG, PNG, WebP, atau GIF' 
+      }, 400)
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return c.json({ 
+        success: false,
+        message: 'Ukuran file maksimal 5MB' 
+      }, 400)
+    }
+
+    // Generate unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${profileId}-${Date.now()}.${fileExt}`
+    const filePath = `logos/${fileName}`
+
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('umkm-logos')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: true
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('umkm-logos')
+      .getPublicUrl(filePath)
+
+    // Update profile with new logo URL
+    const { data: profile, error: updateError } = await supabase
+      .from('umkm_profiles')
+      .update({ logo_url: publicUrl })
+      .eq('id', profileId)
+      .select()
+      .single()
+
+    if (updateError) throw updateError
+
+    return c.json({
+      success: true,
+      data: {
+        logo_url: publicUrl,
+        profile
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error uploading logo:', error)
+    return c.json({ 
+      success: false,
+      message: error.message || 'Gagal upload logo'
+    }, 500)
+  }
+})
+
+// Get public profile (for landing page)
+app.get('/api/dapur-umkm/public/profile', async (c) => {
+  try {
+    // Get the first/active profile (you can add logic for active status later)
+    const { data, error } = await supabase
+      .from('umkm_profiles')
+      .select('id, business_name, category, address, phone, email, logo_url, description')
+      .limit(1)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+
+    return c.json({
+      success: true,
+      data: data || null
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching public profile:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
 // === PRODUCTS ===
 // Get all products
 app.get('/api/dapur-umkm/products', async (c) => {

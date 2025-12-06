@@ -25,7 +25,7 @@ const kolosalLlama = new OpenAI({
   baseURL: 'https://api.kolosal.ai/v1'
 });
 
-const LLAMA_MODEL = 'llama-3.3-70b-instruct';
+const LLAMA_MODEL = 'Llama 4 Maverick';
 
 // ============================================
 // SYSTEM PROMPT untuk UMKM Expert

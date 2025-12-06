@@ -57,6 +57,7 @@ export default function ManagementPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
   const [isAILoading, setIsAILoading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   // --- STATE DATA (Dynamic dari Supabase) ---
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -64,6 +65,7 @@ export default function ManagementPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [quickInsights, setQuickInsights] = useState<QuickInsight[]>([]);
   const [aiRecommendation, setAiRecommendation] = useState<string>("");
+  const [logoPreview, setLogoPreview] = useState<string>("");
 
   // --- STATE MODAL (Pop-up) ---
   const [showProductModal, setShowProductModal] = useState(false);
@@ -101,6 +103,7 @@ export default function ManagementPage() {
         email: profile.email || "",
         description: profile.description || ""
       });
+      setLogoPreview(profile.logo_url || "");
     }
   }, [profile]);
 
@@ -255,6 +258,57 @@ export default function ManagementPage() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return alert('Format file harus JPEG, PNG, WebP, atau GIF');
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return alert('Ukuran file maksimal 5MB');
+    }
+
+    try {
+      setIsUploadingLogo(true);
+
+      // Preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('profile_id', profile.id);
+
+      const res = await fetch(`${API_URL}/api/dapur-umkm/upload-logo`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setProfile(data.data.profile);
+        alert('Logo berhasil diupload! ✅');
+      } else {
+        alert('Gagal upload logo: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Terjadi kesalahan saat upload logo');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   const handleAddTransaction = async () => {
     if (!newTx.description || !newTx.amount) return alert("Isi keterangan dan jumlah uangnya!");
 
@@ -366,16 +420,39 @@ export default function ManagementPage() {
             <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2">
                <Card className="md:col-span-1 bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800">
                   <CardHeader>
-                    <CardTitle>Logo</CardTitle>
+                    <CardTitle>Logo Usaha</CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center">
-                     <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-red-50 dark:border-red-900/20 mb-4 group cursor-pointer">
-                        <img src="https://placehold.co/150x150/red/white?text=Logo" alt="Logo" className="object-cover w-full h-full" />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Edit className="text-white h-6 w-6" />
-                        </div>
-                     </div>
-                     <p className="text-sm text-gray-500 text-center">Klik logo untuk ganti.</p>
+                     <input 
+                        type="file" 
+                        id="logo-upload" 
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                     />
+                     <label 
+                        htmlFor="logo-upload"
+                        className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-red-50 dark:border-red-900/20 mb-4 group cursor-pointer"
+                     >
+                        {isUploadingLogo ? (
+                          <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+                          </div>
+                        ) : (
+                          <>
+                            <img 
+                              src={logoPreview || "https://placehold.co/150x150/red/white?text=Logo"} 
+                              alt="Logo" 
+                              className="object-cover w-full h-full" 
+                            />
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Edit className="text-white h-6 w-6" />
+                            </div>
+                          </>
+                        )}
+                     </label>
+                     <p className="text-sm text-gray-500 text-center">Klik logo untuk ganti</p>
+                     <p className="text-xs text-gray-400 text-center mt-1">Max 5MB (JPG, PNG, WebP, GIF)</p>
                   </CardContent>
                </Card>
 

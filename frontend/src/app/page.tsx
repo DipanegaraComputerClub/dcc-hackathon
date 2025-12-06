@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +16,22 @@ import {
   CheckCircle2
 } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export default function Home() {
+  const [umkmProfile, setUmkmProfile] = useState<any>(null);
+
+  useEffect(() => {
+    // Load UMKM profile for dynamic branding
+    fetch(`${API_URL}/api/dapur-umkm/public/profile`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setUmkmProfile(data.data);
+        }
+      })
+      .catch(err => console.error('Error loading UMKM profile:', err));
+  }, []);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#020617] relative overflow-hidden selection:bg-red-500 selection:text-white">
       
@@ -64,10 +82,20 @@ export default function Home() {
       {/* === NAVBAR === */}
       <nav className="relative z-10 w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto animate-in fade-in slide-in-from-top-4 duration-1000">
         <div className="flex items-center gap-2 font-bold text-xl text-gray-900 dark:text-white group cursor-pointer">
-            <div className="bg-gradient-to-br from-red-600 to-red-800 p-2 rounded-lg text-white shadow-lg shadow-red-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
+            {umkmProfile?.logo_url ? (
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden shadow-lg shadow-red-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
+                <img 
+                  src={umkmProfile.logo_url} 
+                  alt={umkmProfile.business_name || "Logo"} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-red-600 to-red-800 p-2 rounded-lg text-white shadow-lg shadow-red-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
                 <Store className="h-5 w-5" />
-            </div>
-            <span className="tracking-tight">TABE AI</span>
+              </div>
+            )}
+            <span className="tracking-tight">{umkmProfile?.business_name || "TABE AI"}</span>
         </div>
         <div className="flex gap-3 md:gap-4">
             <Link href="/login">
@@ -121,6 +149,34 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+
+          {/* UMKM Profile Info (if available) */}
+          {umkmProfile && (
+            <div className="mt-12 p-6 bg-gradient-to-br from-white/80 to-red-50/50 dark:from-gray-900/80 dark:to-red-950/50 backdrop-blur-lg rounded-2xl border border-red-200 dark:border-red-900 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-700">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                {umkmProfile.logo_url && (
+                  <div className="w-16 h-16 rounded-full overflow-hidden shadow-lg border-2 border-red-200 dark:border-red-800">
+                    <img 
+                      src={umkmProfile.logo_url} 
+                      alt={umkmProfile.business_name} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="text-left">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{umkmProfile.business_name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{umkmProfile.category}</p>
+                </div>
+              </div>
+              {umkmProfile.description && (
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{umkmProfile.description}</p>
+              )}
+              {umkmProfile.address && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">📍 {umkmProfile.address}</p>
+              )}
+            </div>
+          )}
+        </div>
         </div>
       </div>
 
