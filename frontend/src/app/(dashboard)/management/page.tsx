@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,55 +8,160 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Store, ShoppingBag, Wallet, Plus, Edit, Trash2, 
-  TrendingUp, TrendingDown, Save, X 
+  TrendingUp, TrendingDown, Save, X, Sparkles, Lightbulb, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 // --- TIPE DATA ---
 type Product = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   stock: number;
-  image: string;
+  image_url: string;
+  category?: string;
+  cost_price?: number;
 };
 
 type Transaction = {
-  id: number;
-  date: string;
-  desc: string;
+  id: string;
+  transaction_date: string;
+  description: string;
   amount: number;
   type: "in" | "out";
+  category?: string;
+};
+
+type Profile = {
+  id: string;
+  business_name: string;
+  category: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  logo_url?: string;
+  description?: string;
+};
+
+type QuickInsight = {
+  id: string;
+  title: string;
+  question: string;
+  type: string;
+  icon: string;
 };
 
 export default function ManagementPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAILoading, setIsAILoading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
-  // --- STATE DATA (Agar Bisa Ditambah) ---
-  const [products, setProducts] = useState<Product[]>([
-    { id: 1, name: "Coto Makassar Daging", price: 25000, stock: 20, image: "https://placehold.co/100x100/orange/white?text=Coto" },
-    { id: 2, name: "Pallubasa Serigala", price: 28000, stock: 15, image: "https://placehold.co/100x100/brown/white?text=Pallu" },
-    { id: 3, name: "Es Pisang Ijo", price: 15000, stock: 50, image: "https://placehold.co/100x100/green/white?text=Pisang" },
-  ]);
-
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, date: "2025-12-04", desc: "Penjualan Coto (5 Porsi)", amount: 125000, type: "in" },
-    { id: 2, date: "2025-12-04", desc: "Beli Daging Sapi 2kg", amount: 240000, type: "out" },
-    { id: 3, date: "2025-12-03", desc: "Penjualan Pisang Ijo", amount: 75000, type: "in" },
-  ]);
+  // --- STATE DATA (Dynamic dari Supabase) ---
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [quickInsights, setQuickInsights] = useState<QuickInsight[]>([]);
+  const [aiRecommendation, setAiRecommendation] = useState<string>("");
+  const [logoPreview, setLogoPreview] = useState<string>("");
 
   // --- STATE MODAL (Pop-up) ---
   const [showProductModal, setShowProductModal] = useState(false);
   const [showFinanceModal, setShowFinanceModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
 
   // --- STATE FORM INPUT BARU ---
-  const [newProduct, setNewProduct] = useState({ name: "", price: "", stock: "" });
-  const [newTx, setNewTx] = useState({ desc: "", amount: "", type: "in", date: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", price: "", stock: "", category: "" });
+  const [newTx, setNewTx] = useState({ description: "", amount: "", type: "in", transaction_date: "", category: "" });
+  const [profileForm, setProfileForm] = useState({
+    business_name: "",
+    category: "Kuliner / Makanan",
+    address: "",
+    phone: "",
+    email: "",
+    description: ""
+  });
+
+  // --- LOAD DATA ON MOUNT ---
+  useEffect(() => {
+    loadProfile();
+    loadProducts();
+    loadTransactions();
+    loadQuickInsights();
+  }, []);
+
+  // Update profile form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        business_name: profile.business_name,
+        category: profile.category,
+        address: profile.address || "",
+        phone: profile.phone || "",
+        email: profile.email || "",
+        description: profile.description || ""
+      });
+      setLogoPreview(profile.logo_url || "");
+    }
+  }, [profile]);
+
+  // --- API CALLS ---
+  const loadProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setProfile(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_URL}/api/dapur-umkm/products`);
+      const data = await res.json();
+      if (data.success) {
+        setProducts(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadTransactions = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/dapur-umkm/transactions`);
+      const data = await res.json();
+      if (data.success) {
+        setTransactions(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    }
+  };
+
+  const loadQuickInsights = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/dapur-umkm/quick-insights`);
+      const data = await res.json();
+      if (data.success) {
+        setQuickInsights(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading quick insights:', error);
+    }
+  };
 
   // --- LOGIKA HITUNG DUIT OTOMATIS ---
-  const totalIncome = transactions.filter(t => t.type === 'in').reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === 'out').reduce((acc, curr) => acc + curr.amount, 0);
+  const totalIncome = transactions.filter(t => t.type === 'in').reduce((acc, curr) => acc + parseFloat(String(curr.amount)), 0);
+  const totalExpense = transactions.filter(t => t.type === 'out').reduce((acc, curr) => acc + parseFloat(String(curr.amount)), 0);
   const balance = totalIncome - totalExpense;
 
   // Format Rupiah
@@ -65,42 +170,213 @@ export default function ManagementPage() {
   };
 
   // --- HANDLER FUNGSI ---
-  const handleAddProduct = () => {
-    if (!newProduct.name || !newProduct.price) return alert("Isi nama dan harga dulu, Daeng!");
-    
-    const product: Product = {
-      id: Date.now(),
-      name: newProduct.name,
-      price: Number(newProduct.price),
-      stock: Number(newProduct.stock) || 0,
-      image: "https://placehold.co/100x100/red/white?text=Baru"
-    };
+  const handleSaveProfile = async () => {
+    if (!profileForm.business_name || !profileForm.category) {
+      return alert("Nama usaha dan kategori wajib diisi!");
+    }
 
-    setProducts([product, ...products]); // Tambah ke atas
-    setShowProductModal(false); // Tutup modal
-    setNewProduct({ name: "", price: "", stock: "" }); // Reset form
-  };
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: profile?.id,
+          ...profileForm
+        })
+      });
 
-  const handleDeleteProduct = (id: number) => {
-    if(confirm("Yakin mau hapus menu ini?")) {
-        setProducts(products.filter(p => p.id !== id));
+      const data = await res.json();
+      
+      if (data.success) {
+        setProfile(data.data);
+        alert("Profil berhasil disimpan! ✅");
+      } else {
+        alert("Gagal menyimpan profil: " + data.message);
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert("Terjadi kesalahan saat menyimpan profil");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleAddTransaction = () => {
-    if (!newTx.desc || !newTx.amount) return alert("Isi keterangan dan jumlah uangnya!");
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.price) return alert("Isi nama dan harga dulu, Daeng!");
+    
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_URL}/api/dapur-umkm/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_id: profile?.id,
+          name: newProduct.name,
+          price: Number(newProduct.price),
+          stock: Number(newProduct.stock) || 0,
+          category: newProduct.category || 'Lainnya',
+          image_url: "https://placehold.co/100x100/red/white?text=Baru"
+        })
+      });
 
-    const tx: Transaction = {
-      id: Date.now(),
-      date: newTx.date || new Date().toISOString().split('T')[0],
-      desc: newTx.desc,
-      amount: Number(newTx.amount),
-      type: newTx.type as "in" | "out"
-    };
+      const data = await res.json();
+      
+      if (data.success) {
+        setProducts([data.data, ...products]);
+        setShowProductModal(false);
+        setNewProduct({ name: "", price: "", stock: "", category: "" });
+      } else {
+        alert("Gagal menambah produk: " + data.message);
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      alert("Terjadi kesalahan saat menambah produk");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    setTransactions([tx, ...transactions]);
-    setShowFinanceModal(false);
-    setNewTx({ desc: "", amount: "", type: "in", date: "" });
+  const handleDeleteProduct = async (id: string) => {
+    if(!confirm("Yakin mau hapus menu ini?")) return;
+    
+    try {
+      const res = await fetch(`${API_URL}/api/dapur-umkm/products/${id}`, {
+        method: 'DELETE'
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setProducts(products.filter(p => p.id !== id));
+      } else {
+        alert("Gagal menghapus produk: " + data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert("Terjadi kesalahan saat menghapus produk");
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return alert('Format file harus JPEG, PNG, WebP, atau GIF');
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return alert('Ukuran file maksimal 5MB');
+    }
+
+    try {
+      setIsUploadingLogo(true);
+
+      // Preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('profile_id', profile.id);
+
+      const res = await fetch(`${API_URL}/api/dapur-umkm/upload-logo`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setProfile(data.data.profile);
+        alert('Logo berhasil diupload! ✅');
+      } else {
+        alert('Gagal upload logo: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Terjadi kesalahan saat upload logo');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleAddTransaction = async () => {
+    if (!newTx.description || !newTx.amount) return alert("Isi keterangan dan jumlah uangnya!");
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_URL}/api/dapur-umkm/transactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_id: profile?.id,
+          transaction_date: newTx.transaction_date || new Date().toISOString().split('T')[0],
+          description: newTx.description,
+          amount: Number(newTx.amount),
+          type: newTx.type,
+          category: newTx.category || 'Lainnya'
+        })
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setTransactions([data.data, ...transactions]);
+        setShowFinanceModal(false);
+        setNewTx({ description: "", amount: "", type: "in", transaction_date: "", category: "" });
+      } else {
+        alert("Gagal menambah transaksi: " + data.message);
+      }
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      alert("Terjadi kesalahan saat menambah transaksi");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGetAIAdvice = async (insight: QuickInsight) => {
+    if (!profile?.id) {
+      return alert("Silakan lengkapi profil bisnis terlebih dahulu!");
+    }
+
+    try {
+      setIsAILoading(true);
+      setShowAIModal(true);
+      setAiRecommendation("Sedang menganalisis bisnis Anda... 🤔");
+
+      const res = await fetch(`${API_URL}/api/dapur-umkm/ai-advice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_id: profile.id,
+          insight_type: insight.type,
+          question: insight.question
+        })
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setAiRecommendation(data.data.recommendation);
+      } else {
+        setAiRecommendation("Gagal mendapatkan rekomendasi: " + data.message);
+      }
+    } catch (error: any) {
+      console.error('Error getting AI advice:', error);
+      setAiRecommendation("Terjadi kesalahan: " + error.message);
+    } finally {
+      setIsAILoading(false);
+    }
   };
 
   // Styles
@@ -144,16 +420,39 @@ export default function ManagementPage() {
             <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2">
                <Card className="md:col-span-1 bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800">
                   <CardHeader>
-                    <CardTitle>Logo</CardTitle>
+                    <CardTitle>Logo Usaha</CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center">
-                     <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-red-50 dark:border-red-900/20 mb-4 group cursor-pointer">
-                        <img src="https://placehold.co/150x150/red/white?text=Logo" alt="Logo" className="object-cover w-full h-full" />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Edit className="text-white h-6 w-6" />
-                        </div>
-                     </div>
-                     <p className="text-sm text-gray-500 text-center">Klik logo untuk ganti.</p>
+                     <input 
+                        type="file" 
+                        id="logo-upload" 
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                     />
+                     <label 
+                        htmlFor="logo-upload"
+                        className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-red-50 dark:border-red-900/20 mb-4 group cursor-pointer"
+                     >
+                        {isUploadingLogo ? (
+                          <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+                          </div>
+                        ) : (
+                          <>
+                            <img 
+                              src={logoPreview || "https://placehold.co/150x150/red/white?text=Logo"} 
+                              alt="Logo" 
+                              className="object-cover w-full h-full" 
+                            />
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Edit className="text-white h-6 w-6" />
+                            </div>
+                          </>
+                        )}
+                     </label>
+                     <p className="text-sm text-gray-500 text-center">Klik logo untuk ganti</p>
+                     <p className="text-xs text-gray-400 text-center mt-1">Max 5MB (JPG, PNG, WebP, GIF)</p>
                   </CardContent>
                </Card>
 
@@ -165,24 +464,76 @@ export default function ManagementPage() {
                      <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className={labelStyle}>Nama Usaha</label>
-                            <Input className={inputStyle} defaultValue="Warung Coto Daeng" />
+                            <Input 
+                              className={inputStyle} 
+                              value={profileForm.business_name}
+                              onChange={(e) => setProfileForm({...profileForm, business_name: e.target.value})}
+                              placeholder="Warung Coto Daeng"
+                            />
                         </div>
                         <div>
                             <label className={labelStyle}>Kategori</label>
-                            <select className={inputStyle}>
+                            <select 
+                              className={inputStyle}
+                              value={profileForm.category}
+                              onChange={(e) => setProfileForm({...profileForm, category: e.target.value})}
+                            >
                                 <option>Kuliner / Makanan</option>
                                 <option>Fashion</option>
+                                <option>Kosmetik</option>
+                                <option>Kerajinan</option>
                                 <option>Jasa</option>
+                                <option>Lainnya</option>
                             </select>
+                        </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelStyle}>Nomor HP</label>
+                            <Input 
+                              className={inputStyle} 
+                              value={profileForm.phone}
+                              onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                              placeholder="081234567890"
+                            />
+                        </div>
+                        <div>
+                            <label className={labelStyle}>Email</label>
+                            <Input 
+                              className={inputStyle} 
+                              type="email"
+                              value={profileForm.email}
+                              onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                              placeholder="warung@example.com"
+                            />
                         </div>
                      </div>
                      <div>
                         <label className={labelStyle}>Alamat</label>
-                        <Textarea className={inputStyle} defaultValue="Jl. A.P. Pettarani No. 102, Makassar" />
+                        <Textarea 
+                          className={inputStyle} 
+                          value={profileForm.address}
+                          onChange={(e) => setProfileForm({...profileForm, address: e.target.value})}
+                          placeholder="Jl. A.P. Pettarani No. 102, Makassar"
+                        />
+                     </div>
+                     <div>
+                        <label className={labelStyle}>Deskripsi Bisnis</label>
+                        <Textarea 
+                          className={inputStyle} 
+                          value={profileForm.description}
+                          onChange={(e) => setProfileForm({...profileForm, description: e.target.value})}
+                          placeholder="Ceritakan tentang bisnis Anda..."
+                        />
                      </div>
                      <div className="pt-2 flex justify-end">
-                        <Button onClick={() => alert("Profil tersimpan!")} className="bg-red-600 hover:bg-red-700 text-white">
-                            <Save className="ml-2 h-4 w-4" /> Simpan
+                        <Button 
+                          onClick={handleSaveProfile} 
+                          disabled={isLoading}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            Simpan
                         </Button>
                      </div>
                   </CardContent>
@@ -205,28 +556,47 @@ export default function ManagementPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {products.map((product) => (
-                        <Card key={product.id} className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900 transition-colors group relative">
-                            <div className="flex p-4 gap-4">
-                                <div className="h-20 w-20 rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                    {isLoading ? (
+                        <div className="col-span-full flex justify-center items-center py-12">
+                            <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+                        </div>
+                    ) : products.length === 0 ? (
+                        <div className="col-span-full text-center py-12">
+                            <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                            <p className="text-gray-500">Belum ada produk. Klik "Tambah Menu" untuk mulai!</p>
+                        </div>
+                    ) : (
+                        products.map((product) => (
+                            <Card key={product.id} className="bg-white dark:bg-[#020617] border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900 transition-colors group relative">
+                                <div className="flex p-4 gap-4">
+                                    <div className="h-20 w-20 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                                        <img src={product.image_url || "https://placehold.co/100x100/gray/white?text=No+Image"} alt={product.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-gray-900 dark:text-white truncate">{product.name}</h3>
+                                        <p className="text-red-600 dark:text-red-400 font-semibold">{formatRupiah(product.price)}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Stok: {product.stock}</p>
+                                        {product.category && (
+                                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{product.category}</p>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-gray-900 dark:text-white truncate">{product.name}</h3>
-                                    <p className="text-red-600 dark:text-red-400 font-semibold">{formatRupiah(product.price)}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Stok: {product.stock}</p>
+                                <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+                                    <span className={cn(
+                                        "text-xs px-2 py-1 rounded-full",
+                                        product.stock > 10 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-orange-600 bg-orange-100 dark:bg-orange-900/30"
+                                    )}>
+                                        {product.stock > 10 ? "Tersedia" : "Stok Rendah"}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <Button onClick={() => handleDeleteProduct(product.id)} variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
-                                <span className="text-xs text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">Tersedia</span>
-                                <div className="flex gap-2">
-                                    <Button onClick={() => handleDeleteProduct(product.id)} variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
+                            </Card>
+                        ))
+                    )}
                 </div>
             </div>
         )}
@@ -278,27 +648,68 @@ export default function ManagementPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                            {transactions.map((tx) => (
-                                <div key={tx.id} className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn(
-                                            "p-2 rounded-full",
-                                            tx.type === 'in' ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30"
-                                        )}>
-                                            {tx.type === 'in' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900 dark:text-white">{tx.desc}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">{tx.date}</p>
-                                        </div>
-                                    </div>
-                                    <span className={cn(
-                                        "font-bold",
-                                        tx.type === 'in' ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                    )}>
-                                        {tx.type === 'in' ? '+' : '-'} {formatRupiah(tx.amount)}
-                                    </span>
+                            {transactions.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                                    <p className="text-gray-500">Belum ada transaksi tercatat</p>
                                 </div>
+                            ) : (
+                                transactions.map((tx) => (
+                                    <div key={tx.id} className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "p-2 rounded-full",
+                                                tx.type === 'in' ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30"
+                                            )}>
+                                                {tx.type === 'in' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-gray-900 dark:text-white">{tx.description}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(tx.transaction_date).toLocaleDateString('id-ID')}</p>
+                                                {tx.category && <p className="text-xs text-gray-400 mt-0.5">{tx.category}</p>}
+                                            </div>
+                                        </div>
+                                        <span className={cn(
+                                            "font-bold",
+                                            tx.type === 'in' ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                        )}>
+                                            {tx.type === 'in' ? '+' : '-'} {formatRupiah(parseFloat(String(tx.amount)))}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* AI INSIGHTS PANEL */}
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-900">
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            <CardTitle>AI Business Advisor</CardTitle>
+                        </div>
+                        <CardDescription className="text-gray-600 dark:text-gray-400">
+                            Konsultasi gratis dengan AI untuk optimalkan bisnis Anda
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {quickInsights.map((insight) => (
+                                <button
+                                    key={insight.id}
+                                    onClick={() => handleGetAIAdvice(insight)}
+                                    disabled={isAILoading}
+                                    className="flex flex-col items-start p-4 bg-white dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <span className="text-2xl mb-2">{insight.icon}</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                                        {insight.title}
+                                    </span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                                        {insight.question}
+                                    </span>
+                                </button>
                             ))}
                         </div>
                     </CardContent>
@@ -325,6 +736,15 @@ export default function ManagementPage() {
                                 onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
                             />
                         </div>
+                        <div>
+                            <label className={labelStyle}>Kategori</label>
+                            <Input 
+                                className={inputStyle} 
+                                placeholder="Makanan, Minuman, Snack, dll" 
+                                value={newProduct.category}
+                                onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+                            />
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className={labelStyle}>Harga (Rp)</label>
@@ -347,7 +767,12 @@ export default function ManagementPage() {
                                 />
                             </div>
                         </div>
-                        <Button onClick={handleAddProduct} className="w-full bg-red-600 hover:bg-red-700 text-white mt-2">
+                        <Button 
+                            onClick={handleAddProduct} 
+                            disabled={isLoading}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white mt-2"
+                        >
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Simpan Menu
                         </Button>
                     </CardContent>
@@ -381,8 +806,17 @@ export default function ManagementPage() {
                             <Input 
                                 className={inputStyle} 
                                 placeholder="Contoh: Jual 5 Porsi / Beli Gas" 
-                                value={newTx.desc}
-                                onChange={(e) => setNewTx({...newTx, desc: e.target.value})}
+                                value={newTx.description}
+                                onChange={(e) => setNewTx({...newTx, description: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelStyle}>Kategori</label>
+                            <Input 
+                                className={inputStyle} 
+                                placeholder="Penjualan, Operasional, Inventory, dll" 
+                                value={newTx.category}
+                                onChange={(e) => setNewTx({...newTx, category: e.target.value})}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -401,14 +835,58 @@ export default function ManagementPage() {
                                 <Input 
                                     type="date" 
                                     className={inputStyle}
-                                    value={newTx.date}
-                                    onChange={(e) => setNewTx({...newTx, date: e.target.value})}
+                                    value={newTx.transaction_date}
+                                    onChange={(e) => setNewTx({...newTx, transaction_date: e.target.value})}
                                 />
                             </div>
                         </div>
-                        <Button onClick={handleAddTransaction} className="w-full bg-red-600 hover:bg-red-700 text-white mt-2">
+                        <Button 
+                            onClick={handleAddTransaction} 
+                            disabled={isLoading}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white mt-2"
+                        >
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Simpan Transaksi
                         </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )}
+
+        {/* === MODAL AI RECOMMENDATION === */}
+        {showAIModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in">
+                <Card className="w-full max-w-2xl bg-white dark:bg-[#020617] border-purple-200 dark:border-purple-900 max-h-[80vh] overflow-hidden flex flex-col">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <Lightbulb className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            <CardTitle>AI Business Recommendation</CardTitle>
+                        </div>
+                        <button onClick={() => setShowAIModal(false)}><X className="h-5 w-5 text-gray-500" /></button>
+                    </CardHeader>
+                    <CardContent className="pt-6 overflow-y-auto">
+                        {isAILoading ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <Loader2 className="h-12 w-12 animate-spin text-purple-600 mb-4" />
+                                <p className="text-gray-600 dark:text-gray-400">Menganalisis bisnis Anda...</p>
+                            </div>
+                        ) : (
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 p-6 rounded-lg border border-purple-200 dark:border-purple-900">
+                                    <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
+                                        {aiRecommendation}
+                                    </div>
+                                </div>
+                                <div className="mt-6 flex justify-end">
+                                    <Button 
+                                        onClick={() => setShowAIModal(false)}
+                                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                                    >
+                                        Tutup
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

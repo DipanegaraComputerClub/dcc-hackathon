@@ -9,7 +9,8 @@ import {
   generateSchedulePlanner,
   type ImageAnalysisRequest,
   type TemplateGenerationRequest,
-  type SchedulePlannerRequest
+  type SchedulePlannerRequest,
+  type UMKMBrandingRequest
 } from './visual-studio'
 
 const app = new Hono()
@@ -462,7 +463,94 @@ app.get('/api/ai-content/stats', async (c) => {
 })
 
 // ================================
-// VISUAL STUDIO - Image Analysis
+// 🎯 VISUAL STUDIO - MAIN ENDPOINT: UMKM BRANDING (ALL-IN-ONE)
+// ================================
+app.post('/api/visual-studio/generate-umkm-branding', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { 
+      productImage,
+      productName,
+      businessType,
+      theme,
+      brandColor,
+      targetMarket,
+      format,
+      additionalInfo,
+      userId 
+    } = body
+
+    // Validasi input
+    if (!productName || !businessType || !theme || !brandColor || !targetMarket || !format) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'productName, businessType, theme, brandColor, targetMarket, dan format wajib diisi' 
+      }, 400)
+    }
+
+    const request: UMKMBrandingRequest = {
+      productImage,
+      productName,
+      businessType,
+      theme,
+      brandColor,
+      targetMarket,
+      format,
+      additionalInfo
+    }
+
+    console.log('🎨 Processing UMKM Branding request:', {
+      productName,
+      businessType,
+      theme,
+      format,
+      hasImage: !!productImage
+    })
+
+    const { generateUMKMBranding } = await import('./visual-studio')
+    const result = await generateUMKMBranding(request)
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'umkm_branding',
+        input_data: { 
+          productName, 
+          businessType, 
+          theme, 
+          format,
+          hasProductImage: !!productImage
+        },
+        output_data: {
+          success: result.success,
+          imageAnalysis: result.imageAnalysis,
+          processingTime: result.metadata.processingTime
+        },
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/generate-umkm-branding:', error)
+    return c.json({ 
+      error: 'Gagal generate branding UMKM', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Image Analysis (OLD - Keep for backward compatibility)
 // ================================
 app.post('/api/visual-studio/analyze-image', async (c) => {
   try {
@@ -579,6 +667,116 @@ app.post('/api/visual-studio/generate-template', async (c) => {
 })
 
 // ================================
+// VISUAL STUDIO - Background Removal (Pixian.ai)
+// ================================
+app.post('/api/visual-studio/remove-background', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { imageBase64, userId } = body
+
+    if (!imageBase64) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'imageBase64 wajib diisi' 
+      }, 400)
+    }
+
+    const { removeBackgroundWithRemoveBg } = await import('./external-apis')
+    const result = await removeBackgroundWithRemoveBg(imageBase64)
+
+    if (!result.success) {
+      return c.json({ 
+        error: 'Background removal failed', 
+        message: result.error 
+      }, 500)
+    }
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'background_removal',
+        input_data: { action: 'remove_background' },
+        output_data: { success: true },
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        imageBase64: result.imageBase64
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/remove-background:', error)
+    return c.json({ 
+      error: 'Gagal menghapus background', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// VISUAL STUDIO - Generate Template Design (Flux)
+// ================================
+app.post('/api/visual-studio/generate-design', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { prompt, style, userId } = body
+
+    if (!prompt) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'prompt wajib diisi' 
+      }, 400)
+    }
+
+    const { generateTemplateWithHuggingFace } = await import('./external-apis')
+    const result = await generateTemplateWithHuggingFace(prompt, style || 'instagram-feed')
+
+    if (!result.success) {
+      return c.json({ 
+        error: 'Design generation failed', 
+        message: result.error 
+      }, 500)
+    }
+
+    // Simpan ke database
+    const { error: dbError } = await supabase
+      .from('visual_studio_activity')
+      .insert([{
+        user_id: userId || null,
+        activity_type: 'design_generation',
+        input_data: { prompt, style },
+        output_data: result,
+        created_at: new Date().toISOString()
+      }])
+
+    if (dbError) {
+      console.warn('Warning: Failed to save to DB:', dbError.message)
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/visual-studio/generate-design:', error)
+    return c.json({ 
+      error: 'Gagal generate design', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
 // VISUAL STUDIO - Schedule Planner
 // ================================
 app.post('/api/visual-studio/schedule-planner', async (c) => {
@@ -678,5 +876,936 @@ app.get('/api/visual-studio/history', async (c) => {
     }, 500)
   }
 })
+
+// ================================
+// TANYA DAENG - AI CHATBOT UMKM
+// ================================
+
+app.post('/api/tanya-daeng/chat', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { message, conversationHistory, userContext, userId } = body
+
+    if (!message) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'Message wajib diisi' 
+      }, 400)
+    }
+
+    console.log('💬 Tanya Daeng request:', { message: message.substring(0, 50), userId })
+
+    const { tanyaDaeng } = await import('./tanya-daeng')
+    const result = await tanyaDaeng({
+      message,
+      conversationHistory,
+      userContext
+    })
+
+    // Save to database (optional)
+    if (userId) {
+      await supabase
+        .from('tanya_daeng_conversations')
+        .insert([{
+          user_id: userId,
+          message,
+          reply: result.reply,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/tanya-daeng/chat:', error)
+    return c.json({ 
+      error: 'Gagal memproses chat', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Get all FAQ
+app.get('/api/tanya-daeng/faq', async (c) => {
+  try {
+    const { getAllFAQ } = await import('./tanya-daeng')
+    const faqs = getAllFAQ()
+
+    return c.json({
+      success: true,
+      data: faqs
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/tanya-daeng/faq:', error)
+    return c.json({ 
+      error: 'Gagal mengambil FAQ', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ================================
+// DAPUR UMKM API ENDPOINTS
+// ================================
+
+// === PROFILE ===
+// Get user's UMKM profile
+app.get('/api/dapur-umkm/profile', async (c) => {
+  try {
+    const userId = c.req.header('X-User-ID') // Optional: untuk auth nanti
+    
+    const { data, error } = await supabase
+      .from('umkm_profiles')
+      .select('*')
+      .limit(1)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+
+    return c.json({
+      success: true,
+      data: data || null
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching profile:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Create or update UMKM profile
+app.post('/api/dapur-umkm/profile', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { id, business_name, category, address, phone, email, logo_url, description } = body
+
+    if (!business_name || !category) {
+      return c.json({ 
+        success: false,
+        message: 'Nama usaha dan kategori wajib diisi' 
+      }, 400)
+    }
+
+    let result
+    
+    if (id) {
+      // Update existing profile
+      const { data, error } = await supabase
+        .from('umkm_profiles')
+        .update({ 
+          business_name, 
+          category, 
+          address, 
+          phone, 
+          email, 
+          logo_url, 
+          description 
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      result = data
+    } else {
+      // Create new profile
+      const { data, error } = await supabase
+        .from('umkm_profiles')
+        .insert({ 
+          business_name, 
+          category, 
+          address, 
+          phone, 
+          email, 
+          logo_url, 
+          description 
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      result = data
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error saving profile:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Upload logo
+app.post('/api/dapur-umkm/upload-logo', async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const file = formData.get('logo') as File
+    const profileId = formData.get('profile_id') as string
+
+    if (!file) {
+      return c.json({ 
+        success: false,
+        message: 'File logo wajib diupload' 
+      }, 400)
+    }
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'Profile ID diperlukan' 
+      }, 400)
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      return c.json({ 
+        success: false,
+        message: 'Format file harus JPEG, PNG, WebP, atau GIF' 
+      }, 400)
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return c.json({ 
+        success: false,
+        message: 'Ukuran file maksimal 5MB' 
+      }, 400)
+    }
+
+    // Generate unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${profileId}-${Date.now()}.${fileExt}`
+    const filePath = `logos/${fileName}`
+
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('umkm-logos')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: true
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('umkm-logos')
+      .getPublicUrl(filePath)
+
+    // Update profile with new logo URL
+    const { data: profile, error: updateError } = await supabase
+      .from('umkm_profiles')
+      .update({ logo_url: publicUrl })
+      .eq('id', profileId)
+      .select()
+      .single()
+
+    if (updateError) throw updateError
+
+    return c.json({
+      success: true,
+      data: {
+        logo_url: publicUrl,
+        profile
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error uploading logo:', error)
+    return c.json({ 
+      success: false,
+      message: error.message || 'Gagal upload logo'
+    }, 500)
+  }
+})
+
+// Get public profile (for landing page)
+app.get('/api/dapur-umkm/public/profile', async (c) => {
+  try {
+    // Get the first/active profile (you can add logic for active status later)
+    const { data, error } = await supabase
+      .from('umkm_profiles')
+      .select('id, business_name, category, address, logo_url, description')
+      .limit(1)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+
+    // Only return public-safe fields (no phone, no email for privacy)
+    return c.json({
+      success: true,
+      data: data || null
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching public profile:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// === PRODUCTS ===
+// Get all products
+app.get('/api/dapur-umkm/products', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+
+    let query = supabase.from('umkm_products').select('*').order('created_at', { ascending: false })
+    
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data: data || []
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching products:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Add new product
+app.post('/api/dapur-umkm/products', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { profile_id, name, price, stock, image_url, category, description, cost_price } = body
+
+    if (!name || !price) {
+      return c.json({ 
+        success: false,
+        message: 'Nama dan harga produk wajib diisi' 
+      }, 400)
+    }
+
+    const { data, error } = await supabase
+      .from('umkm_products')
+      .insert({ 
+        profile_id,
+        name, 
+        price, 
+        stock: stock || 0, 
+        image_url, 
+        category, 
+        description,
+        cost_price: cost_price || 0,
+        is_available: true
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+
+  } catch (error: any) {
+    console.error('Error adding product:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Update product
+app.put('/api/dapur-umkm/products/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const { name, price, stock, image_url, category, description, cost_price, is_available } = body
+
+    const { data, error } = await supabase
+      .from('umkm_products')
+      .update({ 
+        name, 
+        price, 
+        stock, 
+        image_url, 
+        category, 
+        description,
+        cost_price,
+        is_available
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+
+  } catch (error: any) {
+    console.error('Error updating product:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Delete product
+app.delete('/api/dapur-umkm/products/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    const { error } = await supabase
+      .from('umkm_products')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      message: 'Produk berhasil dihapus'
+    })
+
+  } catch (error: any) {
+    console.error('Error deleting product:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// === TRANSACTIONS ===
+// Get all transactions
+app.get('/api/dapur-umkm/transactions', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+    const type = c.req.query('type') // 'in' or 'out'
+
+    let query = supabase
+      .from('umkm_transactions')
+      .select('*')
+      .order('transaction_date', { ascending: false })
+      .order('created_at', { ascending: false })
+    
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+
+    if (type) {
+      query = query.eq('type', type)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data: data || []
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching transactions:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Add new transaction
+app.post('/api/dapur-umkm/transactions', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { profile_id, transaction_date, description, amount, type, category, product_id, notes } = body
+
+    if (!description || !amount || !type) {
+      return c.json({ 
+        success: false,
+        message: 'Keterangan, jumlah, dan jenis transaksi wajib diisi' 
+      }, 400)
+    }
+
+    if (!['in', 'out'].includes(type)) {
+      return c.json({ 
+        success: false,
+        message: 'Jenis transaksi harus "in" atau "out"' 
+      }, 400)
+    }
+
+    const { data, error } = await supabase
+      .from('umkm_transactions')
+      .insert({ 
+        profile_id,
+        transaction_date: transaction_date || new Date().toISOString().split('T')[0],
+        description,
+        amount,
+        type,
+        category,
+        product_id,
+        notes
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+
+  } catch (error: any) {
+    console.error('Error adding transaction:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Get financial summary
+app.get('/api/dapur-umkm/summary', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    const { calculateBusinessMetrics } = await import('./dapur-umkm')
+    const metrics = await calculateBusinessMetrics(profileId)
+
+    return c.json({
+      success: true,
+      data: metrics
+    })
+
+  } catch (error: any) {
+    console.error('Error calculating summary:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// === AI RECOMMENDATIONS ===
+// Get AI business advice
+app.post('/api/dapur-umkm/ai-advice', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { profile_id, insight_type, question } = body
+
+    if (!profile_id || !insight_type || !question) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id, insight_type, dan question wajib diisi' 
+      }, 400)
+    }
+
+    const validTypes = ['pricing', 'inventory', 'strategy', 'marketing', 'finance']
+    if (!validTypes.includes(insight_type)) {
+      return c.json({ 
+        success: false,
+        message: `insight_type harus salah satu dari: ${validTypes.join(', ')}` 
+      }, 400)
+    }
+
+    const { getAIRecommendation } = await import('./dapur-umkm')
+    const result = await getAIRecommendation({
+      profileId: profile_id,
+      insightType: insight_type,
+      question
+    })
+
+    return c.json(result)
+
+  } catch (error: any) {
+    console.error('Error getting AI advice:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Get quick AI insights (pre-defined questions)
+app.get('/api/dapur-umkm/quick-insights', async (c) => {
+  try {
+    const { QUICK_INSIGHTS } = await import('./dapur-umkm')
+
+    return c.json({
+      success: true,
+      data: QUICK_INSIGHTS
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching quick insights:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Get past AI insights history
+app.get('/api/dapur-umkm/insights-history', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+    const limit = parseInt(c.req.query('limit') || '10')
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    const { getPastInsights } = await import('./dapur-umkm')
+    const result = await getPastInsights(profileId, limit)
+
+    return c.json(result)
+
+  } catch (error: any) {
+    console.error('Error fetching insights history:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ============================================
+// DASHBOARD ANALYTICS
+// ============================================
+
+// Generate comprehensive dashboard analysis with AI
+app.post('/api/dapur-umkm/dashboard-analysis', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { profile_id } = body
+
+    if (!profile_id) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    const { generateDashboardAnalysis } = await import('./dapur-umkm')
+    const result = await generateDashboardAnalysis(profile_id)
+
+    return c.json(result)
+
+  } catch (error: any) {
+    console.error('Error generating dashboard analysis:', error)
+    return c.json({ 
+      success: false,
+      message: error.message || 'Gagal generate analisis dashboard',
+      error: error.toString()
+    }, 500)
+  }
+})
+
+// Get dashboard overview (all data in one call)
+app.get('/api/dapur-umkm/dashboard-overview', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    // Fetch all data in parallel
+    const [profile, products, transactions, insights, summary] = await Promise.all([
+      supabase.from('umkm_profiles').select('*').eq('id', profileId).single(),
+      supabase.from('umkm_products').select('*').eq('profile_id', profileId),
+      supabase.from('umkm_transactions').select('*').eq('profile_id', profileId).order('transaction_date', { ascending: false }).limit(50),
+      supabase.from('umkm_ai_insights').select('*').eq('profile_id', profileId).order('created_at', { ascending: false }).limit(10),
+      supabase.from('umkm_financial_summary').select('*').eq('profile_id', profileId).single()
+    ])
+
+    // Calculate metrics
+    const { calculateBusinessMetrics } = await import('./dapur-umkm')
+    const metrics = await calculateBusinessMetrics(profileId)
+
+    return c.json({
+      success: true,
+      data: {
+        profile: profile.data,
+        products: products.data || [],
+        transactions: transactions.data || [],
+        insights: insights.data || [],
+        summary: summary.data,
+        metrics
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching dashboard overview:', error)
+    return c.json({ 
+      success: false,
+      message: error.message 
+    }, 500)
+  }
+})
+
+// ============================================
+// MONTHLY REPORT
+// ============================================
+
+// Get monthly transaction report
+app.get('/api/dapur-umkm/report', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+    const month = parseInt(c.req.query('month') || '0')
+    const year = parseInt(c.req.query('year') || new Date().getFullYear().toString())
+
+    if (!profileId) {
+      return c.json({ 
+        success: false,
+        message: 'profile_id diperlukan' 
+      }, 400)
+    }
+
+    if (month < 1 || month > 12) {
+      return c.json({ 
+        success: false,
+        message: 'month harus antara 1-12' 
+      }, 400)
+    }
+
+    // Calculate date range
+    const startDate = new Date(year, month - 1, 1)
+    const endDate = new Date(year, month, 0, 23, 59, 59)
+
+    console.log('Fetching report for:', { profileId, startDate, endDate })
+
+    // Get transactions for the month
+    const { data: transactions, error } = await supabase
+      .from('umkm_transactions')
+      .select('*')
+      .eq('profile_id', profileId)
+      .gte('transaction_date', startDate.toISOString())
+      .lte('transaction_date', endDate.toISOString())
+      .order('transaction_date', { ascending: false })
+
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
+
+    // Calculate summary
+    const totalIncome = transactions
+      ?.filter(t => t.type === 'in')
+      .reduce((sum, t) => sum + Number(t.amount), 0) || 0
+
+    const totalExpense = transactions
+      ?.filter(t => t.type === 'out')
+      .reduce((sum, t) => sum + Number(t.amount), 0) || 0
+
+    const balance = totalIncome - totalExpense
+
+    const monthNames = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ]
+
+    return c.json({
+      success: true,
+      data: {
+        month: monthNames[month - 1],
+        year,
+        totalIncome,
+        totalExpense,
+        balance,
+        transactionCount: transactions?.length || 0,
+        transactions: transactions || []
+      }
+    })
+
+  } catch (error: any) {
+    console.error('Error fetching monthly report:', error)
+    return c.json({ 
+      success: false,
+      message: error.message || 'Gagal mengambil laporan bulanan'
+    }, 500)
+  }
+})
+
+// ============================================
+// TELEGRAM BOT - EVALUATIONS
+// ============================================
+
+// Get all evaluations for a profile
+app.get('/api/evaluations', async (c) => {
+  try {
+    const profileId = c.req.query('profile_id')
+    const status = c.req.query('status') // unread, read, archived
+
+    let query = supabase
+      .from('umkm_evaluations')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data: data || []
+    })
+  } catch (error: any) {
+    console.error('Error fetching evaluations:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// Mark evaluation as read
+app.put('/api/evaluations/:id/read', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    const { data, error } = await supabase
+      .from('umkm_evaluations')
+      .update({ 
+        status: 'read',
+        read_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+  } catch (error: any) {
+    console.error('Error marking evaluation as read:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// Add admin notes to evaluation
+app.put('/api/evaluations/:id/notes', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const { notes } = body
+
+    const { data, error } = await supabase
+      .from('umkm_evaluations')
+      .update({ admin_notes: notes })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      data
+    })
+  } catch (error: any) {
+    console.error('Error adding notes:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// Delete evaluation
+app.delete('/api/evaluations/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    const { error } = await supabase
+      .from('umkm_evaluations')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+
+    return c.json({
+      success: true,
+      message: 'Evaluation deleted successfully'
+    })
+  } catch (error: any) {
+    console.error('Error deleting evaluation:', error)
+    return c.json({
+      success: false,
+      message: error.message
+    }, 500)
+  }
+})
+
+// ============================================
+// INITIALIZE TELEGRAM BOT
+// ============================================
+import { initTelegramBot } from './telegram-bot'
+
+// Start Telegram Bot
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  console.log('🤖 Initializing Telegram Bot...')
+  initTelegramBot()
+} else {
+  console.warn('⚠️ TELEGRAM_BOT_TOKEN not set. Bot features disabled.')
+}
 
 export default app

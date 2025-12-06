@@ -1,9 +1,16 @@
 import OpenAI from 'openai'
-import * as sharp from 'sharp'
+import sharp from 'sharp'
+import { 
+  analyzeImageWithSightengine, 
+  removeBackgroundWithRemoveBg, 
+  generateTemplateWithHuggingFace,
+  type SightengineAnalysisResult,
+  type BackgroundRemovalResult,
+  type TemplateGenerationResult
+} from './external-apis'
 
 const KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY!
 const USE_MOCK = process.env.USE_MOCK_AI === 'true'
-const USE_REAL_IMAGE_ANALYSIS = true // Always analyze image properties
 
 const client = new OpenAI({
   apiKey: KOLOSAL_API_KEY,
@@ -11,18 +18,73 @@ const client = new OpenAI({
 })
 
 console.log('🎨 Visual Studio Config:')
-console.log('   Model: Llama 4 Maverick (Text-only, Vision NOT supported)')
-console.log('   Image Analysis: Real-time with Sharp.js')
-console.log('   API Key:', KOLOSAL_API_KEY ? '✅ Set' : '❌ Not set')
+console.log('   Image Analysis: Sharp.js (FREE)')
+console.log('   Background Removal: Remove.bg (50/month)')
+console.log('   Template Gen: FLUX.1-schnell → FLUX.1-dev → SDXL-Lightning (FREE)')
+console.log('   Fallback: Stability AI Core → Creative SVG')
 console.log('   Mock Mode:', USE_MOCK ? '✅ Enabled' : '❌ Disabled')
 
 // ================================
-// TYPE DEFINITIONS
+// TYPE DEFINITIONS - SIMPLIFIED FOR UMKM
 // ================================
+
+// Request untuk generate design UMKM
+export interface UMKMBrandingRequest {
+  // Foto produk (optional - bisa generate tanpa foto)
+  productImage?: string  // base64
+  
+  // Info produk & branding
+  productName: string
+  businessType: 'makanan' | 'fashion' | 'kosmetik' | 'kerajinan' | 'cafe' | 'kuliner' | 'lainnya'
+  theme: 'elegant' | 'cute-pastel' | 'bold-modern' | 'minimalist' | 'premium' | 'playful'
+  brandColor: string  // Hex color
+  targetMarket: string  // e.g., "Remaja 17-25 tahun"
+  
+  // Template format
+  format: 'instagram-square' | 'instagram-story' | 'tiktok' | 'facebook'
+  
+  // Optional
+  additionalInfo?: string
+}
+
+export interface UMKMBrandingResponse {
+  success: boolean
+  
+  // Image quality analysis (jika ada foto diupload)
+  imageAnalysis?: {
+    qualityScore: number  // 1-10
+    isGoodQuality: boolean
+    issues: string[]
+    recommendations: string[]
+  }
+  
+  // Generated design template
+  designResult: {
+    imageBase64: string  // Final design siap posting
+    downloadUrl?: string
+    format: string
+    dimensions: { width: number; height: number }
+  }
+  
+  // Marketing suggestions
+  marketingSuggestions: {
+    caption: string
+    hashtags: string[]
+    bestPostingTime: string[]
+    targetPlatform: string[]
+  }
+  
+  metadata: {
+    generatedAt: string
+    processingTime: number
+  }
+}
+
+// Keep old interfaces for backward compatibility
 export interface ImageAnalysisRequest {
   imageUrl?: string
   imageBase64?: string
-  context?: string  // Konteks bisnis (e.g., "UMKM makanan Makassar")
+  context?: string
 }
 
 export interface ImageAnalysisResponse {
@@ -80,152 +142,367 @@ export interface SchedulePlannerResponse {
 }
 
 // ================================
-// 1. IMAGE ANALYSIS WITH AI VISION
+// HELPER: Composite product image with template
+// ================================
+async function compositeProductWithTemplate(
+  productImage: string,
+  templateImage: string,
+  format: string
+): Promise<string> {
+  try {
+    // Get dimensions based on format
+    const dims = getFormatDimensions(format)
+    
+    // Load both images
+    const productBuffer = Buffer.from(productImage.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+    const templateBuffer = Buffer.from(templateImage.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+    
+    // Get product metadata for aspect ratio
+    const productMeta = await sharp(productBuffer).metadata()
+    const productAspect = (productMeta.width || 1) / (productMeta.height || 1)
+    
+    // Resize product to fit in template (70% of canvas, maintain aspect)
+    const maxSize = Math.round(Math.min(dims.width, dims.height) * 0.7)
+    let productWidth = maxSize
+    let productHeight = maxSize
+    
+    if (productAspect > 1) {
+      productHeight = Math.round(maxSize / productAspect)
+    } else {
+      productWidth = Math.round(maxSize * productAspect)
+    }
+    
+    // Resize product with transparency
+    const productResized = await sharp(productBuffer)
+      .resize(productWidth, productHeight, { 
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
+      .png()
+      .toBuffer()
+    
+    // Composite: template as background, product on top (centered)
+    const xOffset = Math.round((dims.width - productWidth) / 2)
+    const yOffset = Math.round((dims.height - productHeight) / 2.2) // Slightly above center
+    
+    const composited = await sharp(templateBuffer)
+      .resize(dims.width, dims.height, { fit: 'cover' })
+      .composite([{
+        input: productResized,
+        top: yOffset,
+        left: xOffset,
+        blend: 'over'
+      }])
+      .jpeg({ quality: 95 })
+      .toBuffer()
+    
+    console.log(`   ✅ Composited ${productWidth}x${productHeight} product onto ${dims.width}x${dims.height} template`)
+    return `data:image/jpeg;base64,${composited.toString('base64')}`
+  } catch (error: any) {
+    console.error('❌ Composite error:', error.message)
+    // Return template if composite fails
+    return templateImage
+  }
+}
+
+// ================================
+// 🎯 MAIN FUNCTION: ALL-IN-ONE UMKM BRANDING
+// ================================
+export async function generateUMKMBranding(
+  request: UMKMBrandingRequest
+): Promise<UMKMBrandingResponse> {
+  const startTime = Date.now()
+  
+  try {
+    console.log('🎨 Starting UMKM Branding Generation...')
+    console.log('   Product:', request.productName)
+    console.log('   Business:', request.businessType)
+    console.log('   Theme:', request.theme)
+    console.log('   Format:', request.format)
+    
+    let imageAnalysis = undefined
+    let processedImage = request.productImage
+    
+    // STEP 1: Analyze product image (if provided)
+    if (request.productImage) {
+      console.log('📸 Step 1: Analyzing product image quality...')
+      const analysis = await analyzeImageWithSightengine(request.productImage)
+      
+      imageAnalysis = {
+        qualityScore: analysis.qualityScore,
+        isGoodQuality: analysis.qualityScore >= 7,
+        issues: analysis.issues,
+        recommendations: analysis.suggestions
+      }
+      
+      console.log(`   Quality Score: ${analysis.qualityScore}/10`)
+      
+      // STEP 2: Remove background if quality is good
+      if (analysis.qualityScore >= 6) {
+        console.log('✂️ Step 2: Removing background...')
+        const bgRemovalResult = await removeBackgroundWithRemoveBg(request.productImage)
+        if (bgRemovalResult.success && bgRemovalResult.imageBase64) {
+          processedImage = bgRemovalResult.imageBase64
+          console.log('   ✅ Background removed successfully')
+        }
+      }
+    }
+    
+    // STEP 3: Generate design template with AI
+    console.log('🎨 Step 3: Generating branded design template...')
+    
+    const { buildUMKMPrompt } = await import('./services/templatePrompt')
+    const prompt = buildUMKMPrompt(
+      request.productName,
+      request.businessType,
+      request.theme,
+      request.brandColor,
+      request.targetMarket,
+      request.format,
+      request.additionalInfo
+    )
+    
+    const templateResult = await generateTemplateWithHuggingFace(prompt, request.format)
+    
+    let finalDesign: string
+    
+    if (!templateResult.success || !templateResult.imageBase64) {
+      console.warn('⚠️ Template generation failed, using enhanced fallback with product image')
+      // Import fallback function and pass product image
+      const { generateFallbackTemplate } = await import('./external-apis')
+      const fallback = generateFallbackTemplate(
+        prompt, 
+        request.format, 
+        processedImage || undefined,
+        request.theme,
+        request.brandColor,
+        request.productName
+      )
+      finalDesign = fallback.imageBase64!
+    } else {
+      // STEP 4: If we have product image, composite it with AI template
+      if (processedImage) {
+        console.log('🖼️ Step 4: Compositing product image with AI template...')
+        try {
+          const composited = await compositeProductWithTemplate(processedImage, templateResult.imageBase64, request.format)
+          finalDesign = composited
+        } catch (error) {
+          console.warn('⚠️ Composite failed, using fallback with product image')
+          const { generateFallbackTemplate } = await import('./external-apis')
+          const fallback = generateFallbackTemplate(
+            prompt, 
+            request.format, 
+            processedImage,
+            request.theme,
+            request.brandColor,
+            request.productName
+          )
+          finalDesign = fallback.imageBase64!
+        }
+      } else {
+        finalDesign = templateResult.imageBase64
+      }
+    }
+    
+    // STEP 5: Generate marketing suggestions
+    console.log('📝 Step 5: Generating marketing suggestions...')
+    const marketingSuggestions = generateMarketingSuggestions(request)
+    
+    const processingTime = Date.now() - startTime
+    console.log(`✅ UMKM Branding completed in ${processingTime}ms`)
+    
+    return {
+      success: true,
+      imageAnalysis,
+      designResult: {
+        imageBase64: finalDesign,
+        format: request.format,
+        dimensions: getFormatDimensions(request.format)
+      },
+      marketingSuggestions,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        processingTime
+      }
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Error in UMKM Branding:', error.message)
+    throw new Error(`Gagal generate branding: ${error.message}`)
+  }
+}
+
+// Helper: Build AI-optimized prompt for UMKM branding (Diffusion Models)
+function buildUMKMBrandingPrompt(request: UMKMBrandingRequest, hasProductImage: boolean): string {
+  // Optimized theme keywords for diffusion models
+  const themeKeywords = {
+    'elegant': 'elegant, luxury, gold accents, sophisticated, premium, refined, classy',
+    'cute-pastel': 'cute, pastel colors, soft, kawaii, adorable, sweet, gentle, dreamy',
+    'bold-modern': 'bold, vibrant, modern, energetic, dynamic, striking, powerful',
+    'minimalist': 'minimalist, clean, simple, white space, modern, sleek, professional',
+    'premium': 'premium, luxury, high-end, sophisticated, exclusive, elegant, upscale',
+    'playful': 'playful, fun, colorful, cheerful, youthful, energetic, happy'
+  }
+  
+  // Business-specific visual keywords
+  const businessVisuals = {
+    'makanan': 'delicious Indonesian food, appetizing, mouth-watering, fresh ingredients, food photography',
+    'fashion': 'stylish fashion, trendy clothing, modern apparel, fashionable, chic',
+    'kosmetik': 'beauty cosmetics, skincare products, elegant packaging, feminine, clean',
+    'kerajinan': 'handmade crafts, artisanal products, traditional Indonesian art, authentic',
+    'cafe': 'cozy cafe atmosphere, coffee culture, warm inviting, lifestyle',
+    'kuliner': 'culinary delights, gourmet food, restaurant quality, foodie aesthetic',
+    'lainnya': 'professional product display, clean presentation, commercial photography'
+  }
+  
+  // Format-specific composition
+  const formatComposition = {
+    'instagram-square': 'centered composition, balanced layout, square 1:1 ratio',
+    'instagram-story': 'vertical composition, portrait orientation, 9:16 ratio',
+    'tiktok': 'vertical dynamic layout, attention-grabbing, mobile-first, 9:16',
+    'facebook': 'horizontal wide composition, landscape, 1.91:1 ratio'
+  }
+  
+  // Build optimized prompt for diffusion models
+  const corePrompt = hasProductImage 
+    ? `Professional Indonesian UMKM social media design, ${businessVisuals[request.businessType]}, ${themeKeywords[request.theme]}, ${formatComposition[request.format]}`
+    : `Professional Indonesian UMKM product photography, ${request.productName}, ${businessVisuals[request.businessType]}, ${themeKeywords[request.theme]}, ${formatComposition[request.format]}`
+  
+  const styleModifiers = `vibrant colors, ${request.brandColor} color scheme, professional lighting, studio quality, commercial photography, high resolution, sharp focus, clean background`
+  
+  const compositionGuide = hasProductImage
+    ? `product in foreground, decorative background, complementary colors, negative space for text overlay`
+    : `product-focused, eye-level view, attractive presentation, instagram-worthy aesthetic`
+  
+  const targetAudience = `appealing to ${request.targetMarket}, Indonesian market, social media optimized`
+  
+  const additionalContext = request.additionalInfo ? `, ${request.additionalInfo}` : ''
+  
+  // Final optimized prompt
+  return `${corePrompt}, ${styleModifiers}, ${compositionGuide}, ${targetAudience}${additionalContext}, masterpiece, best quality, professional commercial photography, 8k uhd, trending on instagram`
+}
+
+// Helper: Generate structured marketing suggestions for UMKM
+function generateMarketingSuggestions(request: UMKMBrandingRequest): {
+  caption: string
+  hashtags: string[]
+  bestPostingTime: string[]
+  targetPlatform: string[]
+  designDirection: string
+  colorStrategy: string
+} {
+  const captionTemplates = {
+    'makanan': `✨ ${request.productName} - Lezat & Berkualitas!\n\n🍽️ Dibuat dengan bahan pilihan terbaik\n📍 Tersedia sekarang untuk ${request.targetMarket}\n💬 DM untuk order!`,
+    'fashion': `✨ ${request.productName} - Style Meets Comfort\n\n👗 Perfect untuk ${request.targetMarket}\n🎨 Desain eksklusif & berkualitas\n📦 Ready stock - Order sekarang!`,
+    'kosmetik': `✨ ${request.productName} - Your Beauty Secret\n\n💄 Aman & teruji untuk ${request.targetMarket}\n🌟 Hasil maksimal, harga terjangkau\n💬 Tanya-tanya? DM aja!`,
+    'default': `✨ ${request.productName}\n\n✅ Kualitas terjamin\n🎯 Cocok untuk ${request.targetMarket}\n📲 Order via DM atau WhatsApp!`
+  }
+  
+  const caption = captionTemplates[request.businessType as keyof typeof captionTemplates] || captionTemplates.default
+  
+  const hashtags = [
+    '#UMKM',
+    '#UMKMIndonesia',
+    `#${request.productName.replace(/\s+/g, '')}`,
+    '#ProdukLokal',
+    '#SupportLokal',
+    request.businessType === 'makanan' ? '#KulinerNusantara' : `#${request.businessType}`,
+    '#BisnisOnline',
+    '#Jualan',
+    '#OpenOrder'
+  ]
+  
+  const themeStrategies = {
+    'elegant': 'Gunakan font serif, spacing luas, foto high-end quality',
+    'cute-pastel': 'Warna soft pastel, elemen playful, font rounded',
+    'bold-modern': 'Kontras tinggi, geometric shapes, font bold sans-serif',
+    'minimalist': 'White space maksimal, clean lines, typography focus',
+    'premium': 'Dark background, gold accents, luxury feel',
+    'playful': 'Bright colors, dynamic elements, fun typography'
+  }
+
+  return {
+    caption,
+    hashtags,
+    bestPostingTime: [
+      '📱 Instagram: 11:00-13:00 & 19:00-21:00 WIB',
+      '📱 TikTok: 12:00-14:00 & 18:00-22:00 WIB',
+      '📱 Facebook: 10:00-12:00 & 19:00-20:00 WIB'
+    ],
+    targetPlatform: ['Instagram', 'TikTok', 'Facebook', 'WhatsApp Business'],
+    designDirection: themeStrategies[request.theme],
+    colorStrategy: `Primary: ${request.brandColor}, gunakan complementary colors untuk balance visual`
+  }
+}
+
+// Helper: Get dimensions for format
+function getFormatDimensions(format: string): { width: number; height: number } {
+  const dimensions = {
+    'instagram-square': { width: 1080, height: 1080 },
+    'instagram-story': { width: 1080, height: 1920 },
+    'tiktok': { width: 1080, height: 1920 },
+    'facebook': { width: 1200, height: 630 }
+  }
+  return dimensions[format as keyof typeof dimensions] || { width: 1080, height: 1080 }
+}
+
+// ================================
+// 1. IMAGE ANALYSIS WITH SIGHTENGINE (OLD - Keep for compatibility)
 // ================================
 export async function analyzeImageWithAI(
   request: ImageAnalysisRequest
 ): Promise<ImageAnalysisResponse> {
-  if (USE_MOCK) {
-    console.log('🧪 MOCK: Analyzing image with real image processing...')
-    return await generateMockImageAnalysis(request)
-  }
-
   try {
-    console.log('🤖 Analyzing image with Llama 4 Maverick Vision...')
+    console.log('🔍 Analyzing image with Sightengine AI...')
     
-    // Build prompt for image analysis
-    const prompt = `Analisa gambar ini sebagai STRICT photography & marketing expert untuk UMKM kuliner Makassar. PENTING: Berikan penilaian yang JUJUR dan OBJEKTIF, jangan terlalu murah hati dengan score!
-
-TUGAS ANALISA (BE STRICT & HONEST):
-
-1. **VISUAL QUALITY ASSESSMENT** (Score 1-10, BE CRITICAL)
-   Berikan score yang REALISTIS berdasarkan kriteria berikut:
-   
-   A. COMPOSITION & FRAMING (Score /10)
-      - Apakah mengikuti rule of thirds?
-      - Apakah subjek terlalu centered atau off-balance?
-      - Apakah ada negative space yang baik?
-      - Apakah framing tight atau terlalu longgar?
-      ⚠️ Score <6 jika komposisi berantakan, 6-7 jika decent, 8+ jika excellent
-   
-   B. LIGHTING & EXPOSURE (Score /10)
-      - Apakah pencahayaan cukup atau terlalu gelap/terang?
-      - Apakah ada harsh shadows atau burnt highlights?
-      - Apakah natural light atau artificial? Quality?
-      - Apakah exposure merata atau ada area gelap/terang ekstrem?
-      ⚠️ Score <6 jika lighting buruk, 6-7 jika acceptable, 8+ jika perfect
-   
-   C. COLOR BALANCE & VIBRANCY (Score /10)
-      - Apakah white balance correct atau ada color cast?
-      - Apakah warna vibrant atau kusam/pudar?
-      - Apakah color grading professional atau flat?
-      - Apakah appetizing untuk food photo?
-      ⚠️ Score <6 jika warna kusam/off, 6-7 jika decent, 8+ jika vibrant
-   
-   D. FOCUS & SHARPNESS (Score /10) - CRITICAL!
-      - Apakah gambar SHARP atau BLUR?
-      - Apakah ada motion blur atau camera shake?
-      - Apakah depth of field sesuai atau terlalu shallow/deep?
-      - Apakah detail jelas atau soft/kabur?
-      ⚠️ Score <5 jika BLUR PARAH (motion blur, out of focus)
-      ⚠️ Score 5-6 jika soft/kurang tajam
-      ⚠️ Score 7-8 jika sharp acceptable
-      ⚠️ Score 9-10 jika crystal clear & tack sharp
-
-   E. OVERALL APPEAL (/10)
-      - First impression: wow atau biasa saja?
-      - Professional quality atau amateur?
-      - Instagram-worthy atau perlu work?
-
-   📊 CALCULATE AVERAGE SCORE dari 5 komponen di atas
-   ⚠️ Jika ada 1 komponen score <6, overall TIDAK boleh >7!
-
-2. **CONTENT IDENTIFICATION & ANALYSIS**
-   - Describe objek secara detail (makanan apa, presentation, styling)
-   - Food photography standards: apakah memenuhi?
-   - Presentation quality: attractive atau kurang menarik?
-   - Background: clean atau cluttered? Distracting atau supporting?
-   - Props: ada atau tidak? Menambah value atau mengurangi?
-   - Mood: warm/cold? Inviting atau flat?
-
-3. **TECHNICAL ISSUES DETECTION**
-   ⚠️ CRITICAL - Detect masalah berikut:
-   - Motion blur atau camera shake? (MAJOR RED FLAG)
-   - Out of focus atau bokeh error? (MAJOR RED FLAG)
-   - Overexposed (blown highlights) atau underexposed?
-   - Noise/grain berlebihan?
-   - Distortion atau perspective error?
-   - Color banding atau artifacts?
-   
-   Jika ada 2+ technical issues, foto NEEDS RETAKE!
-
-4. **MARKETING POTENTIAL & VIRAL SCORE**
-   - Platform optimal: IG/TikTok/FB? Why?
-   - Target audience analysis
-   - Emotional impact: strong/medium/weak?
-   - Viral potential (1-10) - BE REALISTIC
-   - CTA potential
-
-5. **IMPROVEMENT RECOMMENDATIONS**
-   IF score <7:
-   - List SPECIFIC technical fixes needed
-   - Suggest RETAKE dengan detailed instructions
-   - Prioritize improvements (most critical first)
-   
-   IF score ≥7:
-   - Minor enhancements suggestions
-   - Editing tips
-   - Design overlay ideas
-
-6. **CONTENT STRATEGY** (only if photo is usable)
-   - Best posting time
-   - Caption themes
-   - Hashtag strategy
-   - Color palette (hex codes)
-
-${request.context ? `\nBUSINESS CONTEXT: ${request.context}` : ''}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-IMPORTANT SCORING RULES:
-- Score 1-4: Unusable, serious technical flaws
-- Score 5-6: Poor quality, needs significant improvement
-- Score 7-8: Good quality, usable with minor edits
-- Score 9-10: Excellent quality, professional standard
-
-BE STRICT! Jangan terlalu murah hati dengan score. Better honest feedback than false hope!
-━━━━━━━━━━━━━━━━━━━━━━━
-
-Output dalam format yang CLEAR dengan breakdown score per komponen!`
-
-    const completion = await client.chat.completions.create({
-      model: 'Llama 4 Maverick',
-      messages: [
-        {
-          role: 'system',
-          content: 'Kamu adalah STRICT photography critic & visual marketing expert dengan 10+ years experience. Your role: memberikan penilaian yang JUJUR dan OBJEKTIF pada kualitas foto - JANGAN terlalu murah hati dengan score! You specialize in food photography standards, technical photography assessment (exposure, focus, composition), dan social media marketing untuk UMKM. Be honest about technical flaws like blur, poor lighting, bad composition. Your feedback harus membantu clients improve quality, not give false confidence.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 1800,
+    if (!request.imageBase64) {
+      throw new Error('Image base64 required for analysis')
+    }
+    
+    // Use Sightengine for real image quality analysis
+    const sightengineResult: SightengineAnalysisResult = await analyzeImageWithSightengine(request.imageBase64)
+    
+    console.log('✅ Image analysis complete:', {
+      qualityScore: sightengineResult.qualityScore,
+      viralScore: sightengineResult.viralScore,
+      needsRetake: sightengineResult.needsRetake
     })
     
-    const analysisText = completion.choices[0].message.content?.trim() || ''
-    
-    // Parse output (simplified - in production, use structured output)
+    // Return formatted response
     return {
-      analysis: analysisText,
-      suggestions: extractSuggestions(analysisText),
-      marketingTips: extractMarketingTips(analysisText),
-      bestTimeToPost: extractBestTime(analysisText),
-      hashtags: extractHashtags(analysisText),
-      colorPalette: extractColors(analysisText),
+      analysis: sightengineResult.analysis,
+      suggestions: sightengineResult.suggestions,
+      marketingTips: [
+        'Post di jam makan (11-13 & 18-20 WIB) untuk maximize engagement',
+        'Tag lokasi Makassar untuk local discovery',
+        'Gunakan Story polls & questions untuk boost interaction',
+        'Collaborate dengan food blogger lokal'
+      ],
+      bestTimeToPost: [
+        'Senin-Jumat: 11:00-13:00 WIB (Lunch peak)',
+        'Sabtu-Minggu: 18:00-20:00 WIB (Dinner time)',
+        'Story: 07:00-09:00 WIB (Morning commute)'
+      ],
+      hashtags: [
+        '#KulinerMakassar',
+        '#MakananMakassar',
+        '#FoodGram',
+        '#UMKMMakassar',
+        '#InstaFoodMakassar',
+        '#MakassarFoodies',
+        '#Enak',
+        '#FoodPhotography',
+        '#SulawesiSelatan',
+        '#ExploreIndonesia'
+      ],
+      colorPalette: ['#FF6B4A', '#FFB84D', '#FFF5E1', '#8B4513', '#CD853F'],
       metadata: {
         analyzedAt: new Date().toISOString(),
-        model: 'Llama 4 Maverick',
+        engine: 'Sightengine AI + Sharp.js',
+        qualityScore: sightengineResult.qualityScore,
+        viralScore: sightengineResult.viralScore,
+        needsRetake: sightengineResult.needsRetake,
+        detailedScores: sightengineResult.detailedScores
       }
     }
   } catch (error: any) {

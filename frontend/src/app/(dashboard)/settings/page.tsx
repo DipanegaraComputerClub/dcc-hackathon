@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,62 +11,338 @@ import {
   User,
   Store,
   Image,
-  MessageCircle
+  MessageCircle,
+  Loader2,
+  Edit,
+  ExternalLink
 } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export default function SettingsPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+
   const [settings, setSettings] = useState({
-    name: "Admin User",
-    email: "admin@example.com",
-    storeName: "UMKM Makassar",
-    storeLocation: "Makassar, Indonesia",
-    storeDescription: "Menjual makanan khas Makassar.",
+    business_name: "",
+    category: "Kuliner / Makanan",
+    address: "",
+    phone: "",
+    email: "",
+    description: "",
     tone: "friendly",
-    logo: null as File | null,
-    productImage: null as File | null,
   });
 
   const { addToast } = useToast();
 
-  const handleSave = () => {
-    addToast({
-      title: "Settings Saved",
-      description: "Pengaturan berhasil disimpan.",
-      variant: "success",
-    });
+  // Load profile on mount
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  // Update form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setSettings({
+        business_name: profile.business_name || "",
+        category: profile.category || "Kuliner / Makanan",
+        address: profile.address || "",
+        phone: profile.phone || "",
+        email: profile.email || "",
+        description: profile.description || "",
+        tone: "friendly"
+      });
+      setLogoPreview(profile.logo_url || "");
+    }
+  }, [profile]);
+
+  const loadProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setProfile(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!settings.business_name) {
+      addToast({
+        title: "Error",
+        description: "Nama bisnis wajib diisi!",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: profile?.id,
+          ...settings
+        })
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setProfile(data.data);
+        addToast({
+          title: "Berhasil! ✅",
+          description: "Settings berhasil disimpan & landing page sudah diupdate!",
+          variant: "success",
+        });
+        
+        // Trigger landing page refresh
+        if (typeof window !== 'undefined') {
+          // For other tabs
+          localStorage.setItem('profile_updated', Date.now().toString());
+          // For same tab (if landing page is in iframe/embedded)
+          window.dispatchEvent(new Event('profileUpdated'));
+        }
+      } else {
+        addToast({
+          title: "Error",
+          description: data.message || "Gagal menyimpan settings",
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      addToast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menyimpan",
+        variant: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) {
+      if (!profile?.id) {
+        addToast({
+          title: "Perhatian",
+          description: "Simpan profil terlebih dahulu sebelum upload logo",
+          variant: "error",
+        });
+      }
+      return;
+    }
+
+    // Validate
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      addToast({
+        title: "Format Salah",
+        description: "Format file harus JPEG, PNG, WebP, atau GIF",
+        variant: "error",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      addToast({
+        title: "File Terlalu Besar",
+        description: "Ukuran file maksimal 5MB",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+
+      // Preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('profile_id', profile.id);
+
+      const res = await fetch(`${API_URL}/api/dapur-umkm/upload-logo`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setProfile(data.data.profile);
+        addToast({
+          title: "Logo Uploaded! 🎨",
+          description: "Logo berhasil diupload & landing page sudah diupdate!",
+          variant: "success",
+        });
+        
+        // Trigger landing page refresh
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('profile_updated', Date.now().toString());
+          window.dispatchEvent(new Event('profileUpdated'));
+        }
+      } else {
+        addToast({
+          title: "Upload Gagal",
+          description: data.message || "Gagal upload logo",
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      addToast({
+        title: "Error",
+        description: "Terjadi kesalahan saat upload logo",
+        variant: "error",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-8 pb-6">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-            Brand Settings
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Kelola akun dan brand UMKM Anda.
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              Settings UMKM
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              Kelola profil bisnis - perubahan akan langsung terlihat di landing page.
+            </p>
+          </div>
+
         </div>
 
-        {/* GRID COMPONENTS */}
-        <div className="grid gap-6 md:grid-cols-2">
+        {/* SINGLE COLUMN LAYOUT */}
+        <div className="space-y-6 max-w-4xl">
           
-          {/* PROFILE SETTINGS */}
+          {/* TELEGRAM BOT INFO */}
+          {profile?.id && (
+            <Card className="shadow-sm border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-blue-900 dark:text-blue-100">Telegram Bot - Kode Bisnis</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+                    Gunakan kode ini untuk login ke Telegram Bot dan akses laporan keuangan
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-4 py-3 bg-white dark:bg-gray-900 border border-blue-300 dark:border-blue-700 rounded-md text-sm font-mono text-blue-900 dark:text-blue-100 select-all">
+                      {profile.id}
+                    </code>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(profile.id);
+                        addToast({
+                          title: "Copied! 📋",
+                          description: "Kode bisnis berhasil dicopy",
+                          variant: "success",
+                        });
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-900 rounded-md p-4 border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    📱 Cara Pakai Telegram Bot:
+                  </p>
+                  <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
+                    <li>Buka Telegram, cari bot: <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">@dcc_hackathon_bot</code></li>
+                    <li>Kirim: <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">/start</code></li>
+                    <li>Login dengan kode di atas: <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">/login {profile.id.substring(0, 8)}...</code></li>
+                    <li>Gunakan <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">/menu</code> untuk lihat opsi</li>
+                  </ol>
+                  
+                  <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      💡 Dengan bot, Anda bisa: Lihat laporan keuangan, Kirim evaluasi ke tim, Cek ringkasan bisnis
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* BUSINESS PROFILE CARD */}
           <Card className="shadow-sm border">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-600" />
-                <CardTitle>Profile</CardTitle>
+                <Store className="h-5 w-5 text-blue-600" />
+                <CardTitle>Profil Bisnis UMKM</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
 
-              <div>
-                <label className="text-sm text-gray-600 dark:text-gray-300">Nama</label>
-                <Input
-                  value={settings.name}
-                  onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    Nama Bisnis <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={settings.business_name}
+                    onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
+                    placeholder="Contoh: Coto Makassar Pak Amir"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">Kategori</label>
+                  <select
+                    value={settings.category}
+                    onChange={(e) => setSettings({ ...settings, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                  >
+                    <option value="Kuliner / Makanan">Kuliner / Makanan</option>
+                    <option value="Fashion / Pakaian">Fashion / Pakaian</option>
+                    <option value="Kerajinan Tangan">Kerajinan Tangan</option>
+                    <option value="Jasa">Jasa</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">Alamat</label>
+                  <Input
+                    value={settings.address}
+                    onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                    placeholder="Jl. Pengayoman No. 10, Makassar"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">Nomor Telepon</label>
+                  <Input
+                    value={settings.phone}
+                    onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                    placeholder="0812-3456-7890"
+                  />
+                </div>
               </div>
 
               <div>
@@ -75,133 +351,89 @@ export default function SettingsPage() {
                   type="email"
                   value={settings.email}
                   onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                />
-              </div>
-
-              <Button onClick={handleSave} className="w-full">
-                Simpan Profile
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* UMKM INFO */}
-          <Card className="shadow-sm border">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Store className="h-5 w-5 text-blue-600" />
-                <CardTitle>UMKM Info</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-
-              <div>
-                <label className="text-sm">Nama Toko / Brand</label>
-                <Input
-                  value={settings.storeName}
-                  onChange={(e) =>
-                    setSettings({ ...settings, storeName: e.target.value })
-                  }
+                  placeholder="bisnis@example.com"
                 />
               </div>
 
               <div>
-                <label className="text-sm">Lokasi</label>
-                <Input
-                  value={settings.storeLocation}
-                  onChange={(e) =>
-                    setSettings({ ...settings, storeLocation: e.target.value })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="text-sm">Deskripsi</label>
+                <label className="text-sm text-gray-600 dark:text-gray-300">Deskripsi Bisnis</label>
                 <Textarea
-                  value={settings.storeDescription}
-                  onChange={(e) =>
-                    setSettings({ ...settings, storeDescription: e.target.value })
-                  }
+                  value={settings.description}
+                  onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+                  placeholder="Ceritakan tentang bisnis UMKM Anda..."
+                  rows={4}
                 />
               </div>
-
-              <Button onClick={handleSave} className="w-full">
-                Simpan UMKM
-              </Button>
             </CardContent>
           </Card>
 
-          {/* UPLOAD MEDIA */}
+          {/* LOGO UPLOAD CARD */}
           <Card className="shadow-sm border">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Image className="h-5 w-5 text-blue-600" />
-                <CardTitle>Brand Media</CardTitle>
+                <CardTitle>Logo UMKM</CardTitle>
               </div>
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm">Logo UMKM</label>
-                <Input
-                  type="file"
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      logo: e.target.files?.[0] || null,
-                    })
-                  }
-                />
-              </div>
+              {logoPreview && (
+                <div className="flex justify-center">
+                  <img 
+                    src={logoPreview} 
+                    alt="Logo Preview" 
+                    className="h-32 w-32 object-contain rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+              )}
 
               <div>
-                <label className="text-sm">Foto Produk</label>
+                <label className="text-sm text-gray-600 dark:text-gray-300 block mb-2">
+                  Upload Logo (JPEG, PNG, WebP, GIF - Max 5MB)
+                </label>
                 <Input
                   type="file"
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      productImage: e.target.files?.[0] || null,
-                    })
-                  }
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  onChange={handleLogoUpload}
+                  disabled={isUploadingLogo || !profile?.id}
+                  className="cursor-pointer"
                 />
+                {!profile?.id && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    💡 Simpan profil terlebih dahulu sebelum upload logo
+                  </p>
+                )}
               </div>
 
-              <Button onClick={handleSave} className="w-full">
-                Upload
-              </Button>
+              {isUploadingLogo && (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Uploading logo...</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* TONE OF VOICE */}
-          <Card className="shadow-sm border">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-blue-600" />
-                <CardTitle>Tone of Voice</CardTitle>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              <label className="text-sm">Gaya Bahasa Brand</label>
-
-              <select
-                className="w-full rounded-lg border p-2 bg-white dark:bg-gray-900"
-                value={settings.tone}
-                onChange={(e) =>
-                  setSettings({ ...settings, tone: e.target.value })
-                }
-              >
-                <option value="friendly">Friendly & Ramah</option>
-                <option value="professional">Professional</option>
-                <option value="energetic">Energetic</option>
-                <option value="funny">Lucu & Santai</option>
-              </select>
-
-              <Button onClick={handleSave} className="w-full">
-                Simpan Tone
-              </Button>
-            </CardContent>
-          </Card>
+          {/* SAVE BUTTON */}
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleSaveProfile}
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Simpan Semua Perubahan
+                </>
+              )}
+            </Button>
+          </div>
 
         </div>
       </div>

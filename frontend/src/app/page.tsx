@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +16,47 @@ import {
   CheckCircle2
 } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export default function Home() {
+  const [umkmProfile, setUmkmProfile] = useState<any>(null);
+
+  const loadProfile = () => {
+    fetch(`${API_URL}/api/dapur-umkm/public/profile`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setUmkmProfile(data.data);
+        }
+      })
+      .catch(err => console.error('Error loading UMKM profile:', err));
+  };
+
+  useEffect(() => {
+    // Load UMKM profile for dynamic branding
+    loadProfile();
+
+    // Listen for profile updates from settings page
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'profile_updated') {
+        loadProfile();
+      }
+    };
+
+    // Listen for localStorage changes (from other tabs)
+    window.addEventListener('storage', handleStorageChange);
+
+    // Listen for same-tab updates (custom event)
+    const handleProfileUpdate = () => {
+      loadProfile();
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, []);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#020617] relative overflow-hidden selection:bg-red-500 selection:text-white">
       
@@ -64,10 +107,20 @@ export default function Home() {
       {/* === NAVBAR === */}
       <nav className="relative z-10 w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto animate-in fade-in slide-in-from-top-4 duration-1000">
         <div className="flex items-center gap-2 font-bold text-xl text-gray-900 dark:text-white group cursor-pointer">
-            <div className="bg-gradient-to-br from-red-600 to-red-800 p-2 rounded-lg text-white shadow-lg shadow-red-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
+            {umkmProfile?.logo_url ? (
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden shadow-lg shadow-red-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
+                <img 
+                  src={umkmProfile.logo_url} 
+                  alt={umkmProfile.business_name || "Logo"} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-red-600 to-red-800 p-2 rounded-lg text-white shadow-lg shadow-red-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
                 <Store className="h-5 w-5" />
-            </div>
-            <span className="tracking-tight">TABE AI</span>
+              </div>
+            )}
+            <span className="tracking-tight">{umkmProfile?.business_name || "TABE AI"}</span>
         </div>
         <div className="flex gap-3 md:gap-4">
             <Link href="/login">
@@ -121,6 +174,82 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+
+          {/* UMKM Profile Showcase (if available) */}
+          {umkmProfile && (
+            <div className="mt-16 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-700">
+              <div className="text-center mb-4">
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium">
+                  <CheckCircle2 className="h-4 w-4" />
+                  UMKM Verified Partner
+                </span>
+              </div>
+              
+              <div className="group relative p-8 bg-gradient-to-br from-white via-white to-red-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-red-950/30 backdrop-blur-lg rounded-3xl border-2 border-red-200/50 dark:border-red-900/50 shadow-2xl hover:shadow-red-500/20 transition-all duration-500 hover:scale-[1.02]">
+                {/* Decorative corner accent */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-500/10 to-transparent rounded-bl-3xl"></div>
+                
+                <div className="relative">
+                  {/* Logo & Name */}
+                  <div className="flex items-center gap-4 mb-6">
+                    {umkmProfile.logo_url ? (
+                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-xl border-2 border-red-200 dark:border-red-800 group-hover:scale-110 transition-transform duration-300">
+                        <img 
+                          src={umkmProfile.logo_url} 
+                          alt={umkmProfile.business_name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-xl">
+                        <Store className="w-10 h-10 text-white" />
+                      </div>
+                    )}
+                    
+                    <div className="flex-1 text-left">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        {umkmProfile.business_name}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-block px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm font-medium">
+                          {umkmProfile.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Description */}
+                  {umkmProfile.description && (
+                    <div className="mb-4 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {umkmProfile.description}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Location */}
+                  {umkmProfile.address && (
+                    <div className="flex items-start gap-3 p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200/50 dark:border-blue-900/50">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <span className="text-xl">📍</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Lokasi</p>
+                        <p className="text-gray-700 dark:text-gray-300">{umkmProfile.address}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Powered by badge */}
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+                    <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+                      Powered by <span className="font-semibold text-red-600 dark:text-red-400">TABE AI</span> - Platform UMKM Makassar
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
