@@ -10,8 +10,10 @@ bun.lockb
 # Build output
 dist/
 build/
-*.js
+index.js
+index.js.map
 *.js.map
+!api/**/*.js
 !src/**/*.ts
 
 # IDE
