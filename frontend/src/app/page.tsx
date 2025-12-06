@@ -21,8 +21,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export default function Home() {
   const [umkmProfile, setUmkmProfile] = useState<any>(null);
 
-  useEffect(() => {
-    // Load UMKM profile for dynamic branding
+  const loadProfile = () => {
     fetch(`${API_URL}/api/dapur-umkm/public/profile`)
       .then(res => res.json())
       .then(data => {
@@ -31,6 +30,32 @@ export default function Home() {
         }
       })
       .catch(err => console.error('Error loading UMKM profile:', err));
+  };
+
+  useEffect(() => {
+    // Load UMKM profile for dynamic branding
+    loadProfile();
+
+    // Listen for profile updates from settings page
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'profile_updated') {
+        loadProfile();
+      }
+    };
+
+    // Listen for localStorage changes (from other tabs)
+    window.addEventListener('storage', handleStorageChange);
+
+    // Listen for same-tab updates (custom event)
+    const handleProfileUpdate = () => {
+      loadProfile();
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
   }, []);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#020617] relative overflow-hidden selection:bg-red-500 selection:text-white">
