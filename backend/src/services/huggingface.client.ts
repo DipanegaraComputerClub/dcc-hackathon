@@ -10,9 +10,9 @@ interface HFGenerationResult {
 }
 
 const ACTIVE_MODELS = [
-  { name: 'stabilityai/stable-diffusion-xl-base-1.0', steps: 30, cfg: 7.5 },
-  { name: 'prompthero/openjourney-v4', steps: 25, cfg: 7 },
-  { name: 'runwayml/stable-diffusion-v1-5', steps: 30, cfg: 7.5 }
+  { name: 'Lykon/dreamshaper-8', steps: 25, cfg: 7 },
+  { name: 'SG161222/Realistic_Vision_V5.1_noVAE', steps: 30, cfg: 7.5 },
+  { name: 'stablediffusionapi/realistic-vision-v51', steps: 25, cfg: 7 }
 ]
 
 export async function generateWithHuggingFace(prompt: string): Promise<HFGenerationResult> {

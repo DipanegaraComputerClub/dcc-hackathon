@@ -877,4 +877,76 @@ app.get('/api/visual-studio/history', async (c) => {
   }
 })
 
+// ================================
+// TANYA DAENG - AI CHATBOT UMKM
+// ================================
+
+app.post('/api/tanya-daeng/chat', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { message, conversationHistory, userContext, userId } = body
+
+    if (!message) {
+      return c.json({ 
+        error: 'Validation error', 
+        message: 'Message wajib diisi' 
+      }, 400)
+    }
+
+    console.log('💬 Tanya Daeng request:', { message: message.substring(0, 50), userId })
+
+    const { tanyaDaeng } = await import('./tanya-daeng')
+    const result = await tanyaDaeng({
+      message,
+      conversationHistory,
+      userContext
+    })
+
+    // Save to database (optional)
+    if (userId) {
+      await supabase
+        .from('tanya_daeng_conversations')
+        .insert([{
+          user_id: userId,
+          message,
+          reply: result.reply,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+    }
+
+    return c.json({
+      success: true,
+      data: result
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/tanya-daeng/chat:', error)
+    return c.json({ 
+      error: 'Gagal memproses chat', 
+      message: error.message 
+    }, 500)
+  }
+})
+
+// Get all FAQ
+app.get('/api/tanya-daeng/faq', async (c) => {
+  try {
+    const { getAllFAQ } = await import('./tanya-daeng')
+    const faqs = getAllFAQ()
+
+    return c.json({
+      success: true,
+      data: faqs
+    })
+
+  } catch (error: any) {
+    console.error('Error in /api/tanya-daeng/faq:', error)
+    return c.json({ 
+      error: 'Gagal mengambil FAQ', 
+      message: error.message 
+    }, 500)
+  }
+})
+
 export default app
