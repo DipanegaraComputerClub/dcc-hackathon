@@ -422,16 +422,31 @@ async function handleLoginCommand(bot: TelegramBot, msg: any) {
   const businessCode = text.split(' ')[1];
 
   if (!businessCode) {
-    await bot.sendMessage(chatId, '❌ Format: /login [kode_bisnis]\n\nContoh: /login COTOMKS01');
+    await bot.sendMessage(chatId, '❌ Format: /login [kode_bisnis_atau_id]\n\nContoh:\n/login COTOMKS01\natau\n/login ac4868b7-42e7-4a79-9916-7da1035868c4');
     return;
   }
 
-  // Find profile by business code
-  const { data: profiles } = await supabase
-    .from('umkm_profiles')
-    .select('id, business_name')
-    .ilike('business_name', `%${businessCode}%`)
-    .limit(1);
+  // Check if it's a UUID format
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessCode);
+  
+  let profiles;
+  if (isUUID) {
+    // Search by profile ID
+    const { data } = await supabase
+      .from('umkm_profiles')
+      .select('id, business_name')
+      .eq('id', businessCode)
+      .limit(1);
+    profiles = data;
+  } else {
+    // Search by business name
+    const { data } = await supabase
+      .from('umkm_profiles')
+      .select('id, business_name')
+      .ilike('business_name', `%${businessCode}%`)
+      .limit(1);
+    profiles = data;
+  }
 
   if (!profiles || profiles.length === 0) {
     await bot.sendMessage(chatId, '❌ Kode bisnis tidak ditemukan. Coba lagi atau hubungi admin.');

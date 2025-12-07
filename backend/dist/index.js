@@ -79448,12 +79448,23 @@ async function handleLoginCommand(bot2, msg) {
   const text = msg.text || "";
   const businessCode = text.split(" ")[1];
   if (!businessCode) {
-    await bot2.sendMessage(chatId, `❌ Format: /login [kode_bisnis]
+    await bot2.sendMessage(chatId, `❌ Format: /login [kode_bisnis_atau_id]
 
-Contoh: /login COTOMKS01`);
+Contoh:
+/login COTOMKS01
+atau
+/login ac4868b7-42e7-4a79-9916-7da1035868c4`);
     return;
   }
-  const { data: profiles } = await supabase.from("umkm_profiles").select("id, business_name").ilike("business_name", `%${businessCode}%`).limit(1);
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessCode);
+  let profiles;
+  if (isUUID) {
+    const { data } = await supabase.from("umkm_profiles").select("id, business_name").eq("id", businessCode).limit(1);
+    profiles = data;
+  } else {
+    const { data } = await supabase.from("umkm_profiles").select("id, business_name").ilike("business_name", `%${businessCode}%`).limit(1);
+    profiles = data;
+  }
   if (!profiles || profiles.length === 0) {
     await bot2.sendMessage(chatId, "❌ Kode bisnis tidak ditemukan. Coba lagi atau hubungi admin.");
     return;
