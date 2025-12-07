@@ -62165,7 +62165,7 @@ var require_request = __commonJS((exports2, module2) => {
     } else {
       var date = new Date;
       self2.setHeader("date", date.toUTCString());
-      var auth = {
+      var auth2 = {
         key: opts.key,
         secret: opts.secret,
         verb: self2.method.toUpperCase(),
@@ -62176,16 +62176,16 @@ var require_request = __commonJS((exports2, module2) => {
       };
       var path2 = self2.uri.path;
       if (opts.bucket && path2) {
-        auth.resource = "/" + opts.bucket + path2;
+        auth2.resource = "/" + opts.bucket + path2;
       } else if (opts.bucket && !path2) {
-        auth.resource = "/" + opts.bucket;
+        auth2.resource = "/" + opts.bucket;
       } else if (!opts.bucket && path2) {
-        auth.resource = path2;
+        auth2.resource = path2;
       } else if (!opts.bucket && !path2) {
-        auth.resource = "/";
+        auth2.resource = "/";
       }
-      auth.resource = aws2.canonicalizeResource(auth.resource);
-      self2.setHeader("authorization", aws2.authorization(auth));
+      auth2.resource = aws2.canonicalizeResource(auth2.resource);
+      self2.setHeader("authorization", aws2.authorization(auth2));
     }
     return self2;
   };
@@ -79147,6 +79147,179 @@ function getAllFAQ() {
   }));
 }
 
+// backend/src/auth.ts
+var auth = new Hono2;
+auth.post("/register", async (c) => {
+  try {
+    const { email, password, name, business_name, category, phone } = await c.req.json();
+    if (!email || !password) {
+      return c.json({ error: "Email dan password wajib diisi" }, 400);
+    }
+    if (password.length < 6) {
+      return c.json({ error: "Password minimal 6 karakter" }, 400);
+    }
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name || email.split("@")[0]
+        }
+      }
+    });
+    if (authError) {
+      console.error("Auth error:", authError);
+      if (authError.message.includes("already registered")) {
+        return c.json({ error: "Email sudah terdaftar" }, 400);
+      }
+      return c.json({ error: authError.message }, 400);
+    }
+    if (!authData.user) {
+      return c.json({ error: "Gagal membuat akun" }, 400);
+    }
+    const { data: profile, error: profileError } = await supabase.from("umkm_profiles").insert([{
+      user_id: authData.user.id,
+      business_name: business_name || name || "UMKM Baru",
+      category: category || "Kuliner",
+      phone: phone || "",
+      address: "",
+      description: ""
+    }]).select().single();
+    if (profileError) {
+      console.error("Profile error:", profileError);
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return c.json({ error: "Gagal membuat profile" }, 500);
+    }
+    return c.json({
+      message: "Registrasi berhasil! Silakan login.",
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        name: name || email.split("@")[0],
+        profile_id: profile.id
+      }
+    }, 201);
+  } catch (error2) {
+    console.error("Register error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.post("/login", async (c) => {
+  try {
+    const { email, password } = await c.req.json();
+    if (!email || !password) {
+      return c.json({ error: "Email dan password wajib diisi" }, 400);
+    }
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if (authError) {
+      console.error("Login error:", authError);
+      return c.json({ error: "Email atau password salah" }, 401);
+    }
+    if (!authData.user || !authData.session) {
+      return c.json({ error: "Login gagal" }, 401);
+    }
+    const { data: profile, error: profileError } = await supabase.from("umkm_profiles").select("*").eq("user_id", authData.user.id).single();
+    if (profileError) {
+      console.error("Profile error:", profileError);
+    }
+    return c.json({
+      message: "Login berhasil",
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        name: authData.user.user_metadata?.name || email.split("@")[0],
+        profile_id: profile?.id || null,
+        business_name: profile?.business_name || null,
+        category: profile?.category || null
+      },
+      session: {
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+        expires_at: authData.session.expires_at
+      }
+    });
+  } catch (error2) {
+    console.error("Login error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.post("/logout", async (c) => {
+  try {
+    const authHeader = c.req.header("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
+    if (!token) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    const { error: error2 } = await supabase.auth.signOut();
+    if (error2) {
+      console.error("Logout error:", error2);
+      return c.json({ error: "Logout gagal" }, 500);
+    }
+    return c.json({ message: "Logout berhasil" });
+  } catch (error2) {
+    console.error("Logout error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.get("/me", async (c) => {
+  try {
+    const authHeader = c.req.header("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
+    if (!token) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      return c.json({ error: "Invalid token" }, 401);
+    }
+    const { data: profile, error: profileError } = await supabase.from("umkm_profiles").select("*").eq("user_id", user.id).single();
+    if (profileError) {
+      console.error("Profile error:", profileError);
+    }
+    return c.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.email?.split("@")[0],
+        profile_id: profile?.id || null,
+        business_name: profile?.business_name || null,
+        category: profile?.category || null
+      }
+    });
+  } catch (error2) {
+    console.error("Get user error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.post("/refresh", async (c) => {
+  try {
+    const { refresh_token } = await c.req.json();
+    if (!refresh_token) {
+      return c.json({ error: "Refresh token required" }, 400);
+    }
+    const { data, error: error2 } = await supabase.auth.refreshSession({
+      refresh_token
+    });
+    if (error2 || !data.session) {
+      return c.json({ error: "Invalid refresh token" }, 401);
+    }
+    return c.json({
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at
+      }
+    });
+  } catch (error2) {
+    console.error("Refresh token error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+var auth_default = auth;
+
 // backend/src/telegram-bot.ts
 var import_node_telegram_bot_api = __toESM(require_node_telegram_bot_api(), 1);
 var TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
@@ -79617,6 +79790,7 @@ app.use("/*", cors({
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"]
 }));
+app.route("/auth", auth_default);
 app.get("/", (c) => c.text("Hono + Bun + Supabase Connected \uD83D\uDE80"));
 app.get("/menus", async (c) => {
   const { data, error: error2 } = await supabase.from("menus").select("*");

@@ -13,17 +13,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Mail, Lock, User, Store, ArrowRight, CheckCircle2, Eye, EyeOff, Sparkles } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    business_name: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   
   // State untuk intip password
   const [showPassword, setShowPassword] = useState(false);
@@ -31,24 +36,43 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (formData.password.length < 6) {
+      setError("Password minimal 6 karakter, Daeng!");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Password tidak cocok, Daeng! Cek lagi nah.");
+      setError("Password tidak cocok, Daeng! Cek lagi nah.");
       return;
     }
 
     if (!isChecked) {
-        alert("Centang dulu syarat & ketentuannya, Daeng.");
-        return;
+      setError("Centang dulu syarat & ketentuannya, Daeng.");
+      return;
     }
 
     setIsLoading(true);
 
-    // Simulasi Register
-    setTimeout(() => {
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        business_name: formData.business_name || formData.name,
+      });
+      
+      setSuccess("Registrasi berhasil! Silakan login.");
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || "Registrasi gagal. Coba lagi nah!");
+    } finally {
       setIsLoading(false);
-      router.push("/login");
-    }, 1500);
+    }
   };
 
   // --- STYLE KONSISTEN (ANTI TABRAKAN) ---
@@ -129,6 +153,21 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* NAMA BISNIS */}
+              <div className="space-y-1.5">
+                <label className={labelStyle}>Nama Bisnis (Opsional)</label>
+                <div className="relative group">
+                  <Store className={iconLeftStyle} />
+                  <Input
+                    type="text"
+                    placeholder="Contoh: Coto Makassar Enak"
+                    value={formData.business_name}
+                    onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                    className={inputStyle}
+                  />
+                </div>
+              </div>
+
               {/* PASSWORD */}
               <div className="space-y-1.5">
                 <label className={labelStyle}>Password</label>
@@ -174,6 +213,20 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
+
+              {/* ERROR MESSAGE */}
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                </div>
+              )}
+
+              {/* SUCCESS MESSAGE */}
+              {success && (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                  <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
+                </div>
+              )}
 
               {/* CHECKBOX */}
               <div className="flex items-start gap-3 pt-2">

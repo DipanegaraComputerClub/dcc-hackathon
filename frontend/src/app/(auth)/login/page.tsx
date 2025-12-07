@@ -13,9 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Sparkles, Store, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,23 +28,14 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    if (
-      formData.email !== "admin@example.com" ||
-      formData.password !== "password123"
-    ) {
-      setTimeout(() => {
-        setIsLoading(false);
-        setError("Email atau password salah ki', coba lagi nah!");
-      }, 500);
-      return;
-    }
-
-    setTimeout(() => {
-      localStorage.setItem("token", "demo_token_123");
-      localStorage.setItem("user", JSON.stringify({ name: "Daeng Kuliner", email: "admin@example.com" }));
-      setIsLoading(false);
+    try {
+      await login(formData.email, formData.password);
       router.push("/dashboard");
-    }, 800);
+    } catch (err: any) {
+      setError(err.message || "Email atau password salah ki', coba lagi nah!");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // --- STYLE BARU (LEBIH LEGA) ---
@@ -151,6 +144,13 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {/* ERROR MESSAGE */}
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                </div>
+              )}
 
               {/* TOMBOL LOGIN */}
               <Button

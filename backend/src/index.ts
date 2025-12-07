@@ -25,6 +25,7 @@ import {
   generateDashboardAnalysis 
 } from './dapur-umkm'
 import { tanyaDaeng, getAllFAQ } from './tanya-daeng'
+import auth from './auth'
 
 const app = new Hono()
 
@@ -39,6 +40,9 @@ app.use('/*', cors({
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
+
+// Auth routes
+app.route('/auth', auth)
 
 // Root
 app.get('/', (c) => c.text('Hono + Bun + Supabase Connected 🚀'))
