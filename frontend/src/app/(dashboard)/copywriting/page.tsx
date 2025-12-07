@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { Copy } from "lucide-react";
+import { API_URL } from "@/config/api";
 
 export default function FormsPage() {
   const [formData, setFormData] = useState({
@@ -63,7 +64,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   
   try {
     // Call backend API
-    const response = await fetch('http://localhost:3000/api/copywriting', {
+    const response = await fetch(`${API_URL}/copywriting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
