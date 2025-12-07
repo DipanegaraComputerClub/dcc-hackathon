@@ -59,30 +59,30 @@ _Contoh: /login ABC123_
     `, { parse_mode: 'Markdown' });
   });
 
-  // /login [profile_id] - Login boss
+  // /login [business_code] - Login boss
   bot.onText(/\/login (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const profileId = match?.[1]?.trim();
+    const businessCode = match?.[1]?.trim().toUpperCase();
 
-    if (!profileId) {
-      await bot.sendMessage(chatId, '❌ Format salah! Gunakan: /login [kode_bisnis]');
+    if (!businessCode) {
+      await bot.sendMessage(chatId, '❌ Format salah! Gunakan: /login [KODE_BISNIS]');
       return;
     }
 
-    // Verify profile exists
+    // Verify profile exists by business_code
     const { data: profile, error } = await supabase
       .from('umkm_profiles')
       .select('*')
-      .eq('id', profileId)
+      .eq('business_code', businessCode)
       .single();
 
     if (error || !profile) {
-      await bot.sendMessage(chatId, '❌ Kode bisnis tidak valid! Hubungi admin untuk mendapat kode.');
+      await bot.sendMessage(chatId, '❌ Kode bisnis tidak valid! Cek kode Anda di dashboard web atau hubungi admin.');
       return;
     }
 
-    // Save authorized user
-    authorizedUsers[chatId] = profileId;
+    // Save authorized user with profile id
+    authorizedUsers[chatId] = profile.id;
     
     await bot.sendMessage(chatId, `
 ✅ *Login Berhasil!*

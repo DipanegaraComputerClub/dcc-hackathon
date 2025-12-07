@@ -16,6 +16,7 @@ interface Profile {
   id: string;
   user_id: string;
   business_name: string | null;
+  business_code: string | null;
   phone: string | null;
   address: string | null;
   description: string | null;
@@ -32,6 +33,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
+  generateBusinessCode: () => Promise<string>;
 }
 
 interface RegisterData {
@@ -240,8 +242,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const generateBusinessCode = async (): Promise<string> => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      throw new Error('Tidak ada token autentikasi');
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/profile/generate-code`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Gagal generate kode bisnis');
+      }
+
+      // Refresh profile to get updated business_code
+      await refreshUser();
+      
+      return result.business_code;
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, login, loginWithGoogle, register, logout, refreshUser, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, login, loginWithGoogle, register, logout, refreshUser, updateProfile, generateBusinessCode }}>
       {children}
     </AuthContext.Provider>
   );

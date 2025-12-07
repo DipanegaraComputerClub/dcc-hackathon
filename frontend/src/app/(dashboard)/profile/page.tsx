@@ -10,9 +10,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, profile, updateProfile, refreshUser } = useAuth();
+  const { user, profile, updateProfile, refreshUser, generateBusinessCode } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
     business_name: "",
@@ -46,6 +47,20 @@ export default function ProfilePage() {
       setMessage(error.message || "Gagal memperbarui profil");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleGenerateCode = async () => {
+    setIsGenerating(true);
+    setMessage("");
+
+    try {
+      const code = await generateBusinessCode();
+      setMessage(`Kode bisnis berhasil digenerate: ${code}`);
+    } catch (error: any) {
+      setMessage(error.message || "Gagal generate kode bisnis");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -164,6 +179,105 @@ export default function ProfilePage() {
                 )}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Telegram Integration Card */}
+        <Card className="max-w-2xl border-purple-200 dark:border-purple-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-2xl">📱</span>
+              Integrasi Telegram Bot
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Gunakan kode bisnis ini untuk login ke Telegram Bot dan terima laporan bisnis langsung di chat Anda.
+            </p>
+
+            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-purple-700 dark:text-purple-400">
+                    KODE BISNIS ANDA
+                  </label>
+                  {profile?.business_code ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-2xl font-bold text-purple-900 dark:text-purple-300">
+                        {profile.business_code}
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          navigator.clipboard.writeText(profile.business_code || '');
+                          setMessage('Kode berhasil disalin!');
+                          setTimeout(() => setMessage(''), 2000);
+                        }}
+                        className="text-purple-600 hover:text-purple-700"
+                      >
+                        📋 Salin
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Belum ada kode. Generate kode terlebih dahulu.
+                    </p>
+                  )}
+                </div>
+                
+                {!profile?.business_code && (
+                  <Button
+                    onClick={handleGenerateCode}
+                    disabled={isGenerating}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      '✨ Generate Kode'
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <p className="font-medium">📝 Cara menggunakan:</p>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-400">
+                <li>Buka Telegram dan cari bot: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">@YourBotName</code></li>
+                <li>Ketik <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/start</code> untuk memulai</li>
+                <li>Login dengan kode: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/login {profile?.business_code || 'KODE_ANDA'}</code></li>
+                <li>Gunakan <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/menu</code> untuk melihat fitur</li>
+              </ol>
+            </div>
+
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-blue-700 dark:text-blue-400">
+                💡 <strong>Tips:</strong> Simpan kode ini dengan aman. Jika lupa, Anda bisa generate ulang kode baru kapan saja.
+              </p>
+            </div>
+
+            {profile?.business_code && (
+              <Button
+                onClick={handleGenerateCode}
+                disabled={isGenerating}
+                variant="secondary"
+                className="w-full"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  '🔄 Generate Kode Baru'
+                )}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
