@@ -1820,15 +1820,5 @@ if (process.env.TELEGRAM_BOT_TOKEN && !isVercel) {
 // SERVER STARTUP & EXPORT
 // ============================================
 
-// For Vercel serverless deployment
+// Export for Vercel serverless
 export default app
-
-// For local development with Bun
-if (!isVercel && import.meta.main) {
-  const port = Number(process.env.PORT) || 3000
-  console.log(`Started development server: http://localhost:${port}`)
-  Bun.serve({
-    port,
-    fetch: app.fetch,
-  })
-}

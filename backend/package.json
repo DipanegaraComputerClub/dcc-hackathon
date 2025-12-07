@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "dev": "bun run --hot src/server.ts",
     "build": "mkdir -p dist && bun build src/index.ts --outfile dist/index.js --target node --external sharp --external node-telegram-bot-api --external @supabase/supabase-js --external openai --external axios"
   },
   "dependencies": {
