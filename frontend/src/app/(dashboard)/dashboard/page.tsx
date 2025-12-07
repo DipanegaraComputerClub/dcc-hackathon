@@ -23,8 +23,8 @@ import {
   BarChart3
 } from "lucide-react";
 import Link from "next/link";
+import { API_URL } from "@/config/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface DashboardData {
   profile: any;

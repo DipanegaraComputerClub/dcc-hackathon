@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "@/config/api";
 
 import { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -10,7 +11,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 type Message = {
   id: number;

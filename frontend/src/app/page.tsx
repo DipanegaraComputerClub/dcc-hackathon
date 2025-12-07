@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "@/config/api";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -16,7 +17,6 @@ import {
   CheckCircle2
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function Home() {
   const [umkmProfile, setUmkmProfile] = useState<any>(null);

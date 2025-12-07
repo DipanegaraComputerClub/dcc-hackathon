@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "@/config/api";
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -17,7 +18,6 @@ import {
   ExternalLink
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);

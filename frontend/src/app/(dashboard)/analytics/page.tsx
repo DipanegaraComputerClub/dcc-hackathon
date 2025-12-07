@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "@/config/api";
 
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -21,7 +22,6 @@ import {
   Printer
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface Transaction {
   id: string;
