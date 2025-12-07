@@ -1,0 +1,13 @@
+{
+  "name": "dcc-hackathon-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd backend && bun run build",
+    "install:backend": "cd backend && bun install"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
