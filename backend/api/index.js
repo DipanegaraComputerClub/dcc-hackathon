@@ -4,6 +4,7 @@
  */
 
 const path = require('path');
+const fs = require('fs');
 
 // We'll import the compiled app from the build output
 let app;
@@ -13,20 +14,42 @@ module.exports = async (req, res) => {
     // Lazy load the app
     if (!app) {
       try {
-        // Try multiple paths for Vercel compatibility (monorepo structure)
-        let honoApp;
-        try {
-          // Try relative path from api/ (works locally and on Vercel)
-          honoApp = require('../dist/index.js');
-        } catch (e1) {
-          try {
-            // Try absolute path for Vercel monorepo (backend subfolder)
-            honoApp = require('/var/task/backend/dist/index.js');
-          } catch (e2) {
-            // Try from root with backend prefix
-            honoApp = require('./backend/dist/index.js');
+        // Debug: Check if file exists in different locations
+        const possiblePaths = [
+          path.join(__dirname, '../dist/index.js'),
+          path.join(process.cwd(), 'backend/dist/index.js'),
+          path.join(process.cwd(), 'dist/index.js'),
+          '/var/task/backend/dist/index.js'
+        ];
+        
+        let foundPath = null;
+        for (const testPath of possiblePaths) {
+          if (fs.existsSync(testPath)) {
+            foundPath = testPath;
+            break;
           }
         }
+        
+        if (!foundPath) {
+          return res.status(500).json({ 
+            error: 'Build not found',
+            message: 'dist/index.js not found in any expected location',
+            debug: {
+              cwd: process.cwd(),
+              dirname: __dirname,
+              testedPaths: possiblePaths,
+              dirContents: {
+                cwd: fs.readdirSync(process.cwd()),
+                backend: fs.existsSync(path.join(process.cwd(), 'backend')) 
+                  ? fs.readdirSync(path.join(process.cwd(), 'backend'))
+                  : 'not found'
+              }
+            }
+          });
+        }
+        
+        // Try to require the found path
+        const honoApp = require(foundPath);
         app = honoApp.default || honoApp;
       } catch (err) {
         console.error('Failed to load Hono app:', err);
@@ -34,18 +57,13 @@ module.exports = async (req, res) => {
         console.error('Dirname:', __dirname);
         
         return res.status(500).json({ 
-          error: 'Build not found',
-          message: 'Backend build output missing.',
-          hint: 'dist/index.js cannot be loaded',
+          error: 'Failed to load app',
+          message: 'Error loading dist/index.js',
           debug: {
             cwd: process.cwd(),
             dirname: __dirname,
             error: err.message,
-            attemptedPaths: [
-              path.join(__dirname, '../dist/index.js'),
-              '/var/task/backend/dist/index.js',
-              './backend/dist/index.js'
-            ]
+            stack: err.stack
           }
         });
       }
