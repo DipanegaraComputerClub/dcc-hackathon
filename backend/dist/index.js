@@ -79388,50 +79388,6 @@ Coba lagi dengan: /evaluasi [pesan Anda]`);
     bot.sendMessage(chatId, "✅ Anda telah logout. Gunakan /login untuk masuk lagi.");
   });
 }
-async function handleRingkasanCommand(msg) {
-  if (!bot)
-    return;
-  const chatId = msg.chat.id;
-  const profileId = authorizedUsers[chatId];
-  if (!profileId) {
-    await bot.sendMessage(chatId, "❌ Anda belum login! Gunakan /login [kode_bisnis]");
-    return;
-  }
-  await bot.sendMessage(chatId, "⏳ Mengambil data bisnis...");
-  try {
-    const metrics = await calculateBusinessMetrics(profileId);
-    const { data: profile } = await supabase.from("umkm_profiles").select("business_name, category").eq("id", profileId).single();
-    const { data: products } = await supabase.from("umkm_products").select("id, stock").eq("profile_id", profileId);
-    const lowStockCount = products?.filter((p) => Number(p.stock) > 0 && Number(p.stock) < 10).length || 0;
-    const outOfStockCount = products?.filter((p) => Number(p.stock) === 0).length || 0;
-    const summary = `
-\uD83D\uDCBC *RINGKASAN BISNIS*
-${profile?.business_name || "UMKM"}
-
-\uD83C\uDFEA Kategori: ${profile?.category || "-"}
-
-\uD83D\uDCCA *KEUANGAN:*
-• Total Pemasukan: Rp ${metrics.totalIncome.toLocaleString("id-ID")}
-• Total Pengeluaran: Rp ${metrics.totalExpense.toLocaleString("id-ID")}
-• Saldo: Rp ${metrics.balance.toLocaleString("id-ID")}
-
-\uD83D\uDCE6 *INVENTORY:*
-• Total Produk: ${metrics.productCount}
-• Stok Menipis: ${lowStockCount} produk
-• Habis Stok: ${outOfStockCount} produk
-
-${metrics.balance >= 0 ? "\uD83D\uDC9A Bisnis sehat!" : "⚠️ Perlu evaluasi!"}
-${lowStockCount > 0 ? `
-⚠️ ${lowStockCount} produk perlu restock!` : ""}
-
-_Update real-time dari dashboard admin._
-    `;
-    await bot.sendMessage(chatId, summary, { parse_mode: "Markdown" });
-  } catch (error2) {
-    console.error("Error generating summary:", error2);
-    await bot.sendMessage(chatId, "❌ Gagal mengambil data bisnis. Coba lagi nanti.");
-  }
-}
 async function handleTelegramWebhook(update) {
   if (!TELEGRAM_BOT_TOKEN) {
     console.error("Bot token not configured");
