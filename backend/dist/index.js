@@ -41,7 +41,7 @@ var __export = (target, all) => {
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 
-// backend/node_modules/delayed-stream/lib/delayed_stream.js
+// node_modules/delayed-stream/lib/delayed_stream.js
 var require_delayed_stream = __commonJS((exports2, module2) => {
   var Stream = require("stream").Stream;
   var util = require("util");
@@ -129,7 +129,7 @@ var require_delayed_stream = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/combined-stream/lib/combined_stream.js
+// node_modules/combined-stream/lib/combined_stream.js
 var require_combined_stream = __commonJS((exports2, module2) => {
   var util = require("util");
   var Stream = require("stream").Stream;
@@ -298,7 +298,7 @@ var require_combined_stream = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/mime-db/db.json
+// node_modules/mime-db/db.json
 var require_db = __commonJS((exports2, module2) => {
   module2.exports = {
     "application/1d-interleaved-parityfec": {
@@ -8821,7 +8821,7 @@ var require_db = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/mime-db/index.js
+// node_modules/mime-db/index.js
 var require_mime_db = __commonJS((exports2, module2) => {
   /*!
    * mime-db
@@ -8832,7 +8832,7 @@ var require_mime_db = __commonJS((exports2, module2) => {
   module2.exports = require_db();
 });
 
-// backend/node_modules/mime-types/index.js
+// node_modules/mime-types/index.js
 var require_mime_types = __commonJS((exports2) => {
   /*!
    * mime-types
@@ -8926,7 +8926,7 @@ var require_mime_types = __commonJS((exports2) => {
   }
 });
 
-// backend/node_modules/asynckit/lib/defer.js
+// node_modules/asynckit/lib/defer.js
 var require_defer = __commonJS((exports2, module2) => {
   module2.exports = defer;
   function defer(fn) {
@@ -8939,7 +8939,7 @@ var require_defer = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/lib/async.js
+// node_modules/asynckit/lib/async.js
 var require_async = __commonJS((exports2, module2) => {
   var defer = require_defer();
   module2.exports = async;
@@ -8960,7 +8960,7 @@ var require_async = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/lib/abort.js
+// node_modules/asynckit/lib/abort.js
 var require_abort = __commonJS((exports2, module2) => {
   module2.exports = abort;
   function abort(state) {
@@ -8974,7 +8974,7 @@ var require_abort = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/lib/iterate.js
+// node_modules/asynckit/lib/iterate.js
 var require_iterate = __commonJS((exports2, module2) => {
   var async = require_async();
   var abort = require_abort();
@@ -9005,7 +9005,7 @@ var require_iterate = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/lib/state.js
+// node_modules/asynckit/lib/state.js
 var require_state = __commonJS((exports2, module2) => {
   module2.exports = state;
   function state(list, sortMethod) {
@@ -9025,7 +9025,7 @@ var require_state = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/lib/terminator.js
+// node_modules/asynckit/lib/terminator.js
 var require_terminator = __commonJS((exports2, module2) => {
   var abort = require_abort();
   var async = require_async();
@@ -9040,7 +9040,7 @@ var require_terminator = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/parallel.js
+// node_modules/asynckit/parallel.js
 var require_parallel = __commonJS((exports2, module2) => {
   var iterate = require_iterate();
   var initState = require_state();
@@ -9065,7 +9065,7 @@ var require_parallel = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/serialOrdered.js
+// node_modules/asynckit/serialOrdered.js
 var require_serialOrdered = __commonJS((exports2, module2) => {
   var iterate = require_iterate();
   var initState = require_state();
@@ -9097,7 +9097,7 @@ var require_serialOrdered = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/serial.js
+// node_modules/asynckit/serial.js
 var require_serial = __commonJS((exports2, module2) => {
   var serialOrdered = require_serialOrdered();
   module2.exports = serial;
@@ -9106,7 +9106,7 @@ var require_serial = __commonJS((exports2, module2) => {
   }
 });
 
-// backend/node_modules/asynckit/index.js
+// node_modules/asynckit/index.js
 var require_asynckit = __commonJS((exports2, module2) => {
   module2.exports = {
     parallel: require_parallel(),
@@ -9115,84 +9115,84 @@ var require_asynckit = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/es-object-atoms/index.js
+// node_modules/es-object-atoms/index.js
 var require_es_object_atoms = __commonJS((exports2, module2) => {
   module2.exports = Object;
 });
 
-// backend/node_modules/es-errors/index.js
+// node_modules/es-errors/index.js
 var require_es_errors = __commonJS((exports2, module2) => {
   module2.exports = Error;
 });
 
-// backend/node_modules/es-errors/eval.js
+// node_modules/es-errors/eval.js
 var require_eval = __commonJS((exports2, module2) => {
   module2.exports = EvalError;
 });
 
-// backend/node_modules/es-errors/range.js
+// node_modules/es-errors/range.js
 var require_range = __commonJS((exports2, module2) => {
   module2.exports = RangeError;
 });
 
-// backend/node_modules/es-errors/ref.js
+// node_modules/es-errors/ref.js
 var require_ref = __commonJS((exports2, module2) => {
   module2.exports = ReferenceError;
 });
 
-// backend/node_modules/es-errors/syntax.js
+// node_modules/es-errors/syntax.js
 var require_syntax = __commonJS((exports2, module2) => {
   module2.exports = SyntaxError;
 });
 
-// backend/node_modules/es-errors/type.js
+// node_modules/es-errors/type.js
 var require_type = __commonJS((exports2, module2) => {
   module2.exports = TypeError;
 });
 
-// backend/node_modules/es-errors/uri.js
+// node_modules/es-errors/uri.js
 var require_uri = __commonJS((exports2, module2) => {
   module2.exports = URIError;
 });
 
-// backend/node_modules/math-intrinsics/abs.js
+// node_modules/math-intrinsics/abs.js
 var require_abs = __commonJS((exports2, module2) => {
   module2.exports = Math.abs;
 });
 
-// backend/node_modules/math-intrinsics/floor.js
+// node_modules/math-intrinsics/floor.js
 var require_floor = __commonJS((exports2, module2) => {
   module2.exports = Math.floor;
 });
 
-// backend/node_modules/math-intrinsics/max.js
+// node_modules/math-intrinsics/max.js
 var require_max = __commonJS((exports2, module2) => {
   module2.exports = Math.max;
 });
 
-// backend/node_modules/math-intrinsics/min.js
+// node_modules/math-intrinsics/min.js
 var require_min = __commonJS((exports2, module2) => {
   module2.exports = Math.min;
 });
 
-// backend/node_modules/math-intrinsics/pow.js
+// node_modules/math-intrinsics/pow.js
 var require_pow = __commonJS((exports2, module2) => {
   module2.exports = Math.pow;
 });
 
-// backend/node_modules/math-intrinsics/round.js
+// node_modules/math-intrinsics/round.js
 var require_round = __commonJS((exports2, module2) => {
   module2.exports = Math.round;
 });
 
-// backend/node_modules/math-intrinsics/isNaN.js
+// node_modules/math-intrinsics/isNaN.js
 var require_isNaN = __commonJS((exports2, module2) => {
   module2.exports = Number.isNaN || function isNaN(a) {
     return a !== a;
   };
 });
 
-// backend/node_modules/math-intrinsics/sign.js
+// node_modules/math-intrinsics/sign.js
 var require_sign = __commonJS((exports2, module2) => {
   var $isNaN = require_isNaN();
   module2.exports = function sign(number) {
@@ -9203,12 +9203,12 @@ var require_sign = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/gopd/gOPD.js
+// node_modules/gopd/gOPD.js
 var require_gOPD = __commonJS((exports2, module2) => {
   module2.exports = Object.getOwnPropertyDescriptor;
 });
 
-// backend/node_modules/gopd/index.js
+// node_modules/gopd/index.js
 var require_gopd = __commonJS((exports2, module2) => {
   var $gOPD = require_gOPD();
   if ($gOPD) {
@@ -9221,7 +9221,7 @@ var require_gopd = __commonJS((exports2, module2) => {
   module2.exports = $gOPD;
 });
 
-// backend/node_modules/es-define-property/index.js
+// node_modules/es-define-property/index.js
 var require_es_define_property = __commonJS((exports2, module2) => {
   var $defineProperty = Object.defineProperty || false;
   if ($defineProperty) {
@@ -9234,7 +9234,7 @@ var require_es_define_property = __commonJS((exports2, module2) => {
   module2.exports = $defineProperty;
 });
 
-// backend/node_modules/has-symbols/shams.js
+// node_modules/has-symbols/shams.js
 var require_shams = __commonJS((exports2, module2) => {
   module2.exports = function hasSymbols() {
     if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
@@ -9283,7 +9283,7 @@ var require_shams = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/has-symbols/index.js
+// node_modules/has-symbols/index.js
 var require_has_symbols = __commonJS((exports2, module2) => {
   var origSymbol = typeof Symbol !== "undefined" && Symbol;
   var hasSymbolSham = require_shams();
@@ -9304,18 +9304,18 @@ var require_has_symbols = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/get-proto/Reflect.getPrototypeOf.js
+// node_modules/get-proto/Reflect.getPrototypeOf.js
 var require_Reflect_getPrototypeOf = __commonJS((exports2, module2) => {
   module2.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
 });
 
-// backend/node_modules/get-proto/Object.getPrototypeOf.js
+// node_modules/get-proto/Object.getPrototypeOf.js
 var require_Object_getPrototypeOf = __commonJS((exports2, module2) => {
   var $Object = require_es_object_atoms();
   module2.exports = $Object.getPrototypeOf || null;
 });
 
-// backend/node_modules/function-bind/implementation.js
+// node_modules/function-bind/implementation.js
 var require_implementation = __commonJS((exports2, module2) => {
   var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
   var toStr = Object.prototype.toString;
@@ -9381,28 +9381,28 @@ var require_implementation = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/function-bind/index.js
+// node_modules/function-bind/index.js
 var require_function_bind = __commonJS((exports2, module2) => {
   var implementation = require_implementation();
   module2.exports = Function.prototype.bind || implementation;
 });
 
-// backend/node_modules/call-bind-apply-helpers/functionCall.js
+// node_modules/call-bind-apply-helpers/functionCall.js
 var require_functionCall = __commonJS((exports2, module2) => {
   module2.exports = Function.prototype.call;
 });
 
-// backend/node_modules/call-bind-apply-helpers/functionApply.js
+// node_modules/call-bind-apply-helpers/functionApply.js
 var require_functionApply = __commonJS((exports2, module2) => {
   module2.exports = Function.prototype.apply;
 });
 
-// backend/node_modules/call-bind-apply-helpers/reflectApply.js
+// node_modules/call-bind-apply-helpers/reflectApply.js
 var require_reflectApply = __commonJS((exports2, module2) => {
   module2.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
 });
 
-// backend/node_modules/call-bind-apply-helpers/actualApply.js
+// node_modules/call-bind-apply-helpers/actualApply.js
 var require_actualApply = __commonJS((exports2, module2) => {
   var bind = require_function_bind();
   var $apply = require_functionApply();
@@ -9411,7 +9411,7 @@ var require_actualApply = __commonJS((exports2, module2) => {
   module2.exports = $reflectApply || bind.call($call, $apply);
 });
 
-// backend/node_modules/call-bind-apply-helpers/index.js
+// node_modules/call-bind-apply-helpers/index.js
 var require_call_bind_apply_helpers = __commonJS((exports2, module2) => {
   var bind = require_function_bind();
   var $TypeError = require_type();
@@ -9425,7 +9425,7 @@ var require_call_bind_apply_helpers = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/dunder-proto/get.js
+// node_modules/dunder-proto/get.js
 var require_get = __commonJS((exports2, module2) => {
   var callBind = require_call_bind_apply_helpers();
   var gOPD = require_gopd();
@@ -9445,7 +9445,7 @@ var require_get = __commonJS((exports2, module2) => {
   } : false;
 });
 
-// backend/node_modules/get-proto/index.js
+// node_modules/get-proto/index.js
 var require_get_proto = __commonJS((exports2, module2) => {
   var reflectGetProto = require_Reflect_getPrototypeOf();
   var originalGetProto = require_Object_getPrototypeOf();
@@ -9462,7 +9462,7 @@ var require_get_proto = __commonJS((exports2, module2) => {
   } : null;
 });
 
-// backend/node_modules/hasown/index.js
+// node_modules/hasown/index.js
 var require_hasown = __commonJS((exports2, module2) => {
   var call = Function.prototype.call;
   var $hasOwn = Object.prototype.hasOwnProperty;
@@ -9470,7 +9470,7 @@ var require_hasown = __commonJS((exports2, module2) => {
   module2.exports = bind.call(call, $hasOwn);
 });
 
-// backend/node_modules/get-intrinsic/index.js
+// node_modules/get-intrinsic/index.js
 var require_get_intrinsic = __commonJS((exports2, module2) => {
   var undefined2;
   var $Object = require_es_object_atoms();
@@ -9796,7 +9796,7 @@ var require_get_intrinsic = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/has-tostringtag/shams.js
+// node_modules/has-tostringtag/shams.js
 var require_shams2 = __commonJS((exports2, module2) => {
   var hasSymbols = require_shams();
   module2.exports = function hasToStringTagShams() {
@@ -9804,7 +9804,7 @@ var require_shams2 = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/es-set-tostringtag/index.js
+// node_modules/es-set-tostringtag/index.js
 var require_es_set_tostringtag = __commonJS((exports2, module2) => {
   var GetIntrinsic = require_get_intrinsic();
   var $defineProperty = GetIntrinsic("%Object.defineProperty%", true);
@@ -9833,7 +9833,7 @@ var require_es_set_tostringtag = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/form-data/lib/populate.js
+// node_modules/form-data/lib/populate.js
 var require_populate = __commonJS((exports2, module2) => {
   module2.exports = function(dst, src) {
     Object.keys(src).forEach(function(prop) {
@@ -9843,7 +9843,7 @@ var require_populate = __commonJS((exports2, module2) => {
   };
 });
 
-// backend/node_modules/form-data/lib/form_data.js
+// node_modules/form-data/lib/form_data.js
 var require_form_data = __commonJS((exports2, module2) => {
   var CombinedStream = require_combined_stream();
   var util = require("util");
@@ -10158,7 +10158,125 @@ var require_form_data = __commonJS((exports2, module2) => {
   module2.exports = FormData;
 });
 
-// backend/src/external-apis.ts
+// src/services/huggingface.client.ts
+var exports_huggingface_client = {};
+__export(exports_huggingface_client, {
+  generateWithHuggingFace: () => generateWithHuggingFace
+});
+async function generateWithHuggingFace(prompt) {
+  if (!HUGGINGFACE_API_KEY) {
+    return { success: false, error: "HuggingFace API key not configured" };
+  }
+  for (const model of ACTIVE_MODELS) {
+    try {
+      console.log(`⚡ Using model: ${model.name}`);
+      const response = await import_axios.default.post(`https://api-inference.huggingface.co/models/${model.name}`, {
+        inputs: prompt,
+        parameters: {
+          num_inference_steps: model.steps,
+          guidance_scale: model.cfg,
+          negative_prompt: "blurry, low quality, distorted, watermark, text, logo"
+        }
+      }, {
+        headers: {
+          Authorization: `Bearer ${HUGGINGFACE_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        responseType: "arraybuffer",
+        timeout: 120000
+      });
+      const imageBase64 = `data:image/png;base64,${Buffer.from(response.data).toString("base64")}`;
+      console.log(`✅ Generated with ${model.name}`);
+      return { success: true, imageBase64, model: model.name };
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 503) {
+        console.log(`⏳ ${model.name} loading, waiting 10s...`);
+        await new Promise((resolve) => setTimeout(resolve, 1e4));
+        try {
+          const retryResponse = await import_axios.default.post(`https://api-inference.huggingface.co/models/${model.name}`, { inputs: prompt, parameters: { num_inference_steps: model.steps, guidance_scale: model.cfg } }, {
+            headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}`, "Content-Type": "application/json" },
+            responseType: "arraybuffer",
+            timeout: 120000
+          });
+          const imageBase64 = `data:image/png;base64,${Buffer.from(retryResponse.data).toString("base64")}`;
+          console.log(`✅ Generated with ${model.name} after retry`);
+          return { success: true, imageBase64, model: model.name };
+        } catch (retryError) {
+          console.log(`❌ Retry failed for ${model.name}`);
+          continue;
+        }
+      }
+      console.log(`❌ Model failed: ${model.name} (${status || error.message})`);
+      continue;
+    }
+  }
+  return { success: false, error: "All HuggingFace models failed" };
+}
+var import_axios, HUGGINGFACE_API_KEY, ACTIVE_MODELS;
+var init_huggingface_client = __esm(() => {
+  import_axios = __toESM(require("axios"));
+  HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || "";
+  ACTIVE_MODELS = [
+    { name: "Lykon/dreamshaper-8", steps: 25, cfg: 7 },
+    { name: "SG161222/Realistic_Vision_V5.1_noVAE", steps: 30, cfg: 7.5 },
+    { name: "stablediffusionapi/realistic-vision-v51", steps: 25, cfg: 7 }
+  ];
+});
+
+// src/services/stability.client.ts
+var exports_stability_client = {};
+__export(exports_stability_client, {
+  generateWithStabilityAI: () => generateWithStabilityAI
+});
+async function generateWithStabilityAI(prompt) {
+  if (!STABILITY_API_KEY) {
+    return { success: false, error: "Stability API key not configured" };
+  }
+  try {
+    console.log(`⚡ Using model: Stability AI Core`);
+    const payload = {
+      prompt,
+      output_format: "png",
+      aspect_ratio: "1:1"
+    };
+    const response = await import_axios2.default.post("https://api.stability.ai/v2beta/stable-image/generate/core", payload, {
+      headers: {
+        Authorization: `Bearer ${STABILITY_API_KEY}`,
+        Accept: "application/json"
+      },
+      timeout: 60000
+    });
+    if (response.data.image) {
+      const imageBase642 = `data:image/png;base64,${response.data.image}`;
+      console.log(`✅ Generated with Stability AI Core`);
+      return { success: true, imageBase64: imageBase642 };
+    }
+    const imageBase64 = `data:image/png;base64,${Buffer.from(response.data).toString("base64")}`;
+    console.log(`✅ Generated with Stability AI Core`);
+    return { success: true, imageBase64 };
+  } catch (error) {
+    const status = error.response?.status;
+    const detail = error.response?.data?.message || error.message;
+    console.log(`❌ Model failed: Stability AI Core (${status}: ${detail})`);
+    return { success: false, error: detail };
+  }
+}
+var import_axios2, STABILITY_API_KEY;
+var init_stability_client = __esm(() => {
+  import_axios2 = __toESM(require("axios"));
+  STABILITY_API_KEY = process.env.STABILITY_API_KEY || "";
+});
+
+// src/external-apis.ts
+var exports_external_apis = {};
+__export(exports_external_apis, {
+  removeBackgroundWithRemoveBg: () => removeBackgroundWithRemoveBg,
+  generateTemplateWithHuggingFace: () => generateTemplateWithHuggingFace,
+  generateFallbackTemplate: () => generateFallbackTemplate,
+  default: () => external_apis_default,
+  analyzeImageWithSightengine: () => analyzeImageWithSightengine
+});
 async function analyzeImageWithSightengine(imageBase64) {
   try {
     console.log("\uD83D\uDD0D Analyzing image quality with Sharp.js...");
@@ -10167,6 +10285,203 @@ async function analyzeImageWithSightengine(imageBase64) {
     console.error("❌ Error analyzing image:", error.message);
     return fallbackImageAnalysis(imageBase64);
   }
+}
+async function removeBackgroundWithRemoveBg(imageBase64) {
+  try {
+    console.log("✂️ Removing background with Remove.bg...");
+    if (!REMOVEBG_API_KEY) {
+      console.warn("⚠️ Remove.bg API key not configured - using simulation mode");
+      return {
+        success: false,
+        error: "Remove.bg API key not configured. Get 50 free images/month at https://remove.bg/api"
+      };
+    }
+    const imageBuffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    const formData = new import_form_data.default;
+    formData.append("image_file_b64", imageBase64.replace(/^data:image\/\w+;base64,/, ""));
+    formData.append("size", "auto");
+    const response = await import_axios3.default.post("https://api.remove.bg/v1.0/removebg", formData, {
+      headers: {
+        ...formData.getHeaders(),
+        "X-Api-Key": REMOVEBG_API_KEY
+      },
+      responseType: "arraybuffer",
+      timeout: 30000
+    });
+    console.log("✅ Background removed successfully with Remove.bg");
+    const resultBase64 = `data:image/png;base64,${Buffer.from(response.data).toString("base64")}`;
+    return {
+      success: true,
+      imageBase64: resultBase64
+    };
+  } catch (error) {
+    console.error("❌ Remove.bg API Error:", error.message);
+    return {
+      success: false,
+      error: error.response?.data?.errors?.[0]?.title || error.message
+    };
+  }
+}
+async function generateTemplateWithHuggingFace(prompt, style = "instagram-feed") {
+  try {
+    const { generateWithHuggingFace: generateWithHuggingFace2 } = await Promise.resolve().then(() => (init_huggingface_client(), exports_huggingface_client));
+    const { generateWithStabilityAI: generateWithStabilityAI2 } = await Promise.resolve().then(() => (init_stability_client(), exports_stability_client));
+    const result = await generateWithHuggingFace2(prompt);
+    if (result.success) {
+      return { success: true, imageBase64: result.imageBase64 };
+    }
+    if (STABILITY_API_KEY2) {
+      const stabilityResult = await generateWithStabilityAI2(prompt);
+      if (stabilityResult.success) {
+        return { success: true, imageBase64: stabilityResult.imageBase64 };
+      }
+    }
+    return { success: false, error: "All AI models failed" };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+function generateFallbackTemplate(prompt, style, productImage, theme = "minimalist", brandColor = "#FF6347", productName) {
+  console.log(`\uD83C\uDFA8 Generating creative ${theme} template with fallback`);
+  const dimensions = style === "story" ? { width: 1080, height: 1920 } : { width: 1080, height: 1080 };
+  const adjustBrightness = (hex, percent) => {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const r = Math.max(0, Math.min(255, (num >> 16) + percent));
+    const g = Math.max(0, Math.min(255, (num >> 8 & 255) + percent));
+    const b = Math.max(0, Math.min(255, (num & 255) + percent));
+    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, "0")}`;
+  };
+  const brandLight = adjustBrightness(brandColor, 40);
+  const brandDark = adjustBrightness(brandColor, -30);
+  const seed = Date.now() % 1000;
+  const randomRotation = seed % 30 - 15;
+  const randomScale = 0.9 + seed % 20 / 100;
+  const randomX = seed % 10 - 5;
+  const randomY = seed % 10 - 5;
+  let templateSvg = "";
+  if (theme === "cute-pastel" || theme.includes("pastel")) {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE5EC"/>
+            <stop offset="50%" stop-color="#FFF0F5"/>
+            <stop offset="100%" stop-color="#E5F5FF"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#FFB6C1" flood-opacity="0.3"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <ellipse cx="20%" cy="15%" rx="80" ry="50" fill="white" opacity="0.7"/>
+        <ellipse cx="80%" cy="20%" rx="70" ry="45" fill="white" opacity="0.7"/>
+        <text x="10%" y="85%" font-size="40" opacity="0.6">\uD83D\uDC95</text>
+        <text x="88%" y="88%" font-size="40" opacity="0.6">\uD83D\uDC95</text>
+        <rect x="10%" y="25%" width="80%" height="60%" fill="white" rx="40" filter="url(#shadow)"/>
+        ${productImage ? `<image href="${productImage}" x="15%" y="30%" width="70%" height="45%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 30px)"/>` : `<text x="50%" y="53%" font-size="80" text-anchor="middle">\uD83C\uDF38</text>`}
+        <rect x="15%" y="78%" width="70%" height="12%" fill="#FFB6C1" rx="25"/>
+        <text x="50%" y="84.5%" font-family="Comic Sans MS" font-size="32" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${productName || "Kawaii"} ♡</text>
+      </svg>`;
+  } else if (theme === "elegant" || theme.includes("luxury")) {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1a1a1a"/>
+            <stop offset="100%" stop-color="#2d2d2d"/>
+          </linearGradient>
+          <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FFD700"/>
+            <stop offset="50%" stop-color="#FFA500"/>
+            <stop offset="100%" stop-color="#FFD700"/>
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <rect x="5%" y="5%" width="90%" height="2" fill="url(#gold)"/>
+        <rect x="5%" y="95%" width="90%" height="2" fill="url(#gold)"/>
+        ${productImage ? `<circle cx="50%" cy="45%" r="255" fill="url(#gold)"/><image href="${productImage}" x="27%" y="22%" width="46%" height="46%" preserveAspectRatio="xMidYMid slice" clip-path="circle(250px at 50% 50%)"/>` : `<circle cx="50%" cy="45%" r="250" fill="${brandColor}" opacity="0.2"/><text x="50%" y="47%" font-size="100" text-anchor="middle" fill="url(#gold)">✨</text>`}
+        <text x="50%" y="82%" font-family="Georgia" font-size="48" font-weight="bold" fill="url(#gold)" text-anchor="middle">${productName || "Luxury"}</text>
+        <text x="50%" y="88%" font-family="Georgia" font-size="24" fill="#999" text-anchor="middle">PREMIUM QUALITY</text>
+      </svg>`;
+  } else if (theme === "bold-modern" || theme.includes("bold")) {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${brandColor}"/>
+            <stop offset="100%" stop-color="${brandDark}"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <polygon points="0,0 ${dimensions.width},0 ${dimensions.width},200" fill="black" opacity="0.1"/>
+        <polygon points="0,${dimensions.height} ${dimensions.width},${dimensions.height} 0,${dimensions.height - 200}" fill="white" opacity="0.1"/>
+        <rect x="10%" y="20%" width="80%" height="65%" fill="white" rx="20" filter="url(#shadow)"/>
+        ${productImage ? `<image href="${productImage}" x="15%" y="25%" width="70%" height="50%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 15px)"/>` : `<text x="50%" y="50%" font-size="100" font-weight="900" text-anchor="middle" fill="${brandColor}">⚡</text>`}
+        <rect x="5%" y="88%" width="90%" height="10%" fill="black"/>
+        <text x="50%" y="93.5%" font-family="Impact" font-size="42" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="middle">${(productName || "BOLD").toUpperCase()}</text>
+      </svg>`;
+  } else if (theme === "playful") {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF6B9D"/>
+            <stop offset="50%" stop-color="#FEC163"/>
+            <stop offset="100%" stop-color="#C3F0FF"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="4" dy="8" stdDeviation="10" flood-color="${brandColor}" flood-opacity="0.4"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <circle cx="15%" cy="12%" r="40" fill="#FFD93D" opacity="0.6"/>
+        <circle cx="88%" cy="18%" r="50" fill="#6BCB77" opacity="0.6"/>
+        <circle cx="10%" cy="85%" r="45" fill="#4D96FF" opacity="0.6"/>
+        <text x="20%" y="25%" font-size="35" transform="rotate(-15 216 270)">⭐</text>
+        <text x="82%" y="30%" font-size="40" transform="rotate(20 886 324)">✨</text>
+        <rect x="12%" y="28%" width="76%" height="58%" fill="white" rx="35" filter="url(#shadow)" transform="rotate(-2 ${dimensions.width / 2} ${dimensions.height / 2})"/>
+        ${productImage ? `<image href="${productImage}" x="18%" y="33%" width="64%" height="43%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 25px)"/>` : `<text x="50%" y="56%" font-size="90" text-anchor="middle" fill="${brandColor}">\uD83C\uDF89</text>`}
+        <ellipse cx="50%" cy="82%" rx="38%" ry="8%" fill="${brandColor}"/>
+        <text x="50%" y="83.5%" font-family="Comic Sans MS" font-size="38" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${productName || "Fun"} \uD83C\uDF8A</text>
+      </svg>`;
+  } else if (theme === "premium") {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#1a1a1a"/></linearGradient>
+          <linearGradient id="accent" x1="0%" x2="100%"><stop offset="0%" stop-color="${brandColor}"/><stop offset="100%" stop-color="${brandDark}"/></linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <rect x="3%" y="3%" width="94%" height="94%" fill="none" stroke="url(#accent)" stroke-width="3" rx="15"/>
+        <rect x="5%" y="5%" width="90%" height="90%" fill="none" stroke="url(#accent)" stroke-width="1" rx="12"/>
+        <text x="8%" y="10%" font-size="30" fill="${brandColor}">◆</text>
+        <text x="92%" y="10%" font-size="30" fill="${brandColor}">◆</text>
+        ${productImage ? `<rect x="18%" y="20%" width="64%" height="50%" fill="url(#accent)" rx="10"/><image href="${productImage}" x="20%" y="22%" width="60%" height="46%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 8px)"/>` : `<text x="50%" y="47%" font-size="120" text-anchor="middle" fill="url(#accent)">\uD83D\uDC51</text>`}
+        <line x1="20%" y1="78%" x2="80%" y2="78%" stroke="url(#accent)" stroke-width="2"/>
+        <text x="50%" y="85%" font-family="Georgia" font-size="40" font-weight="bold" fill="${brandColor}" text-anchor="middle">${productName || "Premium"}</text>
+        <text x="50%" y="91%" font-family="Georgia" font-size="20" fill="#888" text-anchor="middle" letter-spacing="3">EXCLUSIVE</text>
+      </svg>`;
+  } else {
+    templateSvg = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FAFAFA"/>
+            <stop offset="100%" stop-color="#F0F0F0"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.1"/></filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg)"/>
+        <circle cx="15%" cy="15%" r="120" fill="${brandLight}" opacity="0.3"/>
+        <circle cx="85%" cy="85%" r="150" fill="${brandColor}" opacity="0.2"/>
+        <rect x="8%" y="8%" width="84%" height="84%" fill="white" rx="30" filter="url(#shadow)"/>
+        ${productImage ? `<image href="${productImage}" x="15%" y="15%" width="70%" height="55%" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 20px)"/>` : `<text x="50%" y="42%" font-size="80" text-anchor="middle" fill="${brandColor}">\uD83C\uDFA8</text>`}
+        <rect x="12%" y="75%" width="76%" height="15%" fill="${brandColor}" rx="15"/>
+        <text x="50%" y="82.5%" font-family="Arial" font-size="36" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${productName || "Product"}</text>
+      </svg>`;
+  }
+  const templateBase64 = `data:image/svg+xml;base64,${Buffer.from(templateSvg.trim()).toString("base64")}`;
+  return {
+    success: true,
+    imageBase64: templateBase64
+  };
 }
 async function calculateSharpness(imageBuffer) {
   try {
@@ -10435,28 +10750,59 @@ async function fallbackImageAnalysis(imageBase64) {
     throw error;
   }
 }
-var import_axios, import_form_data, import_sharp, HUGGINGFACE_API_KEY, REMOVEBG_API_KEY, STABILITY_API_KEY;
+var import_axios3, import_form_data, import_sharp, HUGGINGFACE_API_KEY2, REMOVEBG_API_KEY, STABILITY_API_KEY2, external_apis_default;
 var init_external_apis = __esm(() => {
-  import_axios = __toESM(require("axios"));
+  import_axios3 = __toESM(require("axios"));
   import_form_data = __toESM(require_form_data(), 1);
   import_sharp = __toESM(require("sharp"));
-  HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || "";
+  HUGGINGFACE_API_KEY2 = process.env.HUGGINGFACE_API_KEY || "";
   REMOVEBG_API_KEY = process.env.REMOVEBG_API_KEY || "";
-  STABILITY_API_KEY = process.env.STABILITY_API_KEY || "";
+  STABILITY_API_KEY2 = process.env.STABILITY_API_KEY || "";
   console.log("\uD83D\uDD0C External APIs Config (FREE Tier):");
-  console.log("   Hugging Face:", HUGGINGFACE_API_KEY ? "✅ Configured" : "⚠️ Not set (Unlimited FREE)");
+  console.log("   Hugging Face:", HUGGINGFACE_API_KEY2 ? "✅ Configured" : "⚠️ Not set (Unlimited FREE)");
   console.log("   Remove.bg:", REMOVEBG_API_KEY ? "✅ Configured" : "⚠️ Not set (50 free/month)");
-  console.log("   Stability AI:", STABILITY_API_KEY ? "✅ Configured" : "⚠️ Not set (25 free/month)");
+  console.log("   Stability AI:", STABILITY_API_KEY2 ? "✅ Configured" : "⚠️ Not set (25 free/month)");
+  external_apis_default = {
+    analyzeImageWithSightengine,
+    removeBackgroundWithRemoveBg,
+    generateTemplateWithHuggingFace
+  };
 });
 
-// backend/src/index.ts
+// src/services/templatePrompt.ts
+var exports_templatePrompt = {};
+__export(exports_templatePrompt, {
+  buildUMKMPrompt: () => buildUMKMPrompt
+});
+function buildUMKMPrompt(productName, businessType, theme, brandColor, targetMarket, format, additionalInfo) {
+  const themeMap = {
+    elegant: "elegant luxury with gold accents, sophisticated presentation, premium quality",
+    "cute-pastel": "cute kawaii style with pastel colors, soft lighting, playful aesthetic",
+    "bold-modern": "bold vibrant colors, strong contrast, modern dynamic composition",
+    minimalist: "clean minimal design, white background, simple elegant presentation",
+    premium: "premium luxury branding, dark moody background, sophisticated lighting",
+    playful: "fun playful composition, bright cheerful colors, energetic vibe"
+  };
+  const businessMap = {
+    makanan: "delicious Indonesian food dish, appetizing presentation, steam rising, professional food photography",
+    fashion: "fashionable clothing item, stylish presentation, studio lighting, model or mannequin",
+    kosmetik: "beauty cosmetic product, clean elegant display, soft feminine lighting",
+    kerajinan: "handmade craft product, artisanal authentic look, cultural elements",
+    cafe: "cozy cafe beverage or food, lifestyle photography, warm inviting atmosphere",
+    kuliner: "gourmet culinary creation, restaurant quality plating, professional food photography",
+    lainnya: "professional product photography, clean studio setup"
+  };
+  return `High quality commercial product photography of ${productName}, ${businessMap[businessType]}, ${themeMap[theme]}, professional studio lighting, shallow depth of field, centered composition, clean neutral background, vibrant appetizing colors, Instagram-worthy, marketing material quality, 4K sharp details, no text, no watermark. ${additionalInfo || ""}`;
+}
+
+// src/index.ts
 var exports_src = {};
 __export(exports_src, {
   default: () => src_default
 });
 module.exports = __toCommonJS(exports_src);
 
-// backend/node_modules/hono/dist/compose.js
+// node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -10500,10 +10846,10 @@ var compose = (middleware, onError, onNotFound) => {
   };
 };
 
-// backend/node_modules/hono/dist/request/constants.js
+// node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = Symbol();
 
-// backend/node_modules/hono/dist/utils/body.js
+// node_modules/hono/dist/utils/body.js
 var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
@@ -10571,7 +10917,7 @@ var handleParsingNestedValues = (form, key, value) => {
   });
 };
 
-// backend/node_modules/hono/dist/utils/url.js
+// node_modules/hono/dist/utils/url.js
 var splitPath = (path) => {
   const paths = path.split("/");
   if (paths[0] === "") {
@@ -10769,7 +11115,7 @@ var getQueryParams = (url, key) => {
 };
 var decodeURIComponent_ = decodeURIComponent;
 
-// backend/node_modules/hono/dist/request.js
+// node_modules/hono/dist/request.js
 var tryDecodeURIComponent = (str) => tryDecode(str, decodeURIComponent_);
 var HonoRequest = class {
   raw;
@@ -10880,7 +11226,7 @@ var HonoRequest = class {
   }
 };
 
-// backend/node_modules/hono/dist/utils/html.js
+// node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -10918,7 +11264,7 @@ var resolveCallback = async (str, phase, preserveCallbacks, context, buffer) => 
   }
 };
 
-// backend/node_modules/hono/dist/context.js
+// node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = (contentType, headers) => {
   return {
@@ -11084,7 +11430,7 @@ var Context = class {
   };
 };
 
-// backend/node_modules/hono/dist/router.js
+// node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -11092,10 +11438,10 @@ var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is
 var UnsupportedPathError = class extends Error {
 };
 
-// backend/node_modules/hono/dist/utils/constants.js
+// node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// backend/node_modules/hono/dist/hono-base.js
+// node_modules/hono/dist/hono-base.js
 var notFoundHandler = (c) => {
   return c.text("404 Not Found", 404);
 };
@@ -11314,7 +11660,7 @@ var Hono = class {
   };
 };
 
-// backend/node_modules/hono/dist/router/reg-exp-router/matcher.js
+// node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path) {
   const matchers = this.buildAllMatchers();
@@ -11335,7 +11681,7 @@ function match(method, path) {
   return match2(method, path);
 }
 
-// backend/node_modules/hono/dist/router/reg-exp-router/node.js
+// node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -11439,7 +11785,7 @@ var Node = class {
   }
 };
 
-// backend/node_modules/hono/dist/router/reg-exp-router/trie.js
+// node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   #context = { varIndex: 0 };
   #root = new Node;
@@ -11495,7 +11841,7 @@ var Trie = class {
   }
 };
 
-// backend/node_modules/hono/dist/router/reg-exp-router/router.js
+// node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path) {
@@ -11660,7 +12006,7 @@ var RegExpRouter = class {
   }
 };
 
-// backend/node_modules/hono/dist/router/reg-exp-router/prepared-router.js
+// node_modules/hono/dist/router/reg-exp-router/prepared-router.js
 var PreparedRegExpRouter = class {
   name = "PreparedRegExpRouter";
   #matchers;
@@ -11732,7 +12078,7 @@ var PreparedRegExpRouter = class {
   match = match;
 };
 
-// backend/node_modules/hono/dist/router/smart-router/router.js
+// node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   name = "SmartRouter";
   #routers = [];
@@ -11787,7 +12133,7 @@ var SmartRouter = class {
   }
 };
 
-// backend/node_modules/hono/dist/router/trie-router/node.js
+// node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
 var Node2 = class {
   #methods;
@@ -11941,7 +12287,7 @@ var Node2 = class {
   }
 };
 
-// backend/node_modules/hono/dist/router/trie-router/router.js
+// node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   name = "TrieRouter";
   #node;
@@ -11963,7 +12309,7 @@ var TrieRouter = class {
   }
 };
 
-// backend/node_modules/hono/dist/hono.js
+// node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   constructor(options = {}) {
     super(options);
@@ -11973,7 +12319,7 @@ var Hono2 = class extends Hono {
   }
 };
 
-// backend/node_modules/hono/dist/middleware/cors/index.js
+// node_modules/hono/dist/middleware/cors/index.js
 var cors = (options) => {
   const defaults = {
     origin: "*",
@@ -12058,13 +12404,13 @@ var cors = (options) => {
   };
 };
 
-// backend/src/supabase.ts
+// src/supabase.ts
 var import_supabase_js = require("@supabase/supabase-js");
 var supabaseUrl = process.env.SUPABASE_URL;
 var supabaseKey = process.env.SUPABASE_KEY;
 var supabase = import_supabase_js.createClient(supabaseUrl, supabaseKey);
 
-// backend/src/kolosalai.ts
+// src/kolosalai.ts
 var import_openai = __toESM(require("openai"));
 var KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY;
 var USE_MOCK = process.env.USE_MOCK_AI === "true";
@@ -12511,7 +12857,7 @@ Telp: 0821-xxxx-xxxx
   };
 }
 
-// backend/src/ai-content-studio.ts
+// src/ai-content-studio.ts
 var import_openai2 = __toESM(require("openai"));
 var KOLOSAL_API_KEY2 = process.env.KOLOSAL_API_KEY;
 var USE_MOCK2 = process.env.USE_MOCK_AI === "true";
@@ -13194,7 +13540,7 @@ Hormat kami,
   };
 }
 
-// backend/src/visual-studio.ts
+// src/visual-studio.ts
 init_external_apis();
 var import_openai3 = __toESM(require("openai"));
 var import_sharp2 = __toESM(require("sharp"));
@@ -13210,6 +13556,183 @@ console.log("   Background Removal: Remove.bg (50/month)");
 console.log("   Template Gen: FLUX.1-schnell → FLUX.1-dev → SDXL-Lightning (FREE)");
 console.log("   Fallback: Stability AI Core → Creative SVG");
 console.log("   Mock Mode:", USE_MOCK3 ? "✅ Enabled" : "❌ Disabled");
+async function compositeProductWithTemplate(productImage, templateImage, format) {
+  try {
+    const dims = getFormatDimensions(format);
+    const productBuffer = Buffer.from(productImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    const templateBuffer = Buffer.from(templateImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    const productMeta = await import_sharp2.default(productBuffer).metadata();
+    const productAspect = (productMeta.width || 1) / (productMeta.height || 1);
+    const maxSize = Math.round(Math.min(dims.width, dims.height) * 0.7);
+    let productWidth = maxSize;
+    let productHeight = maxSize;
+    if (productAspect > 1) {
+      productHeight = Math.round(maxSize / productAspect);
+    } else {
+      productWidth = Math.round(maxSize * productAspect);
+    }
+    const productResized = await import_sharp2.default(productBuffer).resize(productWidth, productHeight, {
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
+    }).png().toBuffer();
+    const xOffset = Math.round((dims.width - productWidth) / 2);
+    const yOffset = Math.round((dims.height - productHeight) / 2.2);
+    const composited = await import_sharp2.default(templateBuffer).resize(dims.width, dims.height, { fit: "cover" }).composite([{
+      input: productResized,
+      top: yOffset,
+      left: xOffset,
+      blend: "over"
+    }]).jpeg({ quality: 95 }).toBuffer();
+    console.log(`   ✅ Composited ${productWidth}x${productHeight} product onto ${dims.width}x${dims.height} template`);
+    return `data:image/jpeg;base64,${composited.toString("base64")}`;
+  } catch (error) {
+    console.error("❌ Composite error:", error.message);
+    return templateImage;
+  }
+}
+async function generateUMKMBranding(request) {
+  const startTime = Date.now();
+  try {
+    console.log("\uD83C\uDFA8 Starting UMKM Branding Generation...");
+    console.log("   Product:", request.productName);
+    console.log("   Business:", request.businessType);
+    console.log("   Theme:", request.theme);
+    console.log("   Format:", request.format);
+    let imageAnalysis = undefined;
+    let processedImage = request.productImage;
+    if (request.productImage) {
+      console.log("\uD83D\uDCF8 Step 1: Analyzing product image quality...");
+      const analysis = await analyzeImageWithSightengine(request.productImage);
+      imageAnalysis = {
+        qualityScore: analysis.qualityScore,
+        isGoodQuality: analysis.qualityScore >= 7,
+        issues: analysis.issues,
+        recommendations: analysis.suggestions
+      };
+      console.log(`   Quality Score: ${analysis.qualityScore}/10`);
+      if (analysis.qualityScore >= 6) {
+        console.log("✂️ Step 2: Removing background...");
+        const bgRemovalResult = await removeBackgroundWithRemoveBg(request.productImage);
+        if (bgRemovalResult.success && bgRemovalResult.imageBase64) {
+          processedImage = bgRemovalResult.imageBase64;
+          console.log("   ✅ Background removed successfully");
+        }
+      }
+    }
+    console.log("\uD83C\uDFA8 Step 3: Generating branded design template...");
+    const { buildUMKMPrompt: buildUMKMPrompt2 } = await Promise.resolve().then(() => exports_templatePrompt);
+    const prompt = buildUMKMPrompt2(request.productName, request.businessType, request.theme, request.brandColor, request.targetMarket, request.format, request.additionalInfo);
+    const templateResult = await generateTemplateWithHuggingFace(prompt, request.format);
+    let finalDesign;
+    if (!templateResult.success || !templateResult.imageBase64) {
+      console.warn("⚠️ Template generation failed, using enhanced fallback with product image");
+      const { generateFallbackTemplate: generateFallbackTemplate2 } = await Promise.resolve().then(() => (init_external_apis(), exports_external_apis));
+      const fallback = generateFallbackTemplate2(prompt, request.format, processedImage || undefined, request.theme, request.brandColor, request.productName);
+      finalDesign = fallback.imageBase64;
+    } else {
+      if (processedImage) {
+        console.log("\uD83D\uDDBC️ Step 4: Compositing product image with AI template...");
+        try {
+          const composited = await compositeProductWithTemplate(processedImage, templateResult.imageBase64, request.format);
+          finalDesign = composited;
+        } catch (error) {
+          console.warn("⚠️ Composite failed, using fallback with product image");
+          const { generateFallbackTemplate: generateFallbackTemplate2 } = await Promise.resolve().then(() => (init_external_apis(), exports_external_apis));
+          const fallback = generateFallbackTemplate2(prompt, request.format, processedImage, request.theme, request.brandColor, request.productName);
+          finalDesign = fallback.imageBase64;
+        }
+      } else {
+        finalDesign = templateResult.imageBase64;
+      }
+    }
+    console.log("\uD83D\uDCDD Step 5: Generating marketing suggestions...");
+    const marketingSuggestions = generateMarketingSuggestions(request);
+    const processingTime = Date.now() - startTime;
+    console.log(`✅ UMKM Branding completed in ${processingTime}ms`);
+    return {
+      success: true,
+      imageAnalysis,
+      designResult: {
+        imageBase64: finalDesign,
+        format: request.format,
+        dimensions: getFormatDimensions(request.format)
+      },
+      marketingSuggestions,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        processingTime
+      }
+    };
+  } catch (error) {
+    console.error("❌ Error in UMKM Branding:", error.message);
+    throw new Error(`Gagal generate branding: ${error.message}`);
+  }
+}
+function generateMarketingSuggestions(request) {
+  const captionTemplates = {
+    makanan: `✨ ${request.productName} - Lezat & Berkualitas!
+
+\uD83C\uDF7D️ Dibuat dengan bahan pilihan terbaik
+\uD83D\uDCCD Tersedia sekarang untuk ${request.targetMarket}
+\uD83D\uDCAC DM untuk order!`,
+    fashion: `✨ ${request.productName} - Style Meets Comfort
+
+\uD83D\uDC57 Perfect untuk ${request.targetMarket}
+\uD83C\uDFA8 Desain eksklusif & berkualitas
+\uD83D\uDCE6 Ready stock - Order sekarang!`,
+    kosmetik: `✨ ${request.productName} - Your Beauty Secret
+
+\uD83D\uDC84 Aman & teruji untuk ${request.targetMarket}
+\uD83C\uDF1F Hasil maksimal, harga terjangkau
+\uD83D\uDCAC Tanya-tanya? DM aja!`,
+    default: `✨ ${request.productName}
+
+✅ Kualitas terjamin
+\uD83C\uDFAF Cocok untuk ${request.targetMarket}
+\uD83D\uDCF2 Order via DM atau WhatsApp!`
+  };
+  const caption = captionTemplates[request.businessType] || captionTemplates.default;
+  const hashtags = [
+    "#UMKM",
+    "#UMKMIndonesia",
+    `#${request.productName.replace(/\s+/g, "")}`,
+    "#ProdukLokal",
+    "#SupportLokal",
+    request.businessType === "makanan" ? "#KulinerNusantara" : `#${request.businessType}`,
+    "#BisnisOnline",
+    "#Jualan",
+    "#OpenOrder"
+  ];
+  const themeStrategies = {
+    elegant: "Gunakan font serif, spacing luas, foto high-end quality",
+    "cute-pastel": "Warna soft pastel, elemen playful, font rounded",
+    "bold-modern": "Kontras tinggi, geometric shapes, font bold sans-serif",
+    minimalist: "White space maksimal, clean lines, typography focus",
+    premium: "Dark background, gold accents, luxury feel",
+    playful: "Bright colors, dynamic elements, fun typography"
+  };
+  return {
+    caption,
+    hashtags,
+    bestPostingTime: [
+      "\uD83D\uDCF1 Instagram: 11:00-13:00 & 19:00-21:00 WIB",
+      "\uD83D\uDCF1 TikTok: 12:00-14:00 & 18:00-22:00 WIB",
+      "\uD83D\uDCF1 Facebook: 10:00-12:00 & 19:00-20:00 WIB"
+    ],
+    targetPlatform: ["Instagram", "TikTok", "Facebook", "WhatsApp Business"],
+    designDirection: themeStrategies[request.theme],
+    colorStrategy: `Primary: ${request.brandColor}, gunakan complementary colors untuk balance visual`
+  };
+}
+function getFormatDimensions(format) {
+  const dimensions = {
+    "instagram-square": { width: 1080, height: 1080 },
+    "instagram-story": { width: 1080, height: 1920 },
+    tiktok: { width: 1080, height: 1920 },
+    facebook: { width: 1200, height: 630 }
+  };
+  return dimensions[format] || { width: 1080, height: 1080 };
+}
 async function analyzeImageWithAI(request) {
   try {
     console.log("\uD83D\uDD0D Analyzing image with Sightengine AI...");
@@ -13710,7 +14233,10 @@ function generateMockSchedulePlanner(request) {
   };
 }
 
-// backend/src/dapur-umkm.ts
+// src/index.ts
+init_external_apis();
+
+// src/dapur-umkm.ts
 var import_openai4 = __toESM(require("openai"));
 var kolosalLlama = new import_openai4.default({
   apiKey: process.env.KOLOSAL_API_KEY,
@@ -14164,7 +14690,7 @@ function parseAIAnalysis(text) {
   return result;
 }
 
-// backend/src/tanya-daeng.ts
+// src/tanya-daeng.ts
 var import_openai5 = __toESM(require("openai"));
 var KOLOSAL_API_KEY4 = process.env.KOLOSAL_API_KEY;
 var client4 = new import_openai5.default({
@@ -14499,7 +15025,7 @@ function getAllFAQ() {
   }));
 }
 
-// backend/src/telegram-bot.ts
+// src/telegram-bot.ts
 var import_node_telegram_bot_api = __toESM(require("node-telegram-bot-api"));
 var TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 var bot = TELEGRAM_BOT_TOKEN ? new import_node_telegram_bot_api.default(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
@@ -14956,7 +15482,7 @@ async function handleTransaksiKeluarCommand(msg) {
   }
 }
 
-// backend/src/index.ts
+// src/index.ts
 var app = new Hono2;
 app.use("/*", cors({
   origin: ["http://localhost:3000", "http://localhost:1997"],

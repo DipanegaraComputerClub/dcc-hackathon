@@ -7,11 +7,16 @@ import {
   analyzeImageWithAI, 
   generateTemplateDesign, 
   generateSchedulePlanner,
+  generateUMKMBranding,
   type ImageAnalysisRequest,
   type TemplateGenerationRequest,
   type SchedulePlannerRequest,
   type UMKMBrandingRequest
 } from './visual-studio'
+import { 
+  removeBackgroundWithRemoveBg, 
+  generateTemplateWithHuggingFace 
+} from './external-apis'
 import { 
   calculateBusinessMetrics, 
   getAIRecommendation, 
