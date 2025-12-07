@@ -64,10 +64,8 @@ export default function RegisterPage() {
         business_name: formData.business_name || formData.name,
       });
       
-      setSuccess("Registrasi berhasil! Silakan login.");
-      setTimeout(() => {
-        router.push("/login");
-      }, 1500);
+      setSuccess("Registrasi berhasil! Cek email Anda untuk verifikasi akun. Jika tidak ada di inbox, cek folder spam.");
+      // Don't redirect, let user read the message
     } catch (err: any) {
       setError(err.message || "Registrasi gagal. Coba lagi nah!");
     } finally {

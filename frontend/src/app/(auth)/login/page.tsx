@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Sparkles, Store, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_URL } from "@/config/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,19 +23,55 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showResendLink, setShowResendLink] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setShowResendLink(false);
 
     try {
       await login(formData.email, formData.password);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Email atau password salah ki', coba lagi nah!");
+      const errorMessage = err.message || "Email atau password salah ki', coba lagi nah!";
+      setError(errorMessage);
+      
+      // Show resend link if email not verified
+      if (errorMessage.includes('Email belum diverifikasi')) {
+        setShowResendLink(true);
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    setResendMessage("");
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setResendMessage(data.message);
+        setShowResendLink(false);
+      } else {
+        setResendMessage(data.error || 'Gagal mengirim email');
+      }
+    } catch (err) {
+      setResendMessage('Terjadi kesalahan');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -149,6 +186,23 @@ export default function LoginPage() {
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                   <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                  {showResendLink && (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                      className="text-sm text-red-700 dark:text-red-300 font-medium hover:underline mt-2"
+                    >
+                      {resendLoading ? 'Mengirim...' : 'Kirim ulang email verifikasi'}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* RESEND SUCCESS MESSAGE */}
+              {resendMessage && (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                  <p className="text-sm text-green-600 dark:text-green-400">{resendMessage}</p>
                 </div>
               )}
 
@@ -191,12 +245,6 @@ export default function LoginPage() {
               </p>
             </div>
           </CardContent>
-          
-          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 text-center border-t border-gray-100 dark:border-gray-800">
-             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                Demo: <span className="font-mono bg-gray-200 dark:bg-gray-800 px-1 rounded">admin@example.com</span> / <span className="font-mono bg-gray-200 dark:bg-gray-800 px-1 rounded">password123</span>
-             </p>
-          </div>
         </Card>
 
         <p className="text-center text-xs text-gray-400 mt-8 mb-4">

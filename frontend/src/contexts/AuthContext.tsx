@@ -110,8 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || 'Registrasi gagal');
       }
 
-      // Don't auto-login after register, let user login manually
-      return;
+      // Return response data (contains needsConfirmation flag)
+      return data;
     } catch (error: any) {
       throw error;
     }

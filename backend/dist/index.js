@@ -79164,7 +79164,8 @@ auth.post("/register", async (c) => {
       options: {
         data: {
           name: name || email.split("@")[0]
-        }
+        },
+        emailRedirectTo: `${process.env.FRONTEND_URL || "https://hack-front.vercel.app"}/auth/callback`
       }
     });
     if (authError) {
@@ -79177,6 +79178,7 @@ auth.post("/register", async (c) => {
     if (!authData.user) {
       return c.json({ error: "Gagal membuat akun" }, 400);
     }
+    const needsConfirmation = authData.user.identities && authData.user.identities.length === 0;
     const { data: profile, error: profileError } = await supabase.from("umkm_profiles").insert([{
       user_id: authData.user.id,
       business_name: business_name || name || "UMKM Baru",
@@ -79187,17 +79189,16 @@ auth.post("/register", async (c) => {
     }]).select().single();
     if (profileError) {
       console.error("Profile error:", profileError);
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      return c.json({ error: "Gagal membuat profile" }, 500);
     }
     return c.json({
-      message: "Registrasi berhasil! Silakan login.",
+      message: needsConfirmation ? "Registrasi berhasil! Cek email Anda untuk verifikasi akun." : "Registrasi berhasil! Silakan login.",
       user: {
         id: authData.user.id,
         email: authData.user.email,
         name: name || email.split("@")[0],
-        profile_id: profile.id
-      }
+        profile_id: profile?.id || null
+      },
+      needsConfirmation
     }, 201);
   } catch (error2) {
     console.error("Register error:", error2);
@@ -79216,10 +79217,20 @@ auth.post("/login", async (c) => {
     });
     if (authError) {
       console.error("Login error:", authError);
+      if (authError.message.includes("Email not confirmed")) {
+        return c.json({
+          error: "Email belum diverifikasi. Cek email Anda untuk link verifikasi."
+        }, 403);
+      }
       return c.json({ error: "Email atau password salah" }, 401);
     }
     if (!authData.user || !authData.session) {
       return c.json({ error: "Login gagal" }, 401);
+    }
+    if (!authData.user.email_confirmed_at) {
+      return c.json({
+        error: "Email belum diverifikasi. Cek email Anda untuk link verifikasi."
+      }, 403);
     }
     const { data: profile, error: profileError } = await supabase.from("umkm_profiles").select("*").eq("user_id", authData.user.id).single();
     if (profileError) {
@@ -79315,6 +79326,31 @@ auth.post("/refresh", async (c) => {
     });
   } catch (error2) {
     console.error("Refresh token error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.post("/resend-verification", async (c) => {
+  try {
+    const { email } = await c.req.json();
+    if (!email) {
+      return c.json({ error: "Email required" }, 400);
+    }
+    const { error: error2 } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${process.env.FRONTEND_URL || "https://hack-front.vercel.app"}/auth/callback`
+      }
+    });
+    if (error2) {
+      console.error("Resend verification error:", error2);
+      return c.json({ error: "Gagal mengirim ulang email verifikasi" }, 500);
+    }
+    return c.json({
+      message: "Email verifikasi telah dikirim ulang. Cek inbox atau folder spam Anda."
+    });
+  } catch (error2) {
+    console.error("Resend verification error:", error2);
     return c.json({ error: "Terjadi kesalahan server" }, 500);
   }
 });
