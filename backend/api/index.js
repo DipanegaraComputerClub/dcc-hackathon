@@ -13,18 +13,18 @@ module.exports = async (req, res) => {
     // Lazy load the app
     if (!app) {
       try {
-        // Try multiple paths for Vercel compatibility
+        // Try multiple paths for Vercel compatibility (monorepo structure)
         let honoApp;
         try {
-          // Try relative path from api/
+          // Try relative path from api/ (works locally and on Vercel)
           honoApp = require('../dist/index.js');
         } catch (e1) {
           try {
-            // Try from root
-            honoApp = require('./dist/index.js');
+            // Try absolute path for Vercel monorepo (backend subfolder)
+            honoApp = require('/var/task/backend/dist/index.js');
           } catch (e2) {
-            // Try absolute path
-            honoApp = require('/var/task/dist/index.js');
+            // Try from root with backend prefix
+            honoApp = require('./backend/dist/index.js');
           }
         }
         app = honoApp.default || honoApp;
@@ -40,7 +40,12 @@ module.exports = async (req, res) => {
           debug: {
             cwd: process.cwd(),
             dirname: __dirname,
-            error: err.message
+            error: err.message,
+            attemptedPaths: [
+              path.join(__dirname, '../dist/index.js'),
+              '/var/task/backend/dist/index.js',
+              './backend/dist/index.js'
+            ]
           }
         });
       }
