@@ -41,7 +41,7 @@ var __export = (target, all) => {
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 
-// src/supabase.ts
+// backend/src/supabase.ts
 var import_supabase_js, supabaseUrl, supabaseKey, supabase;
 var init_supabase = __esm(() => {
   import_supabase_js = require("@supabase/supabase-js");
@@ -50,7 +50,7 @@ var init_supabase = __esm(() => {
   supabase = import_supabase_js.createClient(supabaseUrl, supabaseKey);
 });
 
-// node_modules/delayed-stream/lib/delayed_stream.js
+// backend/node_modules/delayed-stream/lib/delayed_stream.js
 var require_delayed_stream = __commonJS((exports2, module2) => {
   var Stream = require("stream").Stream;
   var util = require("util");
@@ -138,7 +138,7 @@ var require_delayed_stream = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/combined-stream/lib/combined_stream.js
+// backend/node_modules/combined-stream/lib/combined_stream.js
 var require_combined_stream = __commonJS((exports2, module2) => {
   var util = require("util");
   var Stream = require("stream").Stream;
@@ -307,7 +307,7 @@ var require_combined_stream = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/mime-db/db.json
+// backend/node_modules/mime-db/db.json
 var require_db = __commonJS((exports2, module2) => {
   module2.exports = {
     "application/1d-interleaved-parityfec": {
@@ -8830,7 +8830,7 @@ var require_db = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/mime-db/index.js
+// backend/node_modules/mime-db/index.js
 var require_mime_db = __commonJS((exports2, module2) => {
   /*!
    * mime-db
@@ -8841,7 +8841,7 @@ var require_mime_db = __commonJS((exports2, module2) => {
   module2.exports = require_db();
 });
 
-// node_modules/mime-types/index.js
+// backend/node_modules/mime-types/index.js
 var require_mime_types = __commonJS((exports2) => {
   /*!
    * mime-types
@@ -8935,7 +8935,7 @@ var require_mime_types = __commonJS((exports2) => {
   }
 });
 
-// node_modules/asynckit/lib/defer.js
+// backend/node_modules/asynckit/lib/defer.js
 var require_defer = __commonJS((exports2, module2) => {
   module2.exports = defer;
   function defer(fn) {
@@ -8948,7 +8948,7 @@ var require_defer = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/async.js
+// backend/node_modules/asynckit/lib/async.js
 var require_async = __commonJS((exports2, module2) => {
   var defer = require_defer();
   module2.exports = async;
@@ -8969,7 +8969,7 @@ var require_async = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/abort.js
+// backend/node_modules/asynckit/lib/abort.js
 var require_abort = __commonJS((exports2, module2) => {
   module2.exports = abort;
   function abort(state) {
@@ -8983,7 +8983,7 @@ var require_abort = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/iterate.js
+// backend/node_modules/asynckit/lib/iterate.js
 var require_iterate = __commonJS((exports2, module2) => {
   var async = require_async();
   var abort = require_abort();
@@ -9014,7 +9014,7 @@ var require_iterate = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/state.js
+// backend/node_modules/asynckit/lib/state.js
 var require_state = __commonJS((exports2, module2) => {
   module2.exports = state;
   function state(list, sortMethod) {
@@ -9034,7 +9034,7 @@ var require_state = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/terminator.js
+// backend/node_modules/asynckit/lib/terminator.js
 var require_terminator = __commonJS((exports2, module2) => {
   var abort = require_abort();
   var async = require_async();
@@ -9049,7 +9049,7 @@ var require_terminator = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/parallel.js
+// backend/node_modules/asynckit/parallel.js
 var require_parallel = __commonJS((exports2, module2) => {
   var iterate = require_iterate();
   var initState = require_state();
@@ -9074,7 +9074,7 @@ var require_parallel = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/serialOrdered.js
+// backend/node_modules/asynckit/serialOrdered.js
 var require_serialOrdered = __commonJS((exports2, module2) => {
   var iterate = require_iterate();
   var initState = require_state();
@@ -9106,7 +9106,7 @@ var require_serialOrdered = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/serial.js
+// backend/node_modules/asynckit/serial.js
 var require_serial = __commonJS((exports2, module2) => {
   var serialOrdered = require_serialOrdered();
   module2.exports = serial;
@@ -9115,7 +9115,7 @@ var require_serial = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/index.js
+// backend/node_modules/asynckit/index.js
 var require_asynckit = __commonJS((exports2, module2) => {
   module2.exports = {
     parallel: require_parallel(),
@@ -9124,84 +9124,84 @@ var require_asynckit = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/es-object-atoms/index.js
+// backend/node_modules/es-object-atoms/index.js
 var require_es_object_atoms = __commonJS((exports2, module2) => {
   module2.exports = Object;
 });
 
-// node_modules/es-errors/index.js
+// backend/node_modules/es-errors/index.js
 var require_es_errors = __commonJS((exports2, module2) => {
   module2.exports = Error;
 });
 
-// node_modules/es-errors/eval.js
+// backend/node_modules/es-errors/eval.js
 var require_eval = __commonJS((exports2, module2) => {
   module2.exports = EvalError;
 });
 
-// node_modules/es-errors/range.js
+// backend/node_modules/es-errors/range.js
 var require_range = __commonJS((exports2, module2) => {
   module2.exports = RangeError;
 });
 
-// node_modules/es-errors/ref.js
+// backend/node_modules/es-errors/ref.js
 var require_ref = __commonJS((exports2, module2) => {
   module2.exports = ReferenceError;
 });
 
-// node_modules/es-errors/syntax.js
+// backend/node_modules/es-errors/syntax.js
 var require_syntax = __commonJS((exports2, module2) => {
   module2.exports = SyntaxError;
 });
 
-// node_modules/es-errors/type.js
+// backend/node_modules/es-errors/type.js
 var require_type = __commonJS((exports2, module2) => {
   module2.exports = TypeError;
 });
 
-// node_modules/es-errors/uri.js
+// backend/node_modules/es-errors/uri.js
 var require_uri = __commonJS((exports2, module2) => {
   module2.exports = URIError;
 });
 
-// node_modules/math-intrinsics/abs.js
+// backend/node_modules/math-intrinsics/abs.js
 var require_abs = __commonJS((exports2, module2) => {
   module2.exports = Math.abs;
 });
 
-// node_modules/math-intrinsics/floor.js
+// backend/node_modules/math-intrinsics/floor.js
 var require_floor = __commonJS((exports2, module2) => {
   module2.exports = Math.floor;
 });
 
-// node_modules/math-intrinsics/max.js
+// backend/node_modules/math-intrinsics/max.js
 var require_max = __commonJS((exports2, module2) => {
   module2.exports = Math.max;
 });
 
-// node_modules/math-intrinsics/min.js
+// backend/node_modules/math-intrinsics/min.js
 var require_min = __commonJS((exports2, module2) => {
   module2.exports = Math.min;
 });
 
-// node_modules/math-intrinsics/pow.js
+// backend/node_modules/math-intrinsics/pow.js
 var require_pow = __commonJS((exports2, module2) => {
   module2.exports = Math.pow;
 });
 
-// node_modules/math-intrinsics/round.js
+// backend/node_modules/math-intrinsics/round.js
 var require_round = __commonJS((exports2, module2) => {
   module2.exports = Math.round;
 });
 
-// node_modules/math-intrinsics/isNaN.js
+// backend/node_modules/math-intrinsics/isNaN.js
 var require_isNaN = __commonJS((exports2, module2) => {
   module2.exports = Number.isNaN || function isNaN(a) {
     return a !== a;
   };
 });
 
-// node_modules/math-intrinsics/sign.js
+// backend/node_modules/math-intrinsics/sign.js
 var require_sign = __commonJS((exports2, module2) => {
   var $isNaN = require_isNaN();
   module2.exports = function sign(number) {
@@ -9212,12 +9212,12 @@ var require_sign = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/gopd/gOPD.js
+// backend/node_modules/gopd/gOPD.js
 var require_gOPD = __commonJS((exports2, module2) => {
   module2.exports = Object.getOwnPropertyDescriptor;
 });
 
-// node_modules/gopd/index.js
+// backend/node_modules/gopd/index.js
 var require_gopd = __commonJS((exports2, module2) => {
   var $gOPD = require_gOPD();
   if ($gOPD) {
@@ -9230,7 +9230,7 @@ var require_gopd = __commonJS((exports2, module2) => {
   module2.exports = $gOPD;
 });
 
-// node_modules/es-define-property/index.js
+// backend/node_modules/es-define-property/index.js
 var require_es_define_property = __commonJS((exports2, module2) => {
   var $defineProperty = Object.defineProperty || false;
   if ($defineProperty) {
@@ -9243,7 +9243,7 @@ var require_es_define_property = __commonJS((exports2, module2) => {
   module2.exports = $defineProperty;
 });
 
-// node_modules/has-symbols/shams.js
+// backend/node_modules/has-symbols/shams.js
 var require_shams = __commonJS((exports2, module2) => {
   module2.exports = function hasSymbols() {
     if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
@@ -9292,7 +9292,7 @@ var require_shams = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/has-symbols/index.js
+// backend/node_modules/has-symbols/index.js
 var require_has_symbols = __commonJS((exports2, module2) => {
   var origSymbol = typeof Symbol !== "undefined" && Symbol;
   var hasSymbolSham = require_shams();
@@ -9313,18 +9313,18 @@ var require_has_symbols = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/get-proto/Reflect.getPrototypeOf.js
+// backend/node_modules/get-proto/Reflect.getPrototypeOf.js
 var require_Reflect_getPrototypeOf = __commonJS((exports2, module2) => {
   module2.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
 });
 
-// node_modules/get-proto/Object.getPrototypeOf.js
+// backend/node_modules/get-proto/Object.getPrototypeOf.js
 var require_Object_getPrototypeOf = __commonJS((exports2, module2) => {
   var $Object = require_es_object_atoms();
   module2.exports = $Object.getPrototypeOf || null;
 });
 
-// node_modules/function-bind/implementation.js
+// backend/node_modules/function-bind/implementation.js
 var require_implementation = __commonJS((exports2, module2) => {
   var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
   var toStr = Object.prototype.toString;
@@ -9390,28 +9390,28 @@ var require_implementation = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/function-bind/index.js
+// backend/node_modules/function-bind/index.js
 var require_function_bind = __commonJS((exports2, module2) => {
   var implementation = require_implementation();
   module2.exports = Function.prototype.bind || implementation;
 });
 
-// node_modules/call-bind-apply-helpers/functionCall.js
+// backend/node_modules/call-bind-apply-helpers/functionCall.js
 var require_functionCall = __commonJS((exports2, module2) => {
   module2.exports = Function.prototype.call;
 });
 
-// node_modules/call-bind-apply-helpers/functionApply.js
+// backend/node_modules/call-bind-apply-helpers/functionApply.js
 var require_functionApply = __commonJS((exports2, module2) => {
   module2.exports = Function.prototype.apply;
 });
 
-// node_modules/call-bind-apply-helpers/reflectApply.js
+// backend/node_modules/call-bind-apply-helpers/reflectApply.js
 var require_reflectApply = __commonJS((exports2, module2) => {
   module2.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
 });
 
-// node_modules/call-bind-apply-helpers/actualApply.js
+// backend/node_modules/call-bind-apply-helpers/actualApply.js
 var require_actualApply = __commonJS((exports2, module2) => {
   var bind = require_function_bind();
   var $apply = require_functionApply();
@@ -9420,7 +9420,7 @@ var require_actualApply = __commonJS((exports2, module2) => {
   module2.exports = $reflectApply || bind.call($call, $apply);
 });
 
-// node_modules/call-bind-apply-helpers/index.js
+// backend/node_modules/call-bind-apply-helpers/index.js
 var require_call_bind_apply_helpers = __commonJS((exports2, module2) => {
   var bind = require_function_bind();
   var $TypeError = require_type();
@@ -9434,7 +9434,7 @@ var require_call_bind_apply_helpers = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/dunder-proto/get.js
+// backend/node_modules/dunder-proto/get.js
 var require_get = __commonJS((exports2, module2) => {
   var callBind = require_call_bind_apply_helpers();
   var gOPD = require_gopd();
@@ -9454,7 +9454,7 @@ var require_get = __commonJS((exports2, module2) => {
   } : false;
 });
 
-// node_modules/get-proto/index.js
+// backend/node_modules/get-proto/index.js
 var require_get_proto = __commonJS((exports2, module2) => {
   var reflectGetProto = require_Reflect_getPrototypeOf();
   var originalGetProto = require_Object_getPrototypeOf();
@@ -9471,7 +9471,7 @@ var require_get_proto = __commonJS((exports2, module2) => {
   } : null;
 });
 
-// node_modules/hasown/index.js
+// backend/node_modules/hasown/index.js
 var require_hasown = __commonJS((exports2, module2) => {
   var call = Function.prototype.call;
   var $hasOwn = Object.prototype.hasOwnProperty;
@@ -9479,7 +9479,7 @@ var require_hasown = __commonJS((exports2, module2) => {
   module2.exports = bind.call(call, $hasOwn);
 });
 
-// node_modules/get-intrinsic/index.js
+// backend/node_modules/get-intrinsic/index.js
 var require_get_intrinsic = __commonJS((exports2, module2) => {
   var undefined2;
   var $Object = require_es_object_atoms();
@@ -9805,7 +9805,7 @@ var require_get_intrinsic = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/has-tostringtag/shams.js
+// backend/node_modules/has-tostringtag/shams.js
 var require_shams2 = __commonJS((exports2, module2) => {
   var hasSymbols = require_shams();
   module2.exports = function hasToStringTagShams() {
@@ -9813,7 +9813,7 @@ var require_shams2 = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/es-set-tostringtag/index.js
+// backend/node_modules/es-set-tostringtag/index.js
 var require_es_set_tostringtag = __commonJS((exports2, module2) => {
   var GetIntrinsic = require_get_intrinsic();
   var $defineProperty = GetIntrinsic("%Object.defineProperty%", true);
@@ -9842,7 +9842,7 @@ var require_es_set_tostringtag = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/form-data/lib/populate.js
+// backend/node_modules/form-data/lib/populate.js
 var require_populate = __commonJS((exports2, module2) => {
   module2.exports = function(dst, src) {
     Object.keys(src).forEach(function(prop) {
@@ -9852,7 +9852,7 @@ var require_populate = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/form-data/lib/form_data.js
+// backend/node_modules/form-data/lib/form_data.js
 var require_form_data = __commonJS((exports2, module2) => {
   var CombinedStream = require_combined_stream();
   var util = require("util");
@@ -10167,7 +10167,7 @@ var require_form_data = __commonJS((exports2, module2) => {
   module2.exports = FormData;
 });
 
-// src/services/huggingface.client.ts
+// backend/src/services/huggingface.client.ts
 var exports_huggingface_client = {};
 __export(exports_huggingface_client, {
   generateWithHuggingFace: () => generateWithHuggingFace
@@ -10233,7 +10233,7 @@ var init_huggingface_client = __esm(() => {
   ];
 });
 
-// src/services/stability.client.ts
+// backend/src/services/stability.client.ts
 var exports_stability_client = {};
 __export(exports_stability_client, {
   generateWithStabilityAI: () => generateWithStabilityAI
@@ -10277,7 +10277,7 @@ var init_stability_client = __esm(() => {
   STABILITY_API_KEY = process.env.STABILITY_API_KEY || "";
 });
 
-// src/external-apis.ts
+// backend/src/external-apis.ts
 var exports_external_apis = {};
 __export(exports_external_apis, {
   removeBackgroundWithRemoveBg: () => removeBackgroundWithRemoveBg,
@@ -10778,7 +10778,7 @@ var init_external_apis = __esm(() => {
   };
 });
 
-// src/services/templatePrompt.ts
+// backend/src/services/templatePrompt.ts
 var exports_templatePrompt = {};
 __export(exports_templatePrompt, {
   buildUMKMPrompt: () => buildUMKMPrompt
@@ -10804,7 +10804,7 @@ function buildUMKMPrompt(productName, businessType, theme, brandColor, targetMar
   return `High quality commercial product photography of ${productName}, ${businessMap[businessType]}, ${themeMap[theme]}, professional studio lighting, shallow depth of field, centered composition, clean neutral background, vibrant appetizing colors, Instagram-worthy, marketing material quality, 4K sharp details, no text, no watermark. ${additionalInfo || ""}`;
 }
 
-// src/visual-studio.ts
+// backend/src/visual-studio.ts
 var exports_visual_studio = {};
 __export(exports_visual_studio, {
   generateUMKMBranding: () => generateUMKMBranding,
@@ -11513,7 +11513,7 @@ var init_visual_studio = __esm(() => {
   };
 });
 
-// src/dapur-umkm.ts
+// backend/src/dapur-umkm.ts
 var exports_dapur_umkm = {};
 __export(exports_dapur_umkm, {
   getPastInsights: () => getPastInsights,
@@ -11985,7 +11985,7 @@ var init_dapur_umkm = __esm(() => {
   };
 });
 
-// src/tanya-daeng.ts
+// backend/src/tanya-daeng.ts
 var exports_tanya_daeng = {};
 __export(exports_tanya_daeng, {
   tanyaDaeng: () => tanyaDaeng,
@@ -12327,14 +12327,14 @@ Ingat: 1 pelanggan puas = 10 pelanggan baru datang!`
   ];
 });
 
-// src/index.ts
+// backend/src/index.ts
 var exports_src = {};
 __export(exports_src, {
   default: () => src_default
 });
 module.exports = __toCommonJS(exports_src);
 
-// node_modules/hono/dist/compose.js
+// backend/node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -12378,10 +12378,10 @@ var compose = (middleware, onError, onNotFound) => {
   };
 };
 
-// node_modules/hono/dist/request/constants.js
+// backend/node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = Symbol();
 
-// node_modules/hono/dist/utils/body.js
+// backend/node_modules/hono/dist/utils/body.js
 var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
@@ -12449,7 +12449,7 @@ var handleParsingNestedValues = (form, key, value) => {
   });
 };
 
-// node_modules/hono/dist/utils/url.js
+// backend/node_modules/hono/dist/utils/url.js
 var splitPath = (path) => {
   const paths = path.split("/");
   if (paths[0] === "") {
@@ -12647,7 +12647,7 @@ var getQueryParams = (url, key) => {
 };
 var decodeURIComponent_ = decodeURIComponent;
 
-// node_modules/hono/dist/request.js
+// backend/node_modules/hono/dist/request.js
 var tryDecodeURIComponent = (str) => tryDecode(str, decodeURIComponent_);
 var HonoRequest = class {
   raw;
@@ -12758,7 +12758,7 @@ var HonoRequest = class {
   }
 };
 
-// node_modules/hono/dist/utils/html.js
+// backend/node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -12796,7 +12796,7 @@ var resolveCallback = async (str, phase, preserveCallbacks, context, buffer) => 
   }
 };
 
-// node_modules/hono/dist/context.js
+// backend/node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = (contentType, headers) => {
   return {
@@ -12962,7 +12962,7 @@ var Context = class {
   };
 };
 
-// node_modules/hono/dist/router.js
+// backend/node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -12970,10 +12970,10 @@ var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is
 var UnsupportedPathError = class extends Error {
 };
 
-// node_modules/hono/dist/utils/constants.js
+// backend/node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// node_modules/hono/dist/hono-base.js
+// backend/node_modules/hono/dist/hono-base.js
 var notFoundHandler = (c) => {
   return c.text("404 Not Found", 404);
 };
@@ -13192,7 +13192,7 @@ var Hono = class {
   };
 };
 
-// node_modules/hono/dist/router/reg-exp-router/matcher.js
+// backend/node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path) {
   const matchers = this.buildAllMatchers();
@@ -13213,7 +13213,7 @@ function match(method, path) {
   return match2(method, path);
 }
 
-// node_modules/hono/dist/router/reg-exp-router/node.js
+// backend/node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -13317,7 +13317,7 @@ var Node = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/trie.js
+// backend/node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   #context = { varIndex: 0 };
   #root = new Node;
@@ -13373,7 +13373,7 @@ var Trie = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/router.js
+// backend/node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path) {
@@ -13538,7 +13538,7 @@ var RegExpRouter = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/prepared-router.js
+// backend/node_modules/hono/dist/router/reg-exp-router/prepared-router.js
 var PreparedRegExpRouter = class {
   name = "PreparedRegExpRouter";
   #matchers;
@@ -13610,7 +13610,7 @@ var PreparedRegExpRouter = class {
   match = match;
 };
 
-// node_modules/hono/dist/router/smart-router/router.js
+// backend/node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   name = "SmartRouter";
   #routers = [];
@@ -13665,7 +13665,7 @@ var SmartRouter = class {
   }
 };
 
-// node_modules/hono/dist/router/trie-router/node.js
+// backend/node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
 var Node2 = class {
   #methods;
@@ -13819,7 +13819,7 @@ var Node2 = class {
   }
 };
 
-// node_modules/hono/dist/router/trie-router/router.js
+// backend/node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   name = "TrieRouter";
   #node;
@@ -13841,7 +13841,7 @@ var TrieRouter = class {
   }
 };
 
-// node_modules/hono/dist/hono.js
+// backend/node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   constructor(options = {}) {
     super(options);
@@ -13851,7 +13851,7 @@ var Hono2 = class extends Hono {
   }
 };
 
-// node_modules/hono/dist/middleware/cors/index.js
+// backend/node_modules/hono/dist/middleware/cors/index.js
 var cors = (options) => {
   const defaults = {
     origin: "*",
@@ -13936,10 +13936,10 @@ var cors = (options) => {
   };
 };
 
-// src/index.ts
+// backend/src/index.ts
 init_supabase();
 
-// src/kolosalai.ts
+// backend/src/kolosalai.ts
 var import_openai = __toESM(require("openai"));
 var KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY;
 var USE_MOCK = process.env.USE_MOCK_AI === "true";
@@ -14386,7 +14386,7 @@ Telp: 0821-xxxx-xxxx
   };
 }
 
-// src/ai-content-studio.ts
+// backend/src/ai-content-studio.ts
 var import_openai2 = __toESM(require("openai"));
 var KOLOSAL_API_KEY2 = process.env.KOLOSAL_API_KEY;
 var USE_MOCK2 = process.env.USE_MOCK_AI === "true";
@@ -15069,10 +15069,10 @@ Hormat kami,
   };
 }
 
-// src/index.ts
+// backend/src/index.ts
 init_visual_studio();
 
-// src/telegram-bot.ts
+// backend/src/telegram-bot.ts
 init_supabase();
 init_dapur_umkm();
 var import_node_telegram_bot_api = __toESM(require("node-telegram-bot-api"));
@@ -15531,7 +15531,7 @@ async function handleTransaksiKeluarCommand(msg) {
   }
 }
 
-// src/index.ts
+// backend/src/index.ts
 var app = new Hono2;
 app.use("/*", cors({
   origin: ["http://localhost:3000", "http://localhost:1997"],
@@ -15579,7 +15579,7 @@ app.delete("/menus/:id", async (c) => {
     return c.json({ error }, 500);
   return c.json({ data });
 });
-app.post("/api/copywriting", async (c) => {
+app.post("/copywriting", async (c) => {
   try {
     const body = await c.req.json();
     const { namaProduk, jenisKonten, gayaBahasa, tujuanKonten } = body;
@@ -15627,7 +15627,7 @@ app.post("/api/copywriting", async (c) => {
     }, 500);
   }
 });
-app.get("/api/copywriting/history", async (c) => {
+app.get("/copywriting/history", async (c) => {
   try {
     const { data, error } = await supabase.from("copywriting_history").select("*").order("created_at", { ascending: false }).limit(50);
     if (error) {
@@ -15640,7 +15640,7 @@ app.get("/api/copywriting/history", async (c) => {
     return c.json({ error: "Gagal mengambil history", message: error.message }, 500);
   }
 });
-app.get("/api/copywriting/history/:id", async (c) => {
+app.get("/copywriting/history/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const { data, error } = await supabase.from("copywriting_history").select("*").eq("id", id).single();
@@ -15653,7 +15653,7 @@ app.get("/api/copywriting/history/:id", async (c) => {
     return c.json({ error: "Gagal mengambil history", message: error.message }, 500);
   }
 });
-app.post("/api/ai-content", async (c) => {
+app.post("/ai-content", async (c) => {
   try {
     const body = await c.req.json();
     const { type, inputText, metadata, userId } = body;
@@ -15707,7 +15707,7 @@ app.post("/api/ai-content", async (c) => {
     }, 500);
   }
 });
-app.get("/api/ai-content/history", async (c) => {
+app.get("/ai-content/history", async (c) => {
   try {
     const userId = c.req.query("userId");
     const type = c.req.query("type");
@@ -15742,7 +15742,7 @@ app.get("/api/ai-content/history", async (c) => {
     }, 500);
   }
 });
-app.get("/api/ai-content/history/:id", async (c) => {
+app.get("/ai-content/history/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const { data, error } = await supabase.from("ai_content_activity").select("*").eq("id", id).single();
@@ -15758,7 +15758,7 @@ app.get("/api/ai-content/history/:id", async (c) => {
     }, 500);
   }
 });
-app.delete("/api/ai-content/history/:id", async (c) => {
+app.delete("/ai-content/history/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const { error } = await supabase.from("ai_content_activity").delete().eq("id", id);
@@ -15778,7 +15778,7 @@ app.delete("/api/ai-content/history/:id", async (c) => {
     }, 500);
   }
 });
-app.get("/api/ai-content/stats", async (c) => {
+app.get("/ai-content/stats", async (c) => {
   try {
     const userId = c.req.query("userId");
     let query = supabase.from("ai_content_activity").select("type, created_at");
@@ -15818,7 +15818,7 @@ app.get("/api/ai-content/stats", async (c) => {
     }, 500);
   }
 });
-app.post("/api/visual-studio/generate-umkm-branding", async (c) => {
+app.post("/visual-studio/generate-umkm-branding", async (c) => {
   try {
     const body = await c.req.json();
     const {
@@ -15889,7 +15889,7 @@ app.post("/api/visual-studio/generate-umkm-branding", async (c) => {
     }, 500);
   }
 });
-app.post("/api/visual-studio/analyze-image", async (c) => {
+app.post("/visual-studio/analyze-image", async (c) => {
   try {
     const body = await c.req.json();
     const { imageUrl, imageBase64, context, userId } = body;
@@ -15927,7 +15927,7 @@ app.post("/api/visual-studio/analyze-image", async (c) => {
     }, 500);
   }
 });
-app.post("/api/visual-studio/generate-template", async (c) => {
+app.post("/visual-studio/generate-template", async (c) => {
   try {
     const body = await c.req.json();
     const { imageUrl, imageBase64, templateType, theme, brandColor, targetAudience, userId } = body;
@@ -15975,7 +15975,7 @@ app.post("/api/visual-studio/generate-template", async (c) => {
     }, 500);
   }
 });
-app.post("/api/visual-studio/remove-background", async (c) => {
+app.post("/visual-studio/remove-background", async (c) => {
   try {
     const body = await c.req.json();
     const { imageBase64, userId } = body;
@@ -16017,7 +16017,7 @@ app.post("/api/visual-studio/remove-background", async (c) => {
     }, 500);
   }
 });
-app.post("/api/visual-studio/generate-design", async (c) => {
+app.post("/visual-studio/generate-design", async (c) => {
   try {
     const body = await c.req.json();
     const { prompt, style, userId } = body;
@@ -16057,7 +16057,7 @@ app.post("/api/visual-studio/generate-design", async (c) => {
     }, 500);
   }
 });
-app.post("/api/visual-studio/schedule-planner", async (c) => {
+app.post("/visual-studio/schedule-planner", async (c) => {
   try {
     const body = await c.req.json();
     const { imageUrl, contentType, targetAudience, businessGoal, duration, userId } = body;
@@ -16104,7 +16104,7 @@ app.post("/api/visual-studio/schedule-planner", async (c) => {
     }, 500);
   }
 });
-app.get("/api/visual-studio/history", async (c) => {
+app.get("/visual-studio/history", async (c) => {
   try {
     const userId = c.req.query("userId");
     const activityType = c.req.query("type");
@@ -16128,7 +16128,7 @@ app.get("/api/visual-studio/history", async (c) => {
     }, 500);
   }
 });
-app.post("/api/tanya-daeng/chat", async (c) => {
+app.post("/tanya-daeng/chat", async (c) => {
   try {
     const body = await c.req.json();
     const { message, conversationHistory, userContext, userId } = body;
@@ -16165,7 +16165,7 @@ app.post("/api/tanya-daeng/chat", async (c) => {
     }, 500);
   }
 });
-app.get("/api/tanya-daeng/faq", async (c) => {
+app.get("/tanya-daeng/faq", async (c) => {
   try {
     const { getAllFAQ: getAllFAQ2 } = await Promise.resolve().then(() => (init_tanya_daeng(), exports_tanya_daeng));
     const faqs = getAllFAQ2();
@@ -16181,7 +16181,7 @@ app.get("/api/tanya-daeng/faq", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/profile", async (c) => {
+app.get("/dapur-umkm/profile", async (c) => {
   try {
     const userId = c.req.header("X-User-ID");
     const { data, error } = await supabase.from("umkm_profiles").select("*").limit(1).single();
@@ -16199,7 +16199,7 @@ app.get("/api/dapur-umkm/profile", async (c) => {
     }, 500);
   }
 });
-app.post("/api/dapur-umkm/profile", async (c) => {
+app.post("/dapur-umkm/profile", async (c) => {
   try {
     const body = await c.req.json();
     const { id, business_name, category, address, phone, email, logo_url, description } = body;
@@ -16249,7 +16249,7 @@ app.post("/api/dapur-umkm/profile", async (c) => {
     }, 500);
   }
 });
-app.post("/api/dapur-umkm/upload-logo", async (c) => {
+app.post("/dapur-umkm/upload-logo", async (c) => {
   try {
     const formData = await c.req.formData();
     const file = formData.get("logo");
@@ -16309,7 +16309,7 @@ app.post("/api/dapur-umkm/upload-logo", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/public/profile", async (c) => {
+app.get("/dapur-umkm/public/profile", async (c) => {
   try {
     const { data, error } = await supabase.from("umkm_profiles").select("id, business_name, category, address, logo_url, description").limit(1).single();
     if (error && error.code !== "PGRST116")
@@ -16326,7 +16326,7 @@ app.get("/api/dapur-umkm/public/profile", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/products", async (c) => {
+app.get("/dapur-umkm/products", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     let query = supabase.from("umkm_products").select("*").order("created_at", { ascending: false });
@@ -16348,7 +16348,7 @@ app.get("/api/dapur-umkm/products", async (c) => {
     }, 500);
   }
 });
-app.post("/api/dapur-umkm/products", async (c) => {
+app.post("/dapur-umkm/products", async (c) => {
   try {
     const body = await c.req.json();
     const { profile_id, name, price, stock, image_url, category, description, cost_price } = body;
@@ -16383,7 +16383,7 @@ app.post("/api/dapur-umkm/products", async (c) => {
     }, 500);
   }
 });
-app.put("/api/dapur-umkm/products/:id", async (c) => {
+app.put("/dapur-umkm/products/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const body = await c.req.json();
@@ -16412,7 +16412,7 @@ app.put("/api/dapur-umkm/products/:id", async (c) => {
     }, 500);
   }
 });
-app.delete("/api/dapur-umkm/products/:id", async (c) => {
+app.delete("/dapur-umkm/products/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const { error } = await supabase.from("umkm_products").delete().eq("id", id);
@@ -16430,7 +16430,7 @@ app.delete("/api/dapur-umkm/products/:id", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/transactions", async (c) => {
+app.get("/dapur-umkm/transactions", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     const type = c.req.query("type");
@@ -16456,7 +16456,7 @@ app.get("/api/dapur-umkm/transactions", async (c) => {
     }, 500);
   }
 });
-app.post("/api/dapur-umkm/transactions", async (c) => {
+app.post("/dapur-umkm/transactions", async (c) => {
   try {
     const body = await c.req.json();
     const { profile_id, transaction_date, description, amount, type, category, product_id, notes } = body;
@@ -16496,7 +16496,7 @@ app.post("/api/dapur-umkm/transactions", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/summary", async (c) => {
+app.get("/dapur-umkm/summary", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     if (!profileId) {
@@ -16519,7 +16519,7 @@ app.get("/api/dapur-umkm/summary", async (c) => {
     }, 500);
   }
 });
-app.post("/api/dapur-umkm/ai-advice", async (c) => {
+app.post("/dapur-umkm/ai-advice", async (c) => {
   try {
     const body = await c.req.json();
     const { profile_id, insight_type, question } = body;
@@ -16551,7 +16551,7 @@ app.post("/api/dapur-umkm/ai-advice", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/quick-insights", async (c) => {
+app.get("/dapur-umkm/quick-insights", async (c) => {
   try {
     const { QUICK_INSIGHTS: QUICK_INSIGHTS2 } = await Promise.resolve().then(() => (init_dapur_umkm(), exports_dapur_umkm));
     return c.json({
@@ -16566,7 +16566,7 @@ app.get("/api/dapur-umkm/quick-insights", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/insights-history", async (c) => {
+app.get("/dapur-umkm/insights-history", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     const limit = parseInt(c.req.query("limit") || "10");
@@ -16587,7 +16587,7 @@ app.get("/api/dapur-umkm/insights-history", async (c) => {
     }, 500);
   }
 });
-app.post("/api/dapur-umkm/dashboard-analysis", async (c) => {
+app.post("/dapur-umkm/dashboard-analysis", async (c) => {
   try {
     const body = await c.req.json();
     const { profile_id } = body;
@@ -16609,7 +16609,7 @@ app.post("/api/dapur-umkm/dashboard-analysis", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/dashboard-overview", async (c) => {
+app.get("/dapur-umkm/dashboard-overview", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     if (!profileId) {
@@ -16646,7 +16646,7 @@ app.get("/api/dapur-umkm/dashboard-overview", async (c) => {
     }, 500);
   }
 });
-app.get("/api/dapur-umkm/report", async (c) => {
+app.get("/dapur-umkm/report", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     const month = parseInt(c.req.query("month") || "0");
@@ -16708,7 +16708,7 @@ app.get("/api/dapur-umkm/report", async (c) => {
     }, 500);
   }
 });
-app.get("/api/evaluations", async (c) => {
+app.get("/evaluations", async (c) => {
   try {
     const profileId = c.req.query("profile_id");
     const status = c.req.query("status");
@@ -16734,7 +16734,7 @@ app.get("/api/evaluations", async (c) => {
     }, 500);
   }
 });
-app.put("/api/evaluations/:id/read", async (c) => {
+app.put("/evaluations/:id/read", async (c) => {
   try {
     const id = c.req.param("id");
     const { data, error } = await supabase.from("umkm_evaluations").update({
@@ -16755,7 +16755,7 @@ app.put("/api/evaluations/:id/read", async (c) => {
     }, 500);
   }
 });
-app.put("/api/evaluations/:id/notes", async (c) => {
+app.put("/evaluations/:id/notes", async (c) => {
   try {
     const id = c.req.param("id");
     const body = await c.req.json();
@@ -16775,7 +16775,7 @@ app.put("/api/evaluations/:id/notes", async (c) => {
     }, 500);
   }
 });
-app.delete("/api/evaluations/:id", async (c) => {
+app.delete("/evaluations/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const { error } = await supabase.from("umkm_evaluations").delete().eq("id", id);

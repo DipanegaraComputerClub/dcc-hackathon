@@ -109,7 +109,7 @@ app.delete('/menus/:id', async (c) => {
 // ================================
 // AI COPYWRITING
 // ================================
-app.post('/api/copywriting', async (c) => {
+app.post('/copywriting', async (c) => {
   try {
     const body = await c.req.json()
     const { namaProduk, jenisKonten, gayaBahasa, tujuanKonten } = body as CopywritingRequest
@@ -179,7 +179,7 @@ app.post('/api/copywriting', async (c) => {
 // ================================
 // GET COPYWRITING HISTORY
 // ================================
-app.get('/api/copywriting/history', async (c) => {
+app.get('/copywriting/history', async (c) => {
   try {
     const { data, error } = await supabase
       .from('copywriting_history')
@@ -202,7 +202,7 @@ app.get('/api/copywriting/history', async (c) => {
 // ================================
 // GET COPYWRITING HISTORY BY ID
 // ================================
-app.get('/api/copywriting/history/:id', async (c) => {
+app.get('/copywriting/history/:id', async (c) => {
   try {
     const id = c.req.param('id')
 
@@ -226,7 +226,7 @@ app.get('/api/copywriting/history/:id', async (c) => {
 // ================================
 // AI CONTENT STUDIO - Generate Content
 // ================================
-app.post('/api/ai-content', async (c) => {
+app.post('/ai-content', async (c) => {
   try {
     const body = await c.req.json()
     const { type, inputText, metadata, userId } = body
@@ -301,7 +301,7 @@ app.post('/api/ai-content', async (c) => {
 // ================================
 // AI CONTENT STUDIO - Get History (All Types)
 // ================================
-app.get('/api/ai-content/history', async (c) => {
+app.get('/ai-content/history', async (c) => {
   try {
     const userId = c.req.query('userId')
     const type = c.req.query('type') as ContentType | undefined
@@ -353,7 +353,7 @@ app.get('/api/ai-content/history', async (c) => {
 // ================================
 // AI CONTENT STUDIO - Get History by ID
 // ================================
-app.get('/api/ai-content/history/:id', async (c) => {
+app.get('/ai-content/history/:id', async (c) => {
   try {
     const id = c.req.param('id')
 
@@ -380,7 +380,7 @@ app.get('/api/ai-content/history/:id', async (c) => {
 // ================================
 // AI CONTENT STUDIO - Delete History
 // ================================
-app.delete('/api/ai-content/history/:id', async (c) => {
+app.delete('/ai-content/history/:id', async (c) => {
   try {
     const id = c.req.param('id')
 
@@ -410,7 +410,7 @@ app.delete('/api/ai-content/history/:id', async (c) => {
 // ================================
 // AI CONTENT STUDIO - Get Stats
 // ================================
-app.get('/api/ai-content/stats', async (c) => {
+app.get('/ai-content/stats', async (c) => {
   try {
     const userId = c.req.query('userId')
 
@@ -465,7 +465,7 @@ app.get('/api/ai-content/stats', async (c) => {
 // ================================
 // 🎯 VISUAL STUDIO - MAIN ENDPOINT: UMKM BRANDING (ALL-IN-ONE)
 // ================================
-app.post('/api/visual-studio/generate-umkm-branding', async (c) => {
+app.post('/visual-studio/generate-umkm-branding', async (c) => {
   try {
     const body = await c.req.json()
     const { 
@@ -552,7 +552,7 @@ app.post('/api/visual-studio/generate-umkm-branding', async (c) => {
 // ================================
 // VISUAL STUDIO - Image Analysis (OLD - Keep for backward compatibility)
 // ================================
-app.post('/api/visual-studio/analyze-image', async (c) => {
+app.post('/visual-studio/analyze-image', async (c) => {
   try {
     const body = await c.req.json()
     const { imageUrl, imageBase64, context, userId } = body
@@ -605,7 +605,7 @@ app.post('/api/visual-studio/analyze-image', async (c) => {
 // ================================
 // VISUAL STUDIO - Template Generation
 // ================================
-app.post('/api/visual-studio/generate-template', async (c) => {
+app.post('/visual-studio/generate-template', async (c) => {
   try {
     const body = await c.req.json()
     const { imageUrl, imageBase64, templateType, theme, brandColor, targetAudience, userId } = body
@@ -669,7 +669,7 @@ app.post('/api/visual-studio/generate-template', async (c) => {
 // ================================
 // VISUAL STUDIO - Background Removal (Pixian.ai)
 // ================================
-app.post('/api/visual-studio/remove-background', async (c) => {
+app.post('/visual-studio/remove-background', async (c) => {
   try {
     const body = await c.req.json()
     const { imageBase64, userId } = body
@@ -725,7 +725,7 @@ app.post('/api/visual-studio/remove-background', async (c) => {
 // ================================
 // VISUAL STUDIO - Generate Template Design (Flux)
 // ================================
-app.post('/api/visual-studio/generate-design', async (c) => {
+app.post('/visual-studio/generate-design', async (c) => {
   try {
     const body = await c.req.json()
     const { prompt, style, userId } = body
@@ -779,7 +779,7 @@ app.post('/api/visual-studio/generate-design', async (c) => {
 // ================================
 // VISUAL STUDIO - Schedule Planner
 // ================================
-app.post('/api/visual-studio/schedule-planner', async (c) => {
+app.post('/visual-studio/schedule-planner', async (c) => {
   try {
     const body = await c.req.json()
     const { imageUrl, contentType, targetAudience, businessGoal, duration, userId } = body
@@ -842,7 +842,7 @@ app.post('/api/visual-studio/schedule-planner', async (c) => {
 // ================================
 // VISUAL STUDIO - Get History
 // ================================
-app.get('/api/visual-studio/history', async (c) => {
+app.get('/visual-studio/history', async (c) => {
   try {
     const userId = c.req.query('userId')
     const activityType = c.req.query('type') // image_analysis, template_generation, schedule_planner
@@ -881,7 +881,7 @@ app.get('/api/visual-studio/history', async (c) => {
 // TANYA DAENG - AI CHATBOT UMKM
 // ================================
 
-app.post('/api/tanya-daeng/chat', async (c) => {
+app.post('/tanya-daeng/chat', async (c) => {
   try {
     const body = await c.req.json()
     const { message, conversationHistory, userContext, userId } = body
@@ -930,7 +930,7 @@ app.post('/api/tanya-daeng/chat', async (c) => {
 })
 
 // Get all FAQ
-app.get('/api/tanya-daeng/faq', async (c) => {
+app.get('/tanya-daeng/faq', async (c) => {
   try {
     const { getAllFAQ } = await import('./tanya-daeng')
     const faqs = getAllFAQ()
@@ -955,7 +955,7 @@ app.get('/api/tanya-daeng/faq', async (c) => {
 
 // === PROFILE ===
 // Get user's UMKM profile
-app.get('/api/dapur-umkm/profile', async (c) => {
+app.get('/dapur-umkm/profile', async (c) => {
   try {
     const userId = c.req.header('X-User-ID') // Optional: untuk auth nanti
     
@@ -982,7 +982,7 @@ app.get('/api/dapur-umkm/profile', async (c) => {
 })
 
 // Create or update UMKM profile
-app.post('/api/dapur-umkm/profile', async (c) => {
+app.post('/dapur-umkm/profile', async (c) => {
   try {
     const body = await c.req.json()
     const { id, business_name, category, address, phone, email, logo_url, description } = body
@@ -1050,7 +1050,7 @@ app.post('/api/dapur-umkm/profile', async (c) => {
 })
 
 // Upload logo
-app.post('/api/dapur-umkm/upload-logo', async (c) => {
+app.post('/dapur-umkm/upload-logo', async (c) => {
   try {
     const formData = await c.req.formData()
     const file = formData.get('logo') as File
@@ -1139,7 +1139,7 @@ app.post('/api/dapur-umkm/upload-logo', async (c) => {
 })
 
 // Get public profile (for landing page)
-app.get('/api/dapur-umkm/public/profile', async (c) => {
+app.get('/dapur-umkm/public/profile', async (c) => {
   try {
     // Get the first/active profile (you can add logic for active status later)
     const { data, error } = await supabase
@@ -1167,7 +1167,7 @@ app.get('/api/dapur-umkm/public/profile', async (c) => {
 
 // === PRODUCTS ===
 // Get all products
-app.get('/api/dapur-umkm/products', async (c) => {
+app.get('/dapur-umkm/products', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
 
@@ -1196,7 +1196,7 @@ app.get('/api/dapur-umkm/products', async (c) => {
 })
 
 // Add new product
-app.post('/api/dapur-umkm/products', async (c) => {
+app.post('/dapur-umkm/products', async (c) => {
   try {
     const body = await c.req.json()
     const { profile_id, name, price, stock, image_url, category, description, cost_price } = body
@@ -1241,7 +1241,7 @@ app.post('/api/dapur-umkm/products', async (c) => {
 })
 
 // Update product
-app.put('/api/dapur-umkm/products/:id', async (c) => {
+app.put('/dapur-umkm/products/:id', async (c) => {
   try {
     const id = c.req.param('id')
     const body = await c.req.json()
@@ -1280,7 +1280,7 @@ app.put('/api/dapur-umkm/products/:id', async (c) => {
 })
 
 // Delete product
-app.delete('/api/dapur-umkm/products/:id', async (c) => {
+app.delete('/dapur-umkm/products/:id', async (c) => {
   try {
     const id = c.req.param('id')
 
@@ -1307,7 +1307,7 @@ app.delete('/api/dapur-umkm/products/:id', async (c) => {
 
 // === TRANSACTIONS ===
 // Get all transactions
-app.get('/api/dapur-umkm/transactions', async (c) => {
+app.get('/dapur-umkm/transactions', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
     const type = c.req.query('type') // 'in' or 'out'
@@ -1345,7 +1345,7 @@ app.get('/api/dapur-umkm/transactions', async (c) => {
 })
 
 // Add new transaction
-app.post('/api/dapur-umkm/transactions', async (c) => {
+app.post('/dapur-umkm/transactions', async (c) => {
   try {
     const body = await c.req.json()
     const { profile_id, transaction_date, description, amount, type, category, product_id, notes } = body
@@ -1396,7 +1396,7 @@ app.post('/api/dapur-umkm/transactions', async (c) => {
 })
 
 // Get financial summary
-app.get('/api/dapur-umkm/summary', async (c) => {
+app.get('/dapur-umkm/summary', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
 
@@ -1426,7 +1426,7 @@ app.get('/api/dapur-umkm/summary', async (c) => {
 
 // === AI RECOMMENDATIONS ===
 // Get AI business advice
-app.post('/api/dapur-umkm/ai-advice', async (c) => {
+app.post('/dapur-umkm/ai-advice', async (c) => {
   try {
     const body = await c.req.json()
     const { profile_id, insight_type, question } = body
@@ -1465,7 +1465,7 @@ app.post('/api/dapur-umkm/ai-advice', async (c) => {
 })
 
 // Get quick AI insights (pre-defined questions)
-app.get('/api/dapur-umkm/quick-insights', async (c) => {
+app.get('/dapur-umkm/quick-insights', async (c) => {
   try {
     const { QUICK_INSIGHTS } = await import('./dapur-umkm')
 
@@ -1484,7 +1484,7 @@ app.get('/api/dapur-umkm/quick-insights', async (c) => {
 })
 
 // Get past AI insights history
-app.get('/api/dapur-umkm/insights-history', async (c) => {
+app.get('/dapur-umkm/insights-history', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
     const limit = parseInt(c.req.query('limit') || '10')
@@ -1515,7 +1515,7 @@ app.get('/api/dapur-umkm/insights-history', async (c) => {
 // ============================================
 
 // Generate comprehensive dashboard analysis with AI
-app.post('/api/dapur-umkm/dashboard-analysis', async (c) => {
+app.post('/dapur-umkm/dashboard-analysis', async (c) => {
   try {
     const body = await c.req.json()
     const { profile_id } = body
@@ -1543,7 +1543,7 @@ app.post('/api/dapur-umkm/dashboard-analysis', async (c) => {
 })
 
 // Get dashboard overview (all data in one call)
-app.get('/api/dapur-umkm/dashboard-overview', async (c) => {
+app.get('/dapur-umkm/dashboard-overview', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
 
@@ -1593,7 +1593,7 @@ app.get('/api/dapur-umkm/dashboard-overview', async (c) => {
 // ============================================
 
 // Get monthly transaction report
-app.get('/api/dapur-umkm/report', async (c) => {
+app.get('/dapur-umkm/report', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
     const month = parseInt(c.req.query('month') || '0')
@@ -1676,7 +1676,7 @@ app.get('/api/dapur-umkm/report', async (c) => {
 // ============================================
 
 // Get all evaluations for a profile
-app.get('/api/evaluations', async (c) => {
+app.get('/evaluations', async (c) => {
   try {
     const profileId = c.req.query('profile_id')
     const status = c.req.query('status') // unread, read, archived
@@ -1712,7 +1712,7 @@ app.get('/api/evaluations', async (c) => {
 })
 
 // Mark evaluation as read
-app.put('/api/evaluations/:id/read', async (c) => {
+app.put('/evaluations/:id/read', async (c) => {
   try {
     const id = c.req.param('id')
 
@@ -1742,7 +1742,7 @@ app.put('/api/evaluations/:id/read', async (c) => {
 })
 
 // Add admin notes to evaluation
-app.put('/api/evaluations/:id/notes', async (c) => {
+app.put('/evaluations/:id/notes', async (c) => {
   try {
     const id = c.req.param('id')
     const body = await c.req.json()
@@ -1771,7 +1771,7 @@ app.put('/api/evaluations/:id/notes', async (c) => {
 })
 
 // Delete evaluation
-app.delete('/api/evaluations/:id', async (c) => {
+app.delete('/evaluations/:id', async (c) => {
   try {
     const id = c.req.param('id')
 
