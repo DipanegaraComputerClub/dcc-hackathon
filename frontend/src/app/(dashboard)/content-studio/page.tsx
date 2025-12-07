@@ -156,7 +156,7 @@ export default function ContentStudioPage() {
       console.log('Sending request to backend:', requestBody);
 
       // Call Backend API
-      const response = await fetch(`${API_URL}/api/ai-content`, {
+      const response = await fetch(`${API_URL}/ai-content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

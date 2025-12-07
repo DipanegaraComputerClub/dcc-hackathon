@@ -69,7 +69,7 @@ export default function DashboardPage() {
       setIsLoading(true);
 
       // First, get profile to get profile_id
-      const profileRes = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const profileRes = await fetch(`${API_URL}/dapur-umkm/profile`);
       const profile = await profileRes.json();
       
       const profileData = profile.success ? profile.data : null;
@@ -90,10 +90,10 @@ export default function DashboardPage() {
 
       // Fetch remaining data in parallel with profile_id
       const [productsRes, transactionsRes, insightsRes, summaryRes] = await Promise.all([
-        fetch(`${API_URL}/api/dapur-umkm/products?profile_id=${profileId}`),
-        fetch(`${API_URL}/api/dapur-umkm/transactions?profile_id=${profileId}`),
-        fetch(`${API_URL}/api/dapur-umkm/insights-history?profile_id=${profileId}`),
-        fetch(`${API_URL}/api/dapur-umkm/summary?profile_id=${profileId}`)
+        fetch(`${API_URL}/dapur-umkm/products?profile_id=${profileId}`),
+        fetch(`${API_URL}/dapur-umkm/transactions?profile_id=${profileId}`),
+        fetch(`${API_URL}/dapur-umkm/insights-history?profile_id=${profileId}`),
+        fetch(`${API_URL}/dapur-umkm/summary?profile_id=${profileId}`)
       ]);
 
       const [products, transactions, insights, summary] = await Promise.all([
@@ -122,7 +122,7 @@ export default function DashboardPage() {
       setIsAnalyzing(true);
       
       // Use new dedicated dashboard analysis endpoint
-      const res = await fetch(`${API_URL}/api/dapur-umkm/dashboard-analysis`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/dashboard-analysis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

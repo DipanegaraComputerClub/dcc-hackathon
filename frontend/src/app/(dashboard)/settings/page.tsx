@@ -60,7 +60,7 @@ export default function SettingsPage() {
 
   const loadProfile = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const res = await fetch(`${API_URL}/dapur-umkm/profile`);
       const data = await res.json();
       if (data.success && data.data) {
         setProfile(data.data);
@@ -82,7 +82,7 @@ export default function SettingsPage() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -175,7 +175,7 @@ export default function SettingsPage() {
       formData.append('logo', file);
       formData.append('profile_id', profile.id);
 
-      const res = await fetch(`${API_URL}/api/dapur-umkm/upload-logo`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/upload-logo`, {
         method: 'POST',
         body: formData
       });

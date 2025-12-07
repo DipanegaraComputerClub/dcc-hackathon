@@ -66,7 +66,7 @@ export default function ChatbotPage() {
 
   const loadFAQ = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/tanya-daeng/faq`);
+      const response = await fetch(`${API_URL}/tanya-daeng/faq`);
       const data = await response.json();
       if (data.success) {
         setFaqs(data.data);
@@ -97,7 +97,7 @@ export default function ChatbotPage() {
     ];
 
     try {
-      const response = await fetch(`${API_URL}/api/tanya-daeng/chat`, {
+      const response = await fetch(`${API_URL}/tanya-daeng/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

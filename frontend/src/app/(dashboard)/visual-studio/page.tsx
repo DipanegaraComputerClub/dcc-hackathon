@@ -58,7 +58,7 @@ export default function VisualStudioPage() {
     setStep('preview');
 
     try {
-      const response = await fetch(`${API_URL}/api/visual-studio/generate-umkm-branding`, {
+      const response = await fetch(`${API_URL}/visual-studio/generate-umkm-branding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

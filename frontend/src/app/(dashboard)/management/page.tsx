@@ -110,7 +110,7 @@ export default function ManagementPage() {
   // --- API CALLS ---
   const loadProfile = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const res = await fetch(`${API_URL}/dapur-umkm/profile`);
       const data = await res.json();
       if (data.success && data.data) {
         setProfile(data.data);
@@ -123,7 +123,7 @@ export default function ManagementPage() {
   const loadProducts = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}/api/dapur-umkm/products`);
+      const res = await fetch(`${API_URL}/dapur-umkm/products`);
       const data = await res.json();
       if (data.success) {
         setProducts(data.data);
@@ -137,7 +137,7 @@ export default function ManagementPage() {
 
   const loadTransactions = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/transactions`);
+      const res = await fetch(`${API_URL}/dapur-umkm/transactions`);
       const data = await res.json();
       if (data.success) {
         setTransactions(data.data);
@@ -149,7 +149,7 @@ export default function ManagementPage() {
 
   const loadQuickInsights = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/quick-insights`);
+      const res = await fetch(`${API_URL}/dapur-umkm/quick-insights`);
       const data = await res.json();
       if (data.success) {
         setQuickInsights(data.data);
@@ -177,7 +177,7 @@ export default function ManagementPage() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -207,7 +207,7 @@ export default function ManagementPage() {
     
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}/api/dapur-umkm/products`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -241,7 +241,7 @@ export default function ManagementPage() {
     if(!confirm("Yakin mau hapus menu ini?")) return;
     
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/products/${id}`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/products/${id}`, {
         method: 'DELETE'
       });
 
@@ -288,7 +288,7 @@ export default function ManagementPage() {
       formData.append('logo', file);
       formData.append('profile_id', profile.id);
 
-      const res = await fetch(`${API_URL}/api/dapur-umkm/upload-logo`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/upload-logo`, {
         method: 'POST',
         body: formData
       });
@@ -314,7 +314,7 @@ export default function ManagementPage() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}/api/dapur-umkm/transactions`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -354,7 +354,7 @@ export default function ManagementPage() {
       setShowAIModal(true);
       setAiRecommendation("Sedang menganalisis bisnis Anda... 🤔");
 
-      const res = await fetch(`${API_URL}/api/dapur-umkm/ai-advice`, {
+      const res = await fetch(`${API_URL}/dapur-umkm/ai-advice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

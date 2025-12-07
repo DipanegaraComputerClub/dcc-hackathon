@@ -63,7 +63,7 @@ export default function AnalyticsPage() {
 
   const loadProfile = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const res = await fetch(`${API_URL}/dapur-umkm/profile`);
       const data = await res.json();
       if (data.success && data.data) {
         setProfile(data.data);
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
     try {
       setIsLoading(true);
       
-      const url = `${API_URL}/api/dapur-umkm/report?profile_id=${profile.id}&month=${selectedMonth + 1}&year=${selectedYear}`;
+      const url = `${API_URL}/dapur-umkm/report?profile_id=${profile.id}&month=${selectedMonth + 1}&year=${selectedYear}`;
       console.log('Fetching report from:', url);
       
       const res = await fetch(url);

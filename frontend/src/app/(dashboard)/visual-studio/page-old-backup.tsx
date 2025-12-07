@@ -88,7 +88,7 @@ export default function VisualStudioPage() {
     try {
       const imageBase64 = await fileToBase64(file);
 
-      const response = await fetch(`${API_URL}/api/visual-studio/analyze-image`, {
+      const response = await fetch(`${API_URL}/visual-studio/analyze-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64, context: "UMKM Indonesia" })
@@ -125,7 +125,7 @@ export default function VisualStudioPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/visual-studio/remove-background`, {
+      const response = await fetch(`${API_URL}/visual-studio/remove-background`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64: processedImage })
@@ -159,7 +159,7 @@ export default function VisualStudioPage() {
       Style: ${theme}, Brand color: ${brandColor}, Target: ${targetMarket || 'Indonesian consumers'}. 
       Create clean, modern, professional design ready for social media posting.`;
 
-      const response = await fetch(`${API_URL}/api/visual-studio/generate-design`, {
+      const response = await fetch(`${API_URL}/visual-studio/generate-design`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -186,7 +186,7 @@ export default function VisualStudioPage() {
   const handleGenerateSchedule = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/visual-studio/schedule-planner`, {
+      const response = await fetch(`${API_URL}/visual-studio/schedule-planner`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

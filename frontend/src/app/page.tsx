@@ -22,7 +22,7 @@ export default function Home() {
   const [umkmProfile, setUmkmProfile] = useState<any>(null);
 
   const loadProfile = () => {
-    fetch(`${API_URL}/api/dapur-umkm/public/profile`)
+    fetch(`${API_URL}/dapur-umkm/public/profile`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {

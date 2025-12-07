@@ -52,7 +52,7 @@ export default function EvaluationPage() {
 
   const loadProfile = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/dapur-umkm/profile`);
+      const res = await fetch(`${API_URL}/dapur-umkm/profile`);
       const data = await res.json();
       if (data.success && data.data) {
         setProfile(data.data);
@@ -67,7 +67,7 @@ export default function EvaluationPage() {
       setIsLoading(true);
       
       const statusParam = activeTab === 'all' ? '' : `&status=${activeTab}`;
-      const res = await fetch(`${API_URL}/api/evaluations?profile_id=${profile.id}${statusParam}`);
+      const res = await fetch(`${API_URL}/evaluations?profile_id=${profile.id}${statusParam}`);
       const data = await res.json();
       
       if (data.success) {
@@ -82,7 +82,7 @@ export default function EvaluationPage() {
 
   const markAsRead = async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/evaluations/${id}/read`, {
+      const res = await fetch(`${API_URL}/evaluations/${id}/read`, {
         method: 'PUT'
       });
       const data = await res.json();
@@ -101,7 +101,7 @@ export default function EvaluationPage() {
     try {
       setIsSaving(true);
       
-      const res = await fetch(`${API_URL}/api/evaluations/${selectedEval.id}/notes`, {
+      const res = await fetch(`${API_URL}/evaluations/${selectedEval.id}/notes`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: adminNotes })
@@ -126,7 +126,7 @@ export default function EvaluationPage() {
     if (!confirm('Hapus evaluasi ini?')) return;
     
     try {
-      const res = await fetch(`${API_URL}/api/evaluations/${id}`, {
+      const res = await fetch(`${API_URL}/evaluations/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();

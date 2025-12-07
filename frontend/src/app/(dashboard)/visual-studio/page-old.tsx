@@ -82,7 +82,7 @@ export default function VisualStudioPage() {
     try {
       const imageBase64 = await fileToBase64(uploadedFile);
 
-      const response = await fetch(`${API_URL}/api/visual-studio/analyze-image`, {
+      const response = await fetch(`${API_URL}/visual-studio/analyze-image`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ export default function VisualStudioPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/visual-studio/remove-background`, {
+      const response = await fetch(`${API_URL}/visual-studio/remove-background`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +169,7 @@ export default function VisualStudioPage() {
     try {
       const imageBase64 = uploadedFile ? await fileToBase64(uploadedFile) : undefined;
 
-      const response = await fetch(`${API_URL}/api/visual-studio/generate-template`, {
+      const response = await fetch(`${API_URL}/visual-studio/generate-template`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ export default function VisualStudioPage() {
     try {
       const imageBase64 = uploadedFile ? await fileToBase64(uploadedFile) : undefined;
 
-      const response = await fetch(`${API_URL}/api/visual-studio/schedule-planner`, {
+      const response = await fetch(`${API_URL}/visual-studio/schedule-planner`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
