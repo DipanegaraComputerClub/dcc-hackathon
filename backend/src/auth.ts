@@ -3,6 +3,12 @@ import { supabase } from './supabase';
 
 const auth = new Hono();
 
+// Get frontend URL based on environment
+const getFrontendUrl = () => {
+  // Always use production URL for email redirects to avoid localhost issues
+  return process.env.FRONTEND_URL || 'https://hack-front.vercel.app';
+};
+
 // ============================================
 // REGISTER
 // ============================================
@@ -27,7 +33,7 @@ auth.post('/register', async (c) => {
         data: {
           name: name || email.split('@')[0],
         },
-        emailRedirectTo: `${process.env.FRONTEND_URL || 'https://hack-front.vercel.app'}/auth/callback`
+        emailRedirectTo: `${getFrontendUrl()}/auth/callback`
       }
     });
 
@@ -303,7 +309,7 @@ auth.post('/resend-verification', async (c) => {
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${process.env.FRONTEND_URL || 'https://hack-front.vercel.app'}/auth/callback`
+        emailRedirectTo: `${getFrontendUrl()}/auth/callback`
       }
     });
 
@@ -337,7 +343,7 @@ auth.post('/magic-link', async (c) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${process.env.FRONTEND_URL || 'https://hack-front.vercel.app'}/auth/callback`,
+        emailRedirectTo: `${getFrontendUrl()}/auth/callback`,
         shouldCreateUser: true, // Auto-create user if not exists
       }
     });
@@ -365,7 +371,7 @@ auth.get('/github', async (c) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: `${process.env.FRONTEND_URL || 'https://hack-front.vercel.app'}/auth/callback`,
+        redirectTo: `${getFrontendUrl()}/auth/callback`,
       }
     });
 
@@ -390,7 +396,7 @@ auth.get('/google', async (c) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${process.env.FRONTEND_URL || 'https://hack-front.vercel.app'}/auth/callback`,
+        redirectTo: `${getFrontendUrl()}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
