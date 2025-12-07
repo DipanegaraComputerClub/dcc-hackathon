@@ -79220,7 +79220,7 @@ Gunakan /menu untuk lihat opsi yang tersedia.
 Pilih opsi di bawah atau ketik perintah:`, { parse_mode: "Markdown", reply_markup: keyboard });
   });
   bot.onText(/\/laporan/, async (msg) => {
-    await handleLaporanCommand(msg);
+    await handleLaporanCommand(bot, msg);
   });
   bot.on("message", async (msg) => {
     if (!msg.text)
@@ -79235,16 +79235,16 @@ Pilih opsi di bawah atau ketik perintah:`, { parse_mode: "Markdown", reply_marku
     }
     switch (text) {
       case "\uD83D\uDCCA Laporan Bulan Ini":
-        await handleLaporanCommand(msg);
+        await handleLaporanCommand(bot, msg);
         break;
       case "\uD83D\uDCB0 Ringkasan Bisnis":
-        await handleRingkasanCommand(msg);
+        await handleLaporanCommand(bot, msg);
         break;
       case "\uD83D\uDCE5 Transaksi Masuk":
-        await handleTransaksiMasukCommand(msg);
+        await handleTransaksiMasukCommand(bot, msg);
         break;
       case "\uD83D\uDCE4 Transaksi Keluar":
-        await handleTransaksiKeluarCommand(msg);
+        await handleTransaksiKeluarCommand(bot, msg);
         break;
       case "\uD83D\uDCDD Kirim Komentar":
         await bot.sendMessage(chatId, `\uD83D\uDCDD *Kirim Komentar/Evaluasi*
@@ -79373,14 +79373,11 @@ Error: ${errorMsg}
 Coba lagi dengan: /evaluasi [pesan Anda]`);
     }
   });
-  bot.onText(/\/ringkasan/, async (msg) => {
-    await handleRingkasanCommand(msg);
-  });
   bot.onText(/\/masuk/, async (msg) => {
-    await handleTransaksiMasukCommand(msg);
+    await handleTransaksiMasukCommand(bot, msg);
   });
   bot.onText(/\/keluar/, async (msg) => {
-    await handleTransaksiKeluarCommand(msg);
+    await handleTransaksiKeluarCommand(bot, msg);
   });
   bot.onText(/\/logout/, (msg) => {
     const chatId = msg.chat.id;
@@ -79502,14 +79499,14 @@ async function handleLaporanCommand(bot2, msg) {
 \uD83D\uDCCA *LAPORAN KEUANGAN*
 \uD83D\uDDD3 ${monthName}
 
-\uD83D\uDCB0 *Pemasukan:* Rp ${metrics.revenue.toLocaleString("id-ID")}
-\uD83D\uDCB8 *Pengeluaran:* Rp ${metrics.expenses.toLocaleString("id-ID")}
-\uD83D\uDCB5 *Laba Bersih:* Rp ${metrics.netProfit.toLocaleString("id-ID")}
+\uD83D\uDCB0 *Pemasukan:* Rp ${metrics.totalIncome.toLocaleString("id-ID")}
+\uD83D\uDCB8 *Pengeluaran:* Rp ${metrics.totalExpense.toLocaleString("id-ID")}
+\uD83D\uDCB5 *Saldo:* Rp ${metrics.balance.toLocaleString("id-ID")}
 
-\uD83D\uDCE6 *Total Produk:* ${metrics.totalProducts}
-\uD83D\uDECD️ *Transaksi:* ${metrics.transactionCount}
+\uD83D\uDCE6 *Total Produk:* ${metrics.productCount}
+\uD83D\uDECD️ *Rata-rata Transaksi:* Rp ${metrics.averageTransactionValue.toLocaleString("id-ID")}
 
-${metrics.netProfit > 0 ? "✅ Bisnis sedang untung!" : "⚠️ Perlu perhatian pada pengeluaran"}
+${metrics.balance > 0 ? "✅ Bisnis sedang untung!" : "⚠️ Perlu perhatian pada pengeluaran"}
     `, { parse_mode: "Markdown" });
   } catch (error2) {
     console.error("Error in laporan command:", error2);

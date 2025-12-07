@@ -121,7 +121,7 @@ Gunakan /menu untuk lihat opsi yang tersedia.
 
   // /laporan - Get monthly report
   bot.onText(/\/laporan/, async (msg) => {
-    await handleLaporanCommand(msg);
+    await handleLaporanCommand(bot, msg);
   });
 
   // Handle keyboard buttons
@@ -141,19 +141,19 @@ Gunakan /menu untuk lihat opsi yang tersedia.
 
     switch (text) {
       case '📊 Laporan Bulan Ini':
-        await handleLaporanCommand(msg);
+        await handleLaporanCommand(bot, msg);
         break;
       
       case '💰 Ringkasan Bisnis':
-        await handleRingkasanCommand(msg);
+        await handleLaporanCommand(bot, msg);
         break;
       
       case '📥 Transaksi Masuk':
-        await handleTransaksiMasukCommand(msg);
+        await handleTransaksiMasukCommand(bot, msg);
         break;
       
       case '📤 Transaksi Keluar':
-        await handleTransaksiKeluarCommand(msg);
+        await handleTransaksiKeluarCommand(bot, msg);
         break;
       
       case '📝 Kirim Komentar':
@@ -301,19 +301,14 @@ Gunakan /menu untuk lihat opsi yang tersedia.
     }
   });
 
-  // /ringkasan - Business summary
-  bot.onText(/\/ringkasan/, async (msg) => {
-    await handleRingkasanCommand(msg);
-  });
-
   // /masuk - Show income transactions
   bot.onText(/\/masuk/, async (msg) => {
-    await handleTransaksiMasukCommand(msg);
+    await handleTransaksiMasukCommand(bot, msg);
   });
 
   // /keluar - Show expense transactions
   bot.onText(/\/keluar/, async (msg) => {
-    await handleTransaksiKeluarCommand(msg);
+    await handleTransaksiKeluarCommand(bot, msg);
   });
 
   // /logout
@@ -491,14 +486,14 @@ async function handleLaporanCommand(bot: TelegramBot, msg: any) {
 📊 *LAPORAN KEUANGAN*
 🗓 ${monthName}
 
-💰 *Pemasukan:* Rp ${metrics.revenue.toLocaleString('id-ID')}
-💸 *Pengeluaran:* Rp ${metrics.expenses.toLocaleString('id-ID')}
-💵 *Laba Bersih:* Rp ${metrics.netProfit.toLocaleString('id-ID')}
+💰 *Pemasukan:* Rp ${metrics.totalIncome.toLocaleString('id-ID')}
+💸 *Pengeluaran:* Rp ${metrics.totalExpense.toLocaleString('id-ID')}
+💵 *Saldo:* Rp ${metrics.balance.toLocaleString('id-ID')}
 
-📦 *Total Produk:* ${metrics.totalProducts}
-🛍️ *Transaksi:* ${metrics.transactionCount}
+📦 *Total Produk:* ${metrics.productCount}
+🛍️ *Rata-rata Transaksi:* Rp ${metrics.averageTransactionValue.toLocaleString('id-ID')}
 
-${metrics.netProfit > 0 ? '✅ Bisnis sedang untung!' : '⚠️ Perlu perhatian pada pengeluaran'}
+${metrics.balance > 0 ? '✅ Bisnis sedang untung!' : '⚠️ Perlu perhatian pada pengeluaran'}
     `, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('Error in laporan command:', error);
