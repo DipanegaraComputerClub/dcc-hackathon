@@ -1,5 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd backend && bun run build",
-  "installCommand": "cd backend && bun install"
+  "buildCommand": "bun --cwd backend run build",
+  "installCommand": "bun --cwd backend install"
 }
