@@ -1,12 +1,17 @@
 import { Hono } from 'hono';
 import { supabase } from './supabase';
+import type { Context, Next } from 'hono';
 
-const profile = new Hono();
+type Variables = {
+  user: any;
+};
+
+const profile = new Hono<{ Variables: Variables }>();
 
 // ============================================
 // MIDDLEWARE - VERIFY JWT TOKEN
 // ============================================
-const authMiddleware = async (c: any, next: any) => {
+const authMiddleware = async (c: Context<{ Variables: Variables }>, next: Next) => {
   const authHeader = c.req.header('Authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

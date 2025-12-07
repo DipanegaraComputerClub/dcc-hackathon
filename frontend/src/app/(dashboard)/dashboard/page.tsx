@@ -171,6 +171,7 @@ export default function DashboardPage() {
   const totalTransactions = transactionSummary.transactionCount;
   
   const recentTransactions = dashboardData.transactions;
+  const recentInsights: any[] = []; // Empty for now, can be populated later
 
   // Calculate today's transactions
   const today = new Date().toISOString().split('T')[0];
