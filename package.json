@@ -2,7 +2,18 @@
   "name": "dcc-hackathon-backend",
   "version": "1.0.0",
   "private": true,
+  "dependencies": {
+    "@huggingface/inference": "^4.13.4",
+    "@supabase/supabase-js": "^2.86.0",
+    "@types/node-telegram-bot-api": "^0.64.13",
+    "axios": "^1.13.2",
+    "form-data": "^4.0.1",
+    "hono": "^4.10.7",
+    "node-telegram-bot-api": "^0.66.0",
+    "openai": "^6.9.1",
+    "sharp": "^0.34.5"
+  },
   "scripts": {
-    "build": "cd backend && bun run build"
+    "build": "bun build backend/src/index.ts --outfile backend/dist/index.js --target node --format cjs --external sharp --external node-telegram-bot-api --external @supabase/supabase-js --external openai --external axios"
   }
 }
