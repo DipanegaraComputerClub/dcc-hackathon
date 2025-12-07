@@ -241,12 +241,26 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-white dark:bg-gray-900 px-3 text-gray-500 dark:text-gray-400 font-medium">
-                  Atau login dengan
+                  Atau
                 </span>
               </div>
             </div>
 
-            {/* GOOGLE LOGIN BUTTON */}
+            {/* MAGIC LINK BUTTON */}
+            <Link href="/magic-link">
+              <Button
+                type="button"
+                className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl shadow-lg shadow-purple-600/20 font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                🪄 Login dengan Magic Link
+              </Button>
+            </Link>
+
+            <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+              Lebih mudah! Tidak perlu password
+            </p>
+
+            {/* GOOGLE/GITHUB LOGIN - Uncomment setelah setup di Supabase
             <Button
               type="button"
               onClick={handleGoogleLogin}
@@ -261,6 +275,7 @@ export default function LoginPage() {
               </svg>
               Login dengan Google
             </Button>
+            */}
 
             {/* Divider */}
             <div className="relative mt-8">

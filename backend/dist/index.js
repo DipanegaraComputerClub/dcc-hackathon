@@ -79354,6 +79354,49 @@ auth.post("/resend-verification", async (c) => {
     return c.json({ error: "Terjadi kesalahan server" }, 500);
   }
 });
+auth.post("/magic-link", async (c) => {
+  try {
+    const { email } = await c.req.json();
+    if (!email) {
+      return c.json({ error: "Email wajib diisi" }, 400);
+    }
+    const { error: error2 } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${process.env.FRONTEND_URL || "https://hack-front.vercel.app"}/auth/callback`,
+        shouldCreateUser: true
+      }
+    });
+    if (error2) {
+      console.error("Magic link error:", error2);
+      return c.json({ error: "Gagal mengirim link login" }, 500);
+    }
+    return c.json({
+      message: "Link login telah dikirim ke email Anda! Cek inbox atau folder spam."
+    });
+  } catch (error2) {
+    console.error("Magic link error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.get("/github", async (c) => {
+  try {
+    const { data, error: error2 } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${process.env.FRONTEND_URL || "https://hack-front.vercel.app"}/auth/callback`
+      }
+    });
+    if (error2) {
+      console.error("GitHub OAuth error:", error2);
+      return c.json({ error: "Gagal memulai login dengan GitHub" }, 500);
+    }
+    return c.json({ url: data.url });
+  } catch (error2) {
+    console.error("GitHub OAuth error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
 auth.get("/google", async (c) => {
   try {
     const { data, error: error2 } = await supabase.auth.signInWithOAuth({
