@@ -1,6 +1,6 @@
 // Quick test for UMKM Branding endpoint
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://dcc-hackathon-backend.vercel.app';
 
 async function testUMKMBranding() {
   console.log('🧪 Testing UMKM Branding endpoint...\n');
