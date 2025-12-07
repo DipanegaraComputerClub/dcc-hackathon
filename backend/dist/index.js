@@ -41,7 +41,7 @@ var __export = (target, all) => {
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 
-// node_modules/delayed-stream/lib/delayed_stream.js
+// backend/node_modules/delayed-stream/lib/delayed_stream.js
 var require_delayed_stream = __commonJS((exports2, module2) => {
   var Stream = require("stream").Stream;
   var util = require("util");
@@ -129,7 +129,7 @@ var require_delayed_stream = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/combined-stream/lib/combined_stream.js
+// backend/node_modules/combined-stream/lib/combined_stream.js
 var require_combined_stream = __commonJS((exports2, module2) => {
   var util = require("util");
   var Stream = require("stream").Stream;
@@ -298,7 +298,7 @@ var require_combined_stream = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/mime-db/db.json
+// backend/node_modules/mime-db/db.json
 var require_db = __commonJS((exports2, module2) => {
   module2.exports = {
     "application/1d-interleaved-parityfec": {
@@ -8821,7 +8821,7 @@ var require_db = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/mime-db/index.js
+// backend/node_modules/mime-db/index.js
 var require_mime_db = __commonJS((exports2, module2) => {
   /*!
    * mime-db
@@ -8832,7 +8832,7 @@ var require_mime_db = __commonJS((exports2, module2) => {
   module2.exports = require_db();
 });
 
-// node_modules/mime-types/index.js
+// backend/node_modules/mime-types/index.js
 var require_mime_types = __commonJS((exports2) => {
   /*!
    * mime-types
@@ -8926,7 +8926,7 @@ var require_mime_types = __commonJS((exports2) => {
   }
 });
 
-// node_modules/asynckit/lib/defer.js
+// backend/node_modules/asynckit/lib/defer.js
 var require_defer = __commonJS((exports2, module2) => {
   module2.exports = defer;
   function defer(fn) {
@@ -8939,7 +8939,7 @@ var require_defer = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/async.js
+// backend/node_modules/asynckit/lib/async.js
 var require_async = __commonJS((exports2, module2) => {
   var defer = require_defer();
   module2.exports = async;
@@ -8960,7 +8960,7 @@ var require_async = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/abort.js
+// backend/node_modules/asynckit/lib/abort.js
 var require_abort = __commonJS((exports2, module2) => {
   module2.exports = abort;
   function abort(state) {
@@ -8974,7 +8974,7 @@ var require_abort = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/iterate.js
+// backend/node_modules/asynckit/lib/iterate.js
 var require_iterate = __commonJS((exports2, module2) => {
   var async = require_async();
   var abort = require_abort();
@@ -9005,7 +9005,7 @@ var require_iterate = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/state.js
+// backend/node_modules/asynckit/lib/state.js
 var require_state = __commonJS((exports2, module2) => {
   module2.exports = state;
   function state(list, sortMethod) {
@@ -9025,7 +9025,7 @@ var require_state = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/lib/terminator.js
+// backend/node_modules/asynckit/lib/terminator.js
 var require_terminator = __commonJS((exports2, module2) => {
   var abort = require_abort();
   var async = require_async();
@@ -9040,7 +9040,7 @@ var require_terminator = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/parallel.js
+// backend/node_modules/asynckit/parallel.js
 var require_parallel = __commonJS((exports2, module2) => {
   var iterate = require_iterate();
   var initState = require_state();
@@ -9065,7 +9065,7 @@ var require_parallel = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/serialOrdered.js
+// backend/node_modules/asynckit/serialOrdered.js
 var require_serialOrdered = __commonJS((exports2, module2) => {
   var iterate = require_iterate();
   var initState = require_state();
@@ -9097,7 +9097,7 @@ var require_serialOrdered = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/serial.js
+// backend/node_modules/asynckit/serial.js
 var require_serial = __commonJS((exports2, module2) => {
   var serialOrdered = require_serialOrdered();
   module2.exports = serial;
@@ -9106,7 +9106,7 @@ var require_serial = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/asynckit/index.js
+// backend/node_modules/asynckit/index.js
 var require_asynckit = __commonJS((exports2, module2) => {
   module2.exports = {
     parallel: require_parallel(),
@@ -9115,84 +9115,84 @@ var require_asynckit = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/es-object-atoms/index.js
+// backend/node_modules/es-object-atoms/index.js
 var require_es_object_atoms = __commonJS((exports2, module2) => {
   module2.exports = Object;
 });
 
-// node_modules/es-errors/index.js
+// backend/node_modules/es-errors/index.js
 var require_es_errors = __commonJS((exports2, module2) => {
   module2.exports = Error;
 });
 
-// node_modules/es-errors/eval.js
+// backend/node_modules/es-errors/eval.js
 var require_eval = __commonJS((exports2, module2) => {
   module2.exports = EvalError;
 });
 
-// node_modules/es-errors/range.js
+// backend/node_modules/es-errors/range.js
 var require_range = __commonJS((exports2, module2) => {
   module2.exports = RangeError;
 });
 
-// node_modules/es-errors/ref.js
+// backend/node_modules/es-errors/ref.js
 var require_ref = __commonJS((exports2, module2) => {
   module2.exports = ReferenceError;
 });
 
-// node_modules/es-errors/syntax.js
+// backend/node_modules/es-errors/syntax.js
 var require_syntax = __commonJS((exports2, module2) => {
   module2.exports = SyntaxError;
 });
 
-// node_modules/es-errors/type.js
+// backend/node_modules/es-errors/type.js
 var require_type = __commonJS((exports2, module2) => {
   module2.exports = TypeError;
 });
 
-// node_modules/es-errors/uri.js
+// backend/node_modules/es-errors/uri.js
 var require_uri = __commonJS((exports2, module2) => {
   module2.exports = URIError;
 });
 
-// node_modules/math-intrinsics/abs.js
+// backend/node_modules/math-intrinsics/abs.js
 var require_abs = __commonJS((exports2, module2) => {
   module2.exports = Math.abs;
 });
 
-// node_modules/math-intrinsics/floor.js
+// backend/node_modules/math-intrinsics/floor.js
 var require_floor = __commonJS((exports2, module2) => {
   module2.exports = Math.floor;
 });
 
-// node_modules/math-intrinsics/max.js
+// backend/node_modules/math-intrinsics/max.js
 var require_max = __commonJS((exports2, module2) => {
   module2.exports = Math.max;
 });
 
-// node_modules/math-intrinsics/min.js
+// backend/node_modules/math-intrinsics/min.js
 var require_min = __commonJS((exports2, module2) => {
   module2.exports = Math.min;
 });
 
-// node_modules/math-intrinsics/pow.js
+// backend/node_modules/math-intrinsics/pow.js
 var require_pow = __commonJS((exports2, module2) => {
   module2.exports = Math.pow;
 });
 
-// node_modules/math-intrinsics/round.js
+// backend/node_modules/math-intrinsics/round.js
 var require_round = __commonJS((exports2, module2) => {
   module2.exports = Math.round;
 });
 
-// node_modules/math-intrinsics/isNaN.js
+// backend/node_modules/math-intrinsics/isNaN.js
 var require_isNaN = __commonJS((exports2, module2) => {
   module2.exports = Number.isNaN || function isNaN(a) {
     return a !== a;
   };
 });
 
-// node_modules/math-intrinsics/sign.js
+// backend/node_modules/math-intrinsics/sign.js
 var require_sign = __commonJS((exports2, module2) => {
   var $isNaN = require_isNaN();
   module2.exports = function sign(number) {
@@ -9203,12 +9203,12 @@ var require_sign = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/gopd/gOPD.js
+// backend/node_modules/gopd/gOPD.js
 var require_gOPD = __commonJS((exports2, module2) => {
   module2.exports = Object.getOwnPropertyDescriptor;
 });
 
-// node_modules/gopd/index.js
+// backend/node_modules/gopd/index.js
 var require_gopd = __commonJS((exports2, module2) => {
   var $gOPD = require_gOPD();
   if ($gOPD) {
@@ -9221,7 +9221,7 @@ var require_gopd = __commonJS((exports2, module2) => {
   module2.exports = $gOPD;
 });
 
-// node_modules/es-define-property/index.js
+// backend/node_modules/es-define-property/index.js
 var require_es_define_property = __commonJS((exports2, module2) => {
   var $defineProperty = Object.defineProperty || false;
   if ($defineProperty) {
@@ -9234,7 +9234,7 @@ var require_es_define_property = __commonJS((exports2, module2) => {
   module2.exports = $defineProperty;
 });
 
-// node_modules/has-symbols/shams.js
+// backend/node_modules/has-symbols/shams.js
 var require_shams = __commonJS((exports2, module2) => {
   module2.exports = function hasSymbols() {
     if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
@@ -9283,7 +9283,7 @@ var require_shams = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/has-symbols/index.js
+// backend/node_modules/has-symbols/index.js
 var require_has_symbols = __commonJS((exports2, module2) => {
   var origSymbol = typeof Symbol !== "undefined" && Symbol;
   var hasSymbolSham = require_shams();
@@ -9304,18 +9304,18 @@ var require_has_symbols = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/get-proto/Reflect.getPrototypeOf.js
+// backend/node_modules/get-proto/Reflect.getPrototypeOf.js
 var require_Reflect_getPrototypeOf = __commonJS((exports2, module2) => {
   module2.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
 });
 
-// node_modules/get-proto/Object.getPrototypeOf.js
+// backend/node_modules/get-proto/Object.getPrototypeOf.js
 var require_Object_getPrototypeOf = __commonJS((exports2, module2) => {
   var $Object = require_es_object_atoms();
   module2.exports = $Object.getPrototypeOf || null;
 });
 
-// node_modules/function-bind/implementation.js
+// backend/node_modules/function-bind/implementation.js
 var require_implementation = __commonJS((exports2, module2) => {
   var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
   var toStr = Object.prototype.toString;
@@ -9381,28 +9381,28 @@ var require_implementation = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/function-bind/index.js
+// backend/node_modules/function-bind/index.js
 var require_function_bind = __commonJS((exports2, module2) => {
   var implementation = require_implementation();
   module2.exports = Function.prototype.bind || implementation;
 });
 
-// node_modules/call-bind-apply-helpers/functionCall.js
+// backend/node_modules/call-bind-apply-helpers/functionCall.js
 var require_functionCall = __commonJS((exports2, module2) => {
   module2.exports = Function.prototype.call;
 });
 
-// node_modules/call-bind-apply-helpers/functionApply.js
+// backend/node_modules/call-bind-apply-helpers/functionApply.js
 var require_functionApply = __commonJS((exports2, module2) => {
   module2.exports = Function.prototype.apply;
 });
 
-// node_modules/call-bind-apply-helpers/reflectApply.js
+// backend/node_modules/call-bind-apply-helpers/reflectApply.js
 var require_reflectApply = __commonJS((exports2, module2) => {
   module2.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
 });
 
-// node_modules/call-bind-apply-helpers/actualApply.js
+// backend/node_modules/call-bind-apply-helpers/actualApply.js
 var require_actualApply = __commonJS((exports2, module2) => {
   var bind = require_function_bind();
   var $apply = require_functionApply();
@@ -9411,7 +9411,7 @@ var require_actualApply = __commonJS((exports2, module2) => {
   module2.exports = $reflectApply || bind.call($call, $apply);
 });
 
-// node_modules/call-bind-apply-helpers/index.js
+// backend/node_modules/call-bind-apply-helpers/index.js
 var require_call_bind_apply_helpers = __commonJS((exports2, module2) => {
   var bind = require_function_bind();
   var $TypeError = require_type();
@@ -9425,7 +9425,7 @@ var require_call_bind_apply_helpers = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/dunder-proto/get.js
+// backend/node_modules/dunder-proto/get.js
 var require_get = __commonJS((exports2, module2) => {
   var callBind = require_call_bind_apply_helpers();
   var gOPD = require_gopd();
@@ -9445,7 +9445,7 @@ var require_get = __commonJS((exports2, module2) => {
   } : false;
 });
 
-// node_modules/get-proto/index.js
+// backend/node_modules/get-proto/index.js
 var require_get_proto = __commonJS((exports2, module2) => {
   var reflectGetProto = require_Reflect_getPrototypeOf();
   var originalGetProto = require_Object_getPrototypeOf();
@@ -9462,7 +9462,7 @@ var require_get_proto = __commonJS((exports2, module2) => {
   } : null;
 });
 
-// node_modules/hasown/index.js
+// backend/node_modules/hasown/index.js
 var require_hasown = __commonJS((exports2, module2) => {
   var call = Function.prototype.call;
   var $hasOwn = Object.prototype.hasOwnProperty;
@@ -9470,7 +9470,7 @@ var require_hasown = __commonJS((exports2, module2) => {
   module2.exports = bind.call(call, $hasOwn);
 });
 
-// node_modules/get-intrinsic/index.js
+// backend/node_modules/get-intrinsic/index.js
 var require_get_intrinsic = __commonJS((exports2, module2) => {
   var undefined2;
   var $Object = require_es_object_atoms();
@@ -9796,7 +9796,7 @@ var require_get_intrinsic = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/has-tostringtag/shams.js
+// backend/node_modules/has-tostringtag/shams.js
 var require_shams2 = __commonJS((exports2, module2) => {
   var hasSymbols = require_shams();
   module2.exports = function hasToStringTagShams() {
@@ -9804,7 +9804,7 @@ var require_shams2 = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/es-set-tostringtag/index.js
+// backend/node_modules/es-set-tostringtag/index.js
 var require_es_set_tostringtag = __commonJS((exports2, module2) => {
   var GetIntrinsic = require_get_intrinsic();
   var $defineProperty = GetIntrinsic("%Object.defineProperty%", true);
@@ -9833,7 +9833,7 @@ var require_es_set_tostringtag = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/form-data/lib/populate.js
+// backend/node_modules/form-data/lib/populate.js
 var require_populate = __commonJS((exports2, module2) => {
   module2.exports = function(dst, src) {
     Object.keys(src).forEach(function(prop) {
@@ -9843,7 +9843,7 @@ var require_populate = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/form-data/lib/form_data.js
+// backend/node_modules/form-data/lib/form_data.js
 var require_form_data = __commonJS((exports2, module2) => {
   var CombinedStream = require_combined_stream();
   var util = require("util");
@@ -10158,7 +10158,7 @@ var require_form_data = __commonJS((exports2, module2) => {
   module2.exports = FormData;
 });
 
-// src/services/huggingface.client.ts
+// backend/src/services/huggingface.client.ts
 var exports_huggingface_client = {};
 __export(exports_huggingface_client, {
   generateWithHuggingFace: () => generateWithHuggingFace
@@ -10224,7 +10224,7 @@ var init_huggingface_client = __esm(() => {
   ];
 });
 
-// src/services/stability.client.ts
+// backend/src/services/stability.client.ts
 var exports_stability_client = {};
 __export(exports_stability_client, {
   generateWithStabilityAI: () => generateWithStabilityAI
@@ -10268,7 +10268,7 @@ var init_stability_client = __esm(() => {
   STABILITY_API_KEY = process.env.STABILITY_API_KEY || "";
 });
 
-// src/external-apis.ts
+// backend/src/external-apis.ts
 var exports_external_apis = {};
 __export(exports_external_apis, {
   removeBackgroundWithRemoveBg: () => removeBackgroundWithRemoveBg,
@@ -10769,7 +10769,7 @@ var init_external_apis = __esm(() => {
   };
 });
 
-// src/services/templatePrompt.ts
+// backend/src/services/templatePrompt.ts
 var exports_templatePrompt = {};
 __export(exports_templatePrompt, {
   buildUMKMPrompt: () => buildUMKMPrompt
@@ -10795,14 +10795,14 @@ function buildUMKMPrompt(productName, businessType, theme, brandColor, targetMar
   return `High quality commercial product photography of ${productName}, ${businessMap[businessType]}, ${themeMap[theme]}, professional studio lighting, shallow depth of field, centered composition, clean neutral background, vibrant appetizing colors, Instagram-worthy, marketing material quality, 4K sharp details, no text, no watermark. ${additionalInfo || ""}`;
 }
 
-// src/index.ts
+// backend/src/index.ts
 var exports_src = {};
 __export(exports_src, {
   default: () => src_default
 });
 module.exports = __toCommonJS(exports_src);
 
-// node_modules/hono/dist/compose.js
+// backend/node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -10846,10 +10846,10 @@ var compose = (middleware, onError, onNotFound) => {
   };
 };
 
-// node_modules/hono/dist/request/constants.js
+// backend/node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = Symbol();
 
-// node_modules/hono/dist/utils/body.js
+// backend/node_modules/hono/dist/utils/body.js
 var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
@@ -10917,7 +10917,7 @@ var handleParsingNestedValues = (form, key, value) => {
   });
 };
 
-// node_modules/hono/dist/utils/url.js
+// backend/node_modules/hono/dist/utils/url.js
 var splitPath = (path) => {
   const paths = path.split("/");
   if (paths[0] === "") {
@@ -11115,7 +11115,7 @@ var getQueryParams = (url, key) => {
 };
 var decodeURIComponent_ = decodeURIComponent;
 
-// node_modules/hono/dist/request.js
+// backend/node_modules/hono/dist/request.js
 var tryDecodeURIComponent = (str) => tryDecode(str, decodeURIComponent_);
 var HonoRequest = class {
   raw;
@@ -11226,7 +11226,7 @@ var HonoRequest = class {
   }
 };
 
-// node_modules/hono/dist/utils/html.js
+// backend/node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -11264,7 +11264,7 @@ var resolveCallback = async (str, phase, preserveCallbacks, context, buffer) => 
   }
 };
 
-// node_modules/hono/dist/context.js
+// backend/node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = (contentType, headers) => {
   return {
@@ -11430,7 +11430,7 @@ var Context = class {
   };
 };
 
-// node_modules/hono/dist/router.js
+// backend/node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -11438,10 +11438,10 @@ var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is
 var UnsupportedPathError = class extends Error {
 };
 
-// node_modules/hono/dist/utils/constants.js
+// backend/node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// node_modules/hono/dist/hono-base.js
+// backend/node_modules/hono/dist/hono-base.js
 var notFoundHandler = (c) => {
   return c.text("404 Not Found", 404);
 };
@@ -11660,7 +11660,7 @@ var Hono = class {
   };
 };
 
-// node_modules/hono/dist/router/reg-exp-router/matcher.js
+// backend/node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path) {
   const matchers = this.buildAllMatchers();
@@ -11681,7 +11681,7 @@ function match(method, path) {
   return match2(method, path);
 }
 
-// node_modules/hono/dist/router/reg-exp-router/node.js
+// backend/node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -11785,7 +11785,7 @@ var Node = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/trie.js
+// backend/node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   #context = { varIndex: 0 };
   #root = new Node;
@@ -11841,7 +11841,7 @@ var Trie = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/router.js
+// backend/node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path) {
@@ -12006,7 +12006,7 @@ var RegExpRouter = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/prepared-router.js
+// backend/node_modules/hono/dist/router/reg-exp-router/prepared-router.js
 var PreparedRegExpRouter = class {
   name = "PreparedRegExpRouter";
   #matchers;
@@ -12078,7 +12078,7 @@ var PreparedRegExpRouter = class {
   match = match;
 };
 
-// node_modules/hono/dist/router/smart-router/router.js
+// backend/node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   name = "SmartRouter";
   #routers = [];
@@ -12133,7 +12133,7 @@ var SmartRouter = class {
   }
 };
 
-// node_modules/hono/dist/router/trie-router/node.js
+// backend/node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
 var Node2 = class {
   #methods;
@@ -12287,7 +12287,7 @@ var Node2 = class {
   }
 };
 
-// node_modules/hono/dist/router/trie-router/router.js
+// backend/node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   name = "TrieRouter";
   #node;
@@ -12309,7 +12309,7 @@ var TrieRouter = class {
   }
 };
 
-// node_modules/hono/dist/hono.js
+// backend/node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   constructor(options = {}) {
     super(options);
@@ -12319,7 +12319,7 @@ var Hono2 = class extends Hono {
   }
 };
 
-// node_modules/hono/dist/middleware/cors/index.js
+// backend/node_modules/hono/dist/middleware/cors/index.js
 var cors = (options) => {
   const defaults = {
     origin: "*",
@@ -12404,13 +12404,13 @@ var cors = (options) => {
   };
 };
 
-// src/supabase.ts
+// backend/src/supabase.ts
 var import_supabase_js = require("@supabase/supabase-js");
 var supabaseUrl = process.env.SUPABASE_URL;
 var supabaseKey = process.env.SUPABASE_KEY;
 var supabase = import_supabase_js.createClient(supabaseUrl, supabaseKey);
 
-// src/kolosalai.ts
+// backend/src/kolosalai.ts
 var import_openai = __toESM(require("openai"));
 var KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY;
 var USE_MOCK = process.env.USE_MOCK_AI === "true";
@@ -12857,7 +12857,7 @@ Telp: 0821-xxxx-xxxx
   };
 }
 
-// src/ai-content-studio.ts
+// backend/src/ai-content-studio.ts
 var import_openai2 = __toESM(require("openai"));
 var KOLOSAL_API_KEY2 = process.env.KOLOSAL_API_KEY;
 var USE_MOCK2 = process.env.USE_MOCK_AI === "true";
@@ -13540,7 +13540,7 @@ Hormat kami,
   };
 }
 
-// src/visual-studio.ts
+// backend/src/visual-studio.ts
 init_external_apis();
 var import_openai3 = __toESM(require("openai"));
 var import_sharp2 = __toESM(require("sharp"));
@@ -14233,10 +14233,10 @@ function generateMockSchedulePlanner(request) {
   };
 }
 
-// src/index.ts
+// backend/src/index.ts
 init_external_apis();
 
-// src/dapur-umkm.ts
+// backend/src/dapur-umkm.ts
 var import_openai4 = __toESM(require("openai"));
 var kolosalLlama = new import_openai4.default({
   apiKey: process.env.KOLOSAL_API_KEY,
@@ -14690,7 +14690,7 @@ function parseAIAnalysis(text) {
   return result;
 }
 
-// src/tanya-daeng.ts
+// backend/src/tanya-daeng.ts
 var import_openai5 = __toESM(require("openai"));
 var KOLOSAL_API_KEY4 = process.env.KOLOSAL_API_KEY;
 var client4 = new import_openai5.default({
@@ -15025,7 +15025,7 @@ function getAllFAQ() {
   }));
 }
 
-// src/telegram-bot.ts
+// backend/src/telegram-bot.ts
 var import_node_telegram_bot_api = __toESM(require("node-telegram-bot-api"));
 var TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 var bot = TELEGRAM_BOT_TOKEN ? new import_node_telegram_bot_api.default(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
@@ -15482,10 +15482,15 @@ async function handleTransaksiKeluarCommand(msg) {
   }
 }
 
-// src/index.ts
+// backend/src/index.ts
 var app = new Hono2;
 app.use("/*", cors({
-  origin: ["http://localhost:3000", "http://localhost:1997"],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:1997",
+    "https://hack-front.vercel.app",
+    "https://dcc-hackathon-frontend.vercel.app"
+  ],
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"]
 }));

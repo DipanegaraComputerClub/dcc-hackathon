@@ -30,7 +30,12 @@ const app = new Hono()
 
 // Enable CORS untuk frontend
 app.use('/*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:1997'], // Sesuaikan dengan port frontend
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:1997',
+    'https://hack-front.vercel.app',
+    'https://dcc-hackathon-frontend.vercel.app'
+  ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
