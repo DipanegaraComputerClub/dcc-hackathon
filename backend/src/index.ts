@@ -12,6 +12,14 @@ import {
   type SchedulePlannerRequest,
   type UMKMBrandingRequest
 } from './visual-studio'
+import { 
+  calculateBusinessMetrics, 
+  getAIRecommendation, 
+  QUICK_INSIGHTS, 
+  getPastInsights, 
+  generateDashboardAnalysis 
+} from './dapur-umkm'
+import { tanyaDaeng, getAllFAQ } from './tanya-daeng'
 
 const app = new Hono()
 
@@ -507,7 +515,6 @@ app.post('/visual-studio/generate-umkm-branding', async (c) => {
       hasImage: !!productImage
     })
 
-    const { generateUMKMBranding } = await import('./visual-studio')
     const result = await generateUMKMBranding(request)
 
     // Simpan ke database
@@ -681,7 +688,6 @@ app.post('/visual-studio/remove-background', async (c) => {
       }, 400)
     }
 
-    const { removeBackgroundWithRemoveBg } = await import('./external-apis')
     const result = await removeBackgroundWithRemoveBg(imageBase64)
 
     if (!result.success) {
@@ -737,7 +743,6 @@ app.post('/visual-studio/generate-design', async (c) => {
       }, 400)
     }
 
-    const { generateTemplateWithHuggingFace } = await import('./external-apis')
     const result = await generateTemplateWithHuggingFace(prompt, style || 'instagram-feed')
 
     if (!result.success) {
@@ -895,7 +900,6 @@ app.post('/tanya-daeng/chat', async (c) => {
 
     console.log('💬 Tanya Daeng request:', { message: message.substring(0, 50), userId })
 
-    const { tanyaDaeng } = await import('./tanya-daeng')
     const result = await tanyaDaeng({
       message,
       conversationHistory,
@@ -932,7 +936,6 @@ app.post('/tanya-daeng/chat', async (c) => {
 // Get all FAQ
 app.get('/tanya-daeng/faq', async (c) => {
   try {
-    const { getAllFAQ } = await import('./tanya-daeng')
     const faqs = getAllFAQ()
 
     return c.json({
@@ -1407,7 +1410,6 @@ app.get('/dapur-umkm/summary', async (c) => {
       }, 400)
     }
 
-    const { calculateBusinessMetrics } = await import('./dapur-umkm')
     const metrics = await calculateBusinessMetrics(profileId)
 
     return c.json({
@@ -1446,7 +1448,6 @@ app.post('/dapur-umkm/ai-advice', async (c) => {
       }, 400)
     }
 
-    const { getAIRecommendation } = await import('./dapur-umkm')
     const result = await getAIRecommendation({
       profileId: profile_id,
       insightType: insight_type,
@@ -1467,7 +1468,6 @@ app.post('/dapur-umkm/ai-advice', async (c) => {
 // Get quick AI insights (pre-defined questions)
 app.get('/dapur-umkm/quick-insights', async (c) => {
   try {
-    const { QUICK_INSIGHTS } = await import('./dapur-umkm')
 
     return c.json({
       success: true,
@@ -1496,7 +1496,6 @@ app.get('/dapur-umkm/insights-history', async (c) => {
       }, 400)
     }
 
-    const { getPastInsights } = await import('./dapur-umkm')
     const result = await getPastInsights(profileId, limit)
 
     return c.json(result)
@@ -1527,7 +1526,6 @@ app.post('/dapur-umkm/dashboard-analysis', async (c) => {
       }, 400)
     }
 
-    const { generateDashboardAnalysis } = await import('./dapur-umkm')
     const result = await generateDashboardAnalysis(profile_id)
 
     return c.json(result)
@@ -1564,7 +1562,6 @@ app.get('/dapur-umkm/dashboard-overview', async (c) => {
     ])
 
     // Calculate metrics
-    const { calculateBusinessMetrics } = await import('./dapur-umkm')
     const metrics = await calculateBusinessMetrics(profileId)
 
     return c.json({
