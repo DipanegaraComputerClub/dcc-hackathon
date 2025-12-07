@@ -15,7 +15,14 @@ import { calculateBusinessMetrics } from './dapur-umkm';
 
 // Initialize bot
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
+const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+
+// In production (Vercel), don't use polling - use webhook mode
+const bot = TELEGRAM_BOT_TOKEN 
+  ? new TelegramBot(TELEGRAM_BOT_TOKEN, { 
+      polling: !isProduction // Only poll in development
+    }) 
+  : null;
 
 // Store authorized users (boss chat IDs)
 let authorizedUsers: { [chatId: number]: string } = {}; // chatId -> profileId
@@ -629,4 +636,29 @@ export async function sendEvaluationNotification(profileId: string, message: str
 
 export function getTelegramBot() {
   return bot;
+}
+
+// ============================================
+// WEBHOOK MODE HANDLER (for production/serverless)
+// ============================================
+export async function handleTelegramWebhook(update: any) {
+  if (!bot) {
+    console.error('Bot not initialized for webhook');
+    return;
+  }
+
+  // Process the update
+  try {
+    // Telegram sends different types of updates
+    if (update.message) {
+      await bot.processUpdate(update);
+    } else if (update.callback_query) {
+      await bot.processUpdate(update);
+    } else {
+      console.log('Unknown update type:', Object.keys(update));
+    }
+  } catch (error) {
+    console.error('Error processing webhook update:', error);
+    throw error;
+  }
 }

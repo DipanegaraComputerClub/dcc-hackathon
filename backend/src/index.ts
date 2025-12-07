@@ -1807,18 +1807,51 @@ app.delete('/evaluations/:id', async (c) => {
 // ============================================
 // TELEGRAM BOT INITIALIZATION
 // ============================================
-import { initTelegramBot } from './telegram-bot'
+import { initTelegramBot, handleTelegramWebhook } from './telegram-bot'
 
+// ============================================
+// TELEGRAM BOT WEBHOOK (for production)
+// ============================================
+app.post('/telegram/webhook', async (c) => {
+  try {
+    const update = await c.req.json()
+    await handleTelegramWebhook(update)
+    return c.json({ ok: true })
+  } catch (error: any) {
+    console.error('Telegram webhook error:', error)
+    return c.json({ ok: false, error: error.message }, 500)
+  }
+})
+
+// Setup webhook info endpoint
+app.get('/telegram/info', async (c) => {
+  const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
+  if (!TELEGRAM_BOT_TOKEN) {
+    return c.json({ error: 'Bot token not configured' }, 500)
+  }
+  
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo`)
+    const data = await response.json()
+    return c.json(data)
+  } catch (error: any) {
+    return c.json({ error: error.message }, 500)
+  }
+})
+
+// ============================================
+// TELEGRAM BOT INITIALIZATION
+// ============================================
 // Detect environment
 const isVercel = !!process.env.VERCEL || process.env.NODE_ENV === 'production'
 
 // Start Telegram Bot (only in development, not in serverless)
 if (process.env.TELEGRAM_BOT_TOKEN && !isVercel) {
-  console.log('🤖 Initializing Telegram Bot...')
+  console.log('🤖 Initializing Telegram Bot in polling mode (development)...')
   initTelegramBot()
 } else if (isVercel) {
-  console.log('⚠️ Telegram Bot disabled in serverless environment (Vercel)')
-  console.log('   All API endpoints remain functional')
+  console.log('🤖 Telegram Bot using webhook mode (production)')
+  console.log('   Webhook endpoint: /telegram/webhook')
 } else {
   console.warn('⚠️ TELEGRAM_BOT_TOKEN not set. Bot features disabled.')
 }

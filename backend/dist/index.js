@@ -15003,7 +15003,10 @@ function getAllFAQ() {
 // backend/src/telegram-bot.ts
 var import_node_telegram_bot_api = __toESM(require("node-telegram-bot-api"));
 var TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-var bot = TELEGRAM_BOT_TOKEN ? new import_node_telegram_bot_api.default(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
+var isProduction = !!process.env.VERCEL;
+var bot = TELEGRAM_BOT_TOKEN ? new import_node_telegram_bot_api.default(TELEGRAM_BOT_TOKEN, {
+  polling: !isProduction
+}) : null;
 var authorizedUsers = {};
 function initTelegramBot() {
   if (!bot) {
@@ -15454,6 +15457,24 @@ async function handleTransaksiKeluarCommand(msg) {
   } catch (error) {
     console.error("Error fetching expense transactions:", error);
     await bot.sendMessage(chatId, "❌ Gagal mengambil data transaksi. Coba lagi nanti.");
+  }
+}
+async function handleTelegramWebhook(update) {
+  if (!bot) {
+    console.error("Bot not initialized for webhook");
+    return;
+  }
+  try {
+    if (update.message) {
+      await bot.processUpdate(update);
+    } else if (update.callback_query) {
+      await bot.processUpdate(update);
+    } else {
+      console.log("Unknown update type:", Object.keys(update));
+    }
+  } catch (error) {
+    console.error("Error processing webhook update:", error);
+    throw error;
   }
 }
 
@@ -16713,13 +16734,36 @@ app.delete("/evaluations/:id", async (c) => {
     }, 500);
   }
 });
+app.post("/telegram/webhook", async (c) => {
+  try {
+    const update = await c.req.json();
+    await handleTelegramWebhook(update);
+    return c.json({ ok: true });
+  } catch (error) {
+    console.error("Telegram webhook error:", error);
+    return c.json({ ok: false, error: error.message }, 500);
+  }
+});
+app.get("/telegram/info", async (c) => {
+  const TELEGRAM_BOT_TOKEN2 = process.env.TELEGRAM_BOT_TOKEN;
+  if (!TELEGRAM_BOT_TOKEN2) {
+    return c.json({ error: "Bot token not configured" }, 500);
+  }
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN2}/getWebhookInfo`);
+    const data = await response.json();
+    return c.json(data);
+  } catch (error) {
+    return c.json({ error: error.message }, 500);
+  }
+});
 var isVercel = !!process.env.VERCEL || false;
 if (process.env.TELEGRAM_BOT_TOKEN && !isVercel) {
-  console.log("\uD83E\uDD16 Initializing Telegram Bot...");
+  console.log("\uD83E\uDD16 Initializing Telegram Bot in polling mode (development)...");
   initTelegramBot();
 } else if (isVercel) {
-  console.log("⚠️ Telegram Bot disabled in serverless environment (Vercel)");
-  console.log("   All API endpoints remain functional");
+  console.log("\uD83E\uDD16 Telegram Bot using webhook mode (production)");
+  console.log("   Webhook endpoint: /telegram/webhook");
 } else {
   console.warn("⚠️ TELEGRAM_BOT_TOKEN not set. Bot features disabled.");
 }
