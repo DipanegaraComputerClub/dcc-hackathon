@@ -2,7 +2,7 @@
   "name": "backend",
   "scripts": {
     "dev": "bun run --hot src/server.ts",
-    "build": "mkdir -p dist && bun build src/index.ts --outfile dist/index.js --target node --external sharp --external node-telegram-bot-api --external @supabase/supabase-js --external openai --external axios"
+    "build": "mkdir -p dist && bun build src/index.ts --outfile dist/index.js --target node --format cjs --external sharp --external node-telegram-bot-api --external @supabase/supabase-js --external openai --external axios"
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.4",
