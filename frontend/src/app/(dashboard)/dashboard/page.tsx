@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { API_URL } from "@/config/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 interface DashboardData {
@@ -48,6 +49,7 @@ interface ContentAnalysis {
 }
 
 export default function DashboardPage() {
+  const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -59,56 +61,56 @@ export default function DashboardPage() {
     aiInsights: [],
     summary: null
   });
+  const [transactionSummary, setTransactionSummary] = useState({
+    totalIncome: 0,
+    totalExpense: 0,
+    balance: 0,
+    transactionCount: 0
+  });
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
 
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
-
-      // First, get profile to get profile_id
-      const profileRes = await fetch(`${API_URL}/dapur-umkm/profile`);
-      const profile = await profileRes.json();
+      const token = localStorage.getItem('access_token');
       
-      const profileData = profile.success ? profile.data : null;
-      const profileId = profileData?.id;
-
-      // If no profile, show empty state
-      if (!profileId) {
-        setDashboardData({
-          profile: null,
-          products: [],
-          transactions: [],
-          aiInsights: [],
-          summary: null
-        });
+      if (!token) {
         setIsLoading(false);
         return;
       }
 
-      // Fetch remaining data in parallel with profile_id
-      const [productsRes, transactionsRes, insightsRes, summaryRes] = await Promise.all([
-        fetch(`${API_URL}/dapur-umkm/products?profile_id=${profileId}`),
-        fetch(`${API_URL}/dapur-umkm/transactions?profile_id=${profileId}`),
-        fetch(`${API_URL}/dapur-umkm/insights-history?profile_id=${profileId}`),
-        fetch(`${API_URL}/dapur-umkm/summary?profile_id=${profileId}`)
-      ]);
+      // Load transaction summary for current user
+      const summaryRes = await fetch(`${API_URL}/transactions/summary/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (summaryRes.ok) {
+        const summaryData = await summaryRes.json();
+        setTransactionSummary(summaryData);
+      }
 
-      const [products, transactions, insights, summary] = await Promise.all([
-        productsRes.json(),
-        transactionsRes.json(),
-        insightsRes.json(),
-        summaryRes.json()
-      ]);
+      // Load recent transactions
+      const transactionsRes = await fetch(`${API_URL}/transactions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const transactions = transactionsRes.ok ? await transactionsRes.json() : [];
 
       setDashboardData({
-        profile: profileData,
-        products: products.success ? products.data : [],
-        transactions: transactions.success ? transactions.data : [],
-        aiInsights: insights.success ? insights.data : [],
-        summary: summary.success ? summary.data : null
+        profile: profile,
+        products: [],
+        transactions: transactions.slice(0, 5), // Show 5 recent transactions
+        aiInsights: [],
+        summary: transactionSummary
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -162,26 +164,20 @@ export default function DashboardPage() {
     }
   };
 
-  // Calculate metrics
-  const totalProducts = dashboardData.products.length;
-  const activeProducts = dashboardData.products.filter(p => Number(p.stock) > 0).length;
-  const lowStockProducts = dashboardData.products.filter(p => Number(p.stock) > 0 && Number(p.stock) < 10).length;
+  // Calculate metrics from real user data
+  const totalRevenue = transactionSummary.totalIncome;
+  const totalExpense = transactionSummary.totalExpense;
+  const balance = transactionSummary.balance;
+  const totalTransactions = transactionSummary.transactionCount;
   
-  // Use totalIncome from summary (calculateBusinessMetrics returns this)
-  const totalRevenue = dashboardData.summary?.totalIncome || 0;
-  const totalExpense = dashboardData.summary?.totalExpense || 0;
-  const balance = dashboardData.summary?.balance || 0;
-  
-  const totalTransactions = dashboardData.transactions.length;
-  const recentTransactions = dashboardData.transactions.slice(0, 5);
-  const recentInsights = dashboardData.aiInsights.slice(0, 5);
+  const recentTransactions = dashboardData.transactions;
 
   // Calculate today's transactions
   const today = new Date().toISOString().split('T')[0];
-  const todayTransactions = dashboardData.transactions.filter(t => 
-    t.transaction_date?.startsWith(today) && t.type === 'in'
+  const todayTransactions = dashboardData.transactions.filter((t: any) => 
+    t.created_at?.startsWith(today) && t.type === 'income'
   );
-  const todayRevenue = todayTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const todayRevenue = todayTransactions.reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
 
   return (
     <DashboardLayout>
@@ -190,10 +186,10 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent dark:from-red-500 dark:to-red-400">
-            Dashboard UMKM - {dashboardData.profile?.business_name || 'TABE AI'}
+            Dashboard UMKM - {profile?.business_name || user?.name || 'TABE AI'}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-lg">
-            Tabe', Daeng. Ini ringkasan bisnis UMKM ta' hari ini.
+            Tabe', {user?.name || 'Daeng'}. Ini ringkasan bisnis UMKM ta' hari ini.
           </p>
         </div>
 
@@ -245,19 +241,22 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Total Products */}
+              {/* Total Expense */}
               <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 transition-all hover:shadow-md">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Produk</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalProducts}</p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        {activeProducts} produk ready stok
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Pengeluaran</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Rp {totalExpense.toLocaleString('id-ID')}
+                      </p>
+                      <p className="text-xs text-red-600 flex items-center gap-1 mt-1">
+                        <ArrowDownRight className="w-3 h-3" />
+                        Total keluar
                       </p>
                     </div>
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
-                      <Package className="h-6 w-6 text-blue-600" />
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-full">
+                      <ArrowDownRight className="h-6 w-6 text-red-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -281,19 +280,21 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Low Stock Alert */}
+              {/* Balance */}
               <Card className="shadow-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 transition-all hover:shadow-md">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Stok Menipis</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{lowStockProducts}</p>
-                      <p className="text-xs text-amber-600 mt-1">
-                        Perlu restock segera
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Saldo</p>
+                      <p className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        Rp {balance.toLocaleString('id-ID')}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Pendapatan - Pengeluaran
                       </p>
                     </div>
-                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-full">
-                      <TrendingUp className="h-6 w-6 text-amber-600" />
+                    <div className={`p-3 rounded-full ${balance >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                      <TrendingUp className={`h-6 w-6 ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`} />
                     </div>
                   </div>
                 </CardContent>
@@ -530,16 +531,21 @@ export default function DashboardPage() {
                             {trans.description || 'Transaksi'}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {new Date(trans.transaction_date).toLocaleDateString('id-ID', {
+                            {new Date(trans.created_at).toLocaleDateString('id-ID', {
                               day: 'numeric',
                               month: 'short',
                               year: 'numeric'
                             })}
                           </p>
                         </div>
-                        <p className={`text-sm font-bold ${trans.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {trans.amount > 0 ? '+' : ''}Rp {Math.abs(trans.amount).toLocaleString('id-ID')}
-                        </p>
+                        <div className="text-right">
+                          <p className={`text-sm font-bold ${trans.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                            {trans.type === 'income' ? '+' : '-'}Rp {Number(trans.amount).toLocaleString('id-ID')}
+                          </p>
+                          <p className="text-xs text-gray-400 capitalize">
+                            {trans.type}
+                          </p>
+                        </div>
                       </div>
                     ))
                   )}

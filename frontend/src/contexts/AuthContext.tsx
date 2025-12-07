@@ -12,14 +12,26 @@ interface User {
   category: string | null;
 }
 
+interface Profile {
+  id: string;
+  user_id: string;
+  business_name: string | null;
+  phone: string | null;
+  address: string | null;
+  description: string | null;
+  created_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateProfile: (data: Partial<Profile>) => Promise<void>;
 }
 
 interface RegisterData {
@@ -35,6 +47,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check if user is logged in on mount
@@ -52,6 +65,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response.ok) {
             const data = await response.json();
             setUser(data.user);
+            
+            // Load profile data
+            const profileResponse = await fetch(`${API_URL}/profile`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json();
+              setProfile(profileData);
+            }
           } else {
             // Token invalid, clear it
             localStorage.removeItem('access_token');
@@ -167,6 +192,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
+          
+          // Refresh profile too
+          const profileResponse = await fetch(`${API_URL}/profile`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            setProfile(profileData);
+          }
         }
       } catch (error) {
         console.error('Refresh user error:', error);
@@ -174,8 +211,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (data: Partial<Profile>) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      throw new Error('Tidak ada token autentikasi');
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Gagal mengupdate profil');
+      }
+
+      setProfile(result);
+      return result;
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, loginWithGoogle, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, login, loginWithGoogle, register, logout, refreshUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

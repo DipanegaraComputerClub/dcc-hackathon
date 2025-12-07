@@ -26,6 +26,8 @@ import {
 } from './dapur-umkm'
 import { tanyaDaeng, getAllFAQ } from './tanya-daeng'
 import auth from './auth'
+import profile from './profile'
+import transactions from './transactions'
 
 const app = new Hono()
 
@@ -43,6 +45,12 @@ app.use('/*', cors({
 
 // Auth routes
 app.route('/auth', auth)
+
+// Profile routes
+app.route('/profile', profile)
+
+// Transactions routes
+app.route('/transactions', transactions)
 
 // Root
 app.get('/', (c) => c.text('Hono + Bun + Supabase Connected 🚀'))
