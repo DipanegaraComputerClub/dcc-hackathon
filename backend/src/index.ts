@@ -28,8 +28,53 @@ import { tanyaDaeng, getAllFAQ } from './tanya-daeng'
 import auth from './auth'
 import profile from './profile'
 import transactions from './transactions'
+import type { Context, Next } from 'hono'
 
-const app = new Hono()
+type Variables = {
+  user: any;
+  profileId: string;
+};
+
+const app = new Hono<{ Variables: Variables }>()
+
+// ============================================
+// AUTH MIDDLEWARE FOR PROTECTED ROUTES
+// ============================================
+const authMiddleware = async (c: Context<{ Variables: Variables }>, next: Next) => {
+  const authHeader = c.req.header('Authorization');
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return c.json({ error: 'Token tidak ditemukan', success: false }, 401);
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return c.json({ error: 'Token tidak valid', success: false }, 401);
+    }
+
+    // Get user's profile_id from umkm_profiles
+    const { data: profileData } = await supabase
+      .from('umkm_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!profileData) {
+      return c.json({ error: 'Profil tidak ditemukan. Silakan buat profil terlebih dahulu.', success: false }, 404);
+    }
+
+    // Simpan user dan profileId ke context
+    c.set('user', user);
+    c.set('profileId', profileData.id);
+    await next();
+  } catch (error) {
+    return c.json({ error: 'Autentikasi gagal', success: false }, 401);
+  }
+};
 
 // Enable CORS untuk frontend
 app.use('/*', cors({
@@ -1191,18 +1236,16 @@ app.get('/dapur-umkm/public/profile', async (c) => {
 })
 
 // === PRODUCTS ===
-// Get all products
-app.get('/dapur-umkm/products', async (c) => {
+// Get all products (protected - user specific)
+app.get('/dapur-umkm/products', authMiddleware, async (c) => {
   try {
-    const profileId = c.req.query('profile_id')
+    const profileId = c.get('profileId');
 
-    let query = supabase.from('umkm_products').select('*').order('created_at', { ascending: false })
-    
-    if (profileId) {
-      query = query.eq('profile_id', profileId)
-    }
-
-    const { data, error } = await query
+    const { data, error } = await supabase
+      .from('umkm_products')
+      .select('*')
+      .eq('profile_id', profileId)
+      .order('created_at', { ascending: false });
 
     if (error) throw error
 
@@ -1220,11 +1263,12 @@ app.get('/dapur-umkm/products', async (c) => {
   }
 })
 
-// Add new product
-app.post('/dapur-umkm/products', async (c) => {
+// Add new product (protected)
+app.post('/dapur-umkm/products', authMiddleware, async (c) => {
   try {
+    const profileId = c.get('profileId');
     const body = await c.req.json()
-    const { profile_id, name, price, stock, image_url, category, description, cost_price } = body
+    const { name, price, stock, image_url, category, description, cost_price } = body
 
     if (!name || !price) {
       return c.json({ 
@@ -1236,7 +1280,7 @@ app.post('/dapur-umkm/products', async (c) => {
     const { data, error } = await supabase
       .from('umkm_products')
       .insert({ 
-        profile_id,
+        profile_id: profileId,
         name, 
         price, 
         stock: stock || 0, 
@@ -1265,9 +1309,10 @@ app.post('/dapur-umkm/products', async (c) => {
   }
 })
 
-// Update product
-app.put('/dapur-umkm/products/:id', async (c) => {
+// Update product (protected)
+app.put('/dapur-umkm/products/:id', authMiddleware, async (c) => {
   try {
+    const profileId = c.get('profileId');
     const id = c.req.param('id')
     const body = await c.req.json()
     const { name, price, stock, image_url, category, description, cost_price, is_available } = body
@@ -1285,6 +1330,7 @@ app.put('/dapur-umkm/products/:id', async (c) => {
         is_available
       })
       .eq('id', id)
+      .eq('profile_id', profileId)
       .select()
       .single()
 
@@ -1304,15 +1350,17 @@ app.put('/dapur-umkm/products/:id', async (c) => {
   }
 })
 
-// Delete product
-app.delete('/dapur-umkm/products/:id', async (c) => {
+// Delete product (protected)
+app.delete('/dapur-umkm/products/:id', authMiddleware, async (c) => {
   try {
+    const profileId = c.get('profileId');
     const id = c.req.param('id')
 
     const { error } = await supabase
       .from('umkm_products')
       .delete()
       .eq('id', id)
+      .eq('profile_id', profileId)
 
     if (error) throw error
 
@@ -1331,21 +1379,18 @@ app.delete('/dapur-umkm/products/:id', async (c) => {
 })
 
 // === TRANSACTIONS ===
-// Get all transactions
-app.get('/dapur-umkm/transactions', async (c) => {
+// Get all transactions (protected)
+app.get('/dapur-umkm/transactions', authMiddleware, async (c) => {
   try {
-    const profileId = c.req.query('profile_id')
+    const profileId = c.get('profileId');
     const type = c.req.query('type') // 'in' or 'out'
 
     let query = supabase
       .from('umkm_transactions')
       .select('*')
+      .eq('profile_id', profileId)
       .order('transaction_date', { ascending: false })
       .order('created_at', { ascending: false })
-    
-    if (profileId) {
-      query = query.eq('profile_id', profileId)
-    }
 
     if (type) {
       query = query.eq('type', type)
@@ -1369,11 +1414,12 @@ app.get('/dapur-umkm/transactions', async (c) => {
   }
 })
 
-// Add new transaction
-app.post('/dapur-umkm/transactions', async (c) => {
+// Add new transaction (protected)
+app.post('/dapur-umkm/transactions', authMiddleware, async (c) => {
   try {
+    const profileId = c.get('profileId');
     const body = await c.req.json()
-    const { profile_id, transaction_date, description, amount, type, category, product_id, notes } = body
+    const { transaction_date, description, amount, type, category, product_id, notes } = body
 
     if (!description || !amount || !type) {
       return c.json({ 
@@ -1392,7 +1438,7 @@ app.post('/dapur-umkm/transactions', async (c) => {
     const { data, error } = await supabase
       .from('umkm_transactions')
       .insert({ 
-        profile_id,
+        profile_id: profileId,
         transaction_date: transaction_date || new Date().toISOString().split('T')[0],
         description,
         amount,
@@ -1420,17 +1466,10 @@ app.post('/dapur-umkm/transactions', async (c) => {
   }
 })
 
-// Get financial summary
-app.get('/dapur-umkm/summary', async (c) => {
+// Get financial summary (protected)
+app.get('/dapur-umkm/summary', authMiddleware, async (c) => {
   try {
-    const profileId = c.req.query('profile_id')
-
-    if (!profileId) {
-      return c.json({ 
-        success: false,
-        message: 'profile_id diperlukan' 
-      }, 400)
-    }
+    const profileId = c.get('profileId');
 
     const metrics = await calculateBusinessMetrics(profileId)
 
@@ -1449,16 +1488,17 @@ app.get('/dapur-umkm/summary', async (c) => {
 })
 
 // === AI RECOMMENDATIONS ===
-// Get AI business advice
-app.post('/dapur-umkm/ai-advice', async (c) => {
+// Get AI business advice (protected)
+app.post('/dapur-umkm/ai-advice', authMiddleware, async (c) => {
   try {
+    const profileId = c.get('profileId');
     const body = await c.req.json()
-    const { profile_id, insight_type, question } = body
+    const { insight_type, question } = body
 
-    if (!profile_id || !insight_type || !question) {
+    if (!insight_type || !question) {
       return c.json({ 
         success: false,
-        message: 'profile_id, insight_type, dan question wajib diisi' 
+        message: 'insight_type dan question wajib diisi' 
       }, 400)
     }
 
@@ -1471,7 +1511,7 @@ app.post('/dapur-umkm/ai-advice', async (c) => {
     }
 
     const result = await getAIRecommendation({
-      profileId: profile_id,
+      profileId: profileId,
       insightType: insight_type,
       question
     })
@@ -1505,18 +1545,11 @@ app.get('/dapur-umkm/quick-insights', async (c) => {
   }
 })
 
-// Get past AI insights history
-app.get('/dapur-umkm/insights-history', async (c) => {
+// Get past AI insights history (protected)
+app.get('/dapur-umkm/insights-history', authMiddleware, async (c) => {
   try {
-    const profileId = c.req.query('profile_id')
+    const profileId = c.get('profileId');
     const limit = parseInt(c.req.query('limit') || '10')
-
-    if (!profileId) {
-      return c.json({ 
-        success: false,
-        message: 'profile_id diperlukan' 
-      }, 400)
-    }
 
     const result = await getPastInsights(profileId, limit)
 
@@ -1535,20 +1568,12 @@ app.get('/dapur-umkm/insights-history', async (c) => {
 // DASHBOARD ANALYTICS
 // ============================================
 
-// Generate comprehensive dashboard analysis with AI
-app.post('/dapur-umkm/dashboard-analysis', async (c) => {
+// Generate comprehensive dashboard analysis with AI (protected)
+app.post('/dapur-umkm/dashboard-analysis', authMiddleware, async (c) => {
   try {
-    const body = await c.req.json()
-    const { profile_id } = body
+    const profileId = c.get('profileId');
 
-    if (!profile_id) {
-      return c.json({ 
-        success: false,
-        message: 'profile_id diperlukan' 
-      }, 400)
-    }
-
-    const result = await generateDashboardAnalysis(profile_id)
+    const result = await generateDashboardAnalysis(profileId)
 
     return c.json(result)
 
@@ -1562,12 +1587,12 @@ app.post('/dapur-umkm/dashboard-analysis', async (c) => {
   }
 })
 
-// Get dashboard overview (all data in one call)
-app.get('/dapur-umkm/dashboard-overview', async (c) => {
+// Get dashboard overview (all data in one call) (protected)
+app.get('/dapur-umkm/dashboard-overview', authMiddleware, async (c) => {
   try {
-    const profileId = c.req.query('profile_id')
+    const profileId = c.get('profileId');
 
-    if (!profileId) {
+    if (false) {
       return c.json({ 
         success: false,
         message: 'profile_id diperlukan' 
