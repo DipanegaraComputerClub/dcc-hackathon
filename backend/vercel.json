@@ -1,7 +1,0 @@
-{
-  "buildCommand": "bun run build",
-  "installCommand": "bun install",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api" }
-  ]
-}
