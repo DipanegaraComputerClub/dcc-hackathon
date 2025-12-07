@@ -10,11 +10,12 @@ bun.lockb
 # Build output
 # dist/ - COMMENTED OUT FOR VERCEL: Keep dist/index.js in git for serverless runtime
 build/
-index.js
+/index.js
 index.js.map
 *.js.map
 !api/**/*.js
 !src/**/*.ts
+!dist/**/*.js
 
 # IDE
 .vscode/
