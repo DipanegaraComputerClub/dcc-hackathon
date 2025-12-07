@@ -13,16 +13,35 @@ module.exports = async (req, res) => {
     // Lazy load the app
     if (!app) {
       try {
-        // Try to load from dist first (after build)
-        const { default: honoApp } = require('../dist/index.js');
-        app = honoApp;
+        // Try multiple paths for Vercel compatibility
+        let honoApp;
+        try {
+          // Try relative path from api/
+          honoApp = require('../dist/index.js');
+        } catch (e1) {
+          try {
+            // Try from root
+            honoApp = require('./dist/index.js');
+          } catch (e2) {
+            // Try absolute path
+            honoApp = require('/var/task/dist/index.js');
+          }
+        }
+        app = honoApp.default || honoApp;
       } catch (err) {
-        console.error('Failed to load from dist/, trying direct import:', err.message);
-        // Fallback: try to import directly (won't work on Vercel but helps debug)
+        console.error('Failed to load Hono app:', err);
+        console.error('Current directory:', process.cwd());
+        console.error('Dirname:', __dirname);
+        
         return res.status(500).json({ 
           error: 'Build not found',
-          message: 'Backend build output missing. Run "bun run build" first.',
-          hint: 'Make sure dist/index.js exists after build'
+          message: 'Backend build output missing.',
+          hint: 'dist/index.js cannot be loaded',
+          debug: {
+            cwd: process.cwd(),
+            dirname: __dirname,
+            error: err.message
+          }
         });
       }
     }
