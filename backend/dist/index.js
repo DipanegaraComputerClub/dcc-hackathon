@@ -79354,6 +79354,70 @@ auth.post("/resend-verification", async (c) => {
     return c.json({ error: "Terjadi kesalahan server" }, 500);
   }
 });
+auth.get("/google", async (c) => {
+  try {
+    const { data, error: error2 } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${process.env.FRONTEND_URL || "https://hack-front.vercel.app"}/auth/callback`,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent"
+        }
+      }
+    });
+    if (error2) {
+      console.error("Google OAuth error:", error2);
+      return c.json({ error: "Gagal memulai login dengan Google" }, 500);
+    }
+    return c.json({ url: data.url });
+  } catch (error2) {
+    console.error("Google OAuth error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
+auth.post("/callback", async (c) => {
+  try {
+    const { access_token, refresh_token } = await c.req.json();
+    if (!access_token) {
+      return c.json({ error: "Token tidak valid" }, 400);
+    }
+    const { data: { user }, error: userError } = await supabase.auth.getUser(access_token);
+    if (userError || !user) {
+      return c.json({ error: "Invalid token" }, 401);
+    }
+    let { data: profile, error: profileError } = await supabase.from("umkm_profiles").select("*").eq("user_id", user.id).single();
+    if (profileError && profileError.code === "PGRST116") {
+      const { data: newProfile, error: createError } = await supabase.from("umkm_profiles").insert([{
+        user_id: user.id,
+        business_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "UMKM Baru",
+        category: "Kuliner",
+        phone: "",
+        address: "",
+        description: ""
+      }]).select().single();
+      if (createError) {
+        console.error("Profile creation error:", createError);
+      } else {
+        profile = newProfile;
+      }
+    }
+    return c.json({
+      message: "Login berhasil",
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0],
+        profile_id: profile?.id || null,
+        business_name: profile?.business_name || null,
+        category: profile?.category || null
+      }
+    });
+  } catch (error2) {
+    console.error("OAuth callback error:", error2);
+    return c.json({ error: "Terjadi kesalahan server" }, 500);
+  }
+});
 var auth_default = auth;
 
 // backend/src/telegram-bot.ts

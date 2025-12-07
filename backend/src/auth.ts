@@ -300,4 +300,98 @@ auth.post('/resend-verification', async (c) => {
   }
 });
 
+// ============================================
+// GOOGLE OAUTH - GET AUTH URL
+// ============================================
+auth.get('/google', async (c) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.FRONTEND_URL || 'https://hack-front.vercel.app'}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
+      }
+    });
+
+    if (error) {
+      console.error('Google OAuth error:', error);
+      return c.json({ error: 'Gagal memulai login dengan Google' }, 500);
+    }
+
+    return c.json({ url: data.url });
+
+  } catch (error: any) {
+    console.error('Google OAuth error:', error);
+    return c.json({ error: 'Terjadi kesalahan server' }, 500);
+  }
+});
+
+// ============================================
+// HANDLE OAUTH CALLBACK
+// ============================================
+auth.post('/callback', async (c) => {
+  try {
+    const { access_token, refresh_token } = await c.req.json();
+
+    if (!access_token) {
+      return c.json({ error: 'Token tidak valid' }, 400);
+    }
+
+    // Get user from token
+    const { data: { user }, error: userError } = await supabase.auth.getUser(access_token);
+
+    if (userError || !user) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
+
+    // Check if user has profile
+    let { data: profile, error: profileError } = await supabase
+      .from('umkm_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    // Create profile if doesn't exist (for OAuth users)
+    if (profileError && profileError.code === 'PGRST116') {
+      const { data: newProfile, error: createError } = await supabase
+        .from('umkm_profiles')
+        .insert([{
+          user_id: user.id,
+          business_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'UMKM Baru',
+          category: 'Kuliner',
+          phone: '',
+          address: '',
+          description: ''
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Profile creation error:', createError);
+      } else {
+        profile = newProfile;
+      }
+    }
+
+    return c.json({
+      message: 'Login berhasil',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
+        profile_id: profile?.id || null,
+        business_name: profile?.business_name || null,
+        category: profile?.category || null
+      }
+    });
+
+  } catch (error: any) {
+    console.error('OAuth callback error:', error);
+    return c.json({ error: 'Terjadi kesalahan server' }, 500);
+  }
+});
+
 export default auth;

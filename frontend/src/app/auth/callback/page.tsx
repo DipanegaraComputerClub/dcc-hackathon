@@ -13,30 +13,68 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get hash fragment from URL
+        // Check for error in URL
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const error = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
         const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
         const type = hashParams.get('type');
 
-        if (type === 'signup' && accessToken) {
-          // Email verified successfully
-          setStatus('success');
-          setMessage('Email berhasil diverifikasi! Redirecting ke login...');
+        if (error) {
+          // Handle errors
+          setStatus('error');
+          if (error === 'access_denied' && errorDescription?.includes('expired')) {
+            setMessage('Link verifikasi sudah kadaluarsa. Silakan minta link baru di halaman login.');
+          } else {
+            setMessage(errorDescription || 'Terjadi kesalahan. Silakan coba lagi.');
+          }
           
           setTimeout(() => {
-            router.push('/login');
-          }, 2000);
-        } else if (type === 'recovery') {
-          // Password recovery
-          setStatus('success');
-          setMessage('Redirecting ke reset password...');
-          
-          setTimeout(() => {
-            router.push('/reset-password');
-          }, 1500);
+            router.push('/login?error=verification_failed');
+          }, 3000);
+          return;
+        }
+
+        if (accessToken) {
+          // Save tokens
+          localStorage.setItem('access_token', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+          }
+
+          if (type === 'signup') {
+            // Email verified successfully
+            setStatus('success');
+            setMessage('Email berhasil diverifikasi! Redirecting...');
+            
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 1500);
+          } else if (type === 'recovery') {
+            // Password recovery
+            setStatus('success');
+            setMessage('Redirecting ke reset password...');
+            
+            setTimeout(() => {
+              router.push('/reset-password');
+            }, 1500);
+          } else {
+            // OAuth login (Google, etc)
+            setStatus('success');
+            setMessage('Login berhasil! Redirecting...');
+            
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 1500);
+          }
         } else {
           setStatus('error');
           setMessage('Link verifikasi tidak valid atau sudah kadaluarsa.');
+          
+          setTimeout(() => {
+            router.push('/login');
+          }, 3000);
         }
       } catch (error) {
         console.error('Callback error:', error);

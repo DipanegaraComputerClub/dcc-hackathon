@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -94,6 +95,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/google`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Gagal memulai login dengan Google');
+      }
+
+      // Redirect to Google OAuth
+      window.location.href = data.url;
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
   const register = async (registerData: RegisterData) => {
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -158,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginWithGoogle, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
