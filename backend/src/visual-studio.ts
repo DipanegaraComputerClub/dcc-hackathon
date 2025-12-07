@@ -4,10 +4,12 @@ import {
   analyzeImageWithSightengine, 
   removeBackgroundWithRemoveBg, 
   generateTemplateWithHuggingFace,
+  generateFallbackTemplate,
   type SightengineAnalysisResult,
   type BackgroundRemovalResult,
   type TemplateGenerationResult
 } from './external-apis'
+import { buildUMKMPrompt } from './services/templatePrompt'
 
 const KOLOSAL_API_KEY = process.env.KOLOSAL_API_KEY!
 const USE_MOCK = process.env.USE_MOCK_AI === 'true'
@@ -251,7 +253,6 @@ export async function generateUMKMBranding(
     // STEP 3: Generate design template with AI
     console.log('🎨 Step 3: Generating branded design template...')
     
-    const { buildUMKMPrompt } = await import('./services/templatePrompt')
     const prompt = buildUMKMPrompt(
       request.productName,
       request.businessType,
@@ -269,7 +270,6 @@ export async function generateUMKMBranding(
     if (!templateResult.success || !templateResult.imageBase64) {
       console.warn('⚠️ Template generation failed, using enhanced fallback with product image')
       // Import fallback function and pass product image
-      const { generateFallbackTemplate } = await import('./external-apis')
       const fallback = generateFallbackTemplate(
         prompt, 
         request.format, 
@@ -288,7 +288,6 @@ export async function generateUMKMBranding(
           finalDesign = composited
         } catch (error) {
           console.warn('⚠️ Composite failed, using fallback with product image')
-          const { generateFallbackTemplate } = await import('./external-apis')
           const fallback = generateFallbackTemplate(
             prompt, 
             request.format, 
