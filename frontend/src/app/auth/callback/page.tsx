@@ -25,7 +25,7 @@ export default function AuthCallbackPage() {
           // Handle errors
           setStatus('error');
           if (error === 'access_denied' && errorDescription?.includes('expired')) {
-            setMessage('Link verifikasi sudah kadaluarsa. Silakan minta link baru di halaman login.');
+            setMessage('Link sudah kadaluarsa. Silakan minta link baru.');
           } else {
             setMessage(errorDescription || 'Terjadi kesalahan. Silakan coba lagi.');
           }
@@ -37,40 +37,37 @@ export default function AuthCallbackPage() {
         }
 
         if (accessToken) {
-          // Save tokens
+          // Save tokens to localStorage
           localStorage.setItem('access_token', accessToken);
           if (refreshToken) {
             localStorage.setItem('refresh_token', refreshToken);
           }
 
-          if (type === 'signup') {
-            // Email verified successfully
-            setStatus('success');
-            setMessage('Email berhasil diverifikasi! Redirecting...');
-            
-            setTimeout(() => {
-              router.push('/dashboard');
-            }, 1500);
+          // Determine success message based on type
+          setStatus('success');
+          
+          if (type === 'magiclink') {
+            setMessage('🪄 Magic Link berhasil! Selamat datang di TABE AI...');
+          } else if (type === 'signup') {
+            setMessage('✅ Email berhasil diverifikasi! Redirecting...');
           } else if (type === 'recovery') {
-            // Password recovery
-            setStatus('success');
             setMessage('Redirecting ke reset password...');
-            
             setTimeout(() => {
               router.push('/reset-password');
             }, 1500);
+            return;
           } else {
-            // OAuth login (Google, etc)
-            setStatus('success');
+            // OAuth login (Google, GitHub, etc)
             setMessage('Login berhasil! Redirecting...');
-            
-            setTimeout(() => {
-              router.push('/dashboard');
-            }, 1500);
           }
+
+          // Redirect to dashboard
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 1500);
         } else {
           setStatus('error');
-          setMessage('Link verifikasi tidak valid atau sudah kadaluarsa.');
+          setMessage('Link tidak valid atau sudah kadaluarsa.');
           
           setTimeout(() => {
             router.push('/login');

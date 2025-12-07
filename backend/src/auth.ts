@@ -206,13 +206,35 @@ auth.get('/me', async (c) => {
     }
 
     // Get user profile
-    const { data: profile, error: profileError } = await supabase
+    let { data: profile, error: profileError } = await supabase
       .from('umkm_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (profileError) {
+    // Auto-create profile if doesn't exist (for Magic Link users)
+    if (profileError && profileError.code === 'PGRST116') {
+      console.log('Creating profile for Magic Link user:', user.id);
+      
+      const { data: newProfile, error: createError } = await supabase
+        .from('umkm_profiles')
+        .insert([{
+          user_id: user.id,
+          business_name: user.user_metadata?.name || user.email?.split('@')[0] || 'UMKM Baru',
+          category: 'Kuliner',
+          phone: '',
+          address: '',
+          description: ''
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Profile creation error:', createError);
+      } else {
+        profile = newProfile;
+      }
+    } else if (profileError) {
       console.error('Profile error:', profileError);
     }
 
